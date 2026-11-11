@@ -2,7 +2,8 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 import { Seo } from '../lib/seo';
 import { getProductBySlug, getVariant, isPersonalised, occasions, relatedProducts } from '../data/catalog';
-import { productPrice } from '../lib/format';
+import { formatPrice } from '../lib/format';
+import { useLiveProduct } from '../store/live';
 import { imageUrl } from '../lib/images';
 import { useAddToCart } from '../lib/useAddToCart';
 import { useCart } from '../store/cart';
@@ -32,6 +33,8 @@ function ProductView({ slug }: { slug: string }) {
   const [added, setAdded] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
   const addToCart = useAddToCart();
+  const live = useLiveProduct(p);
+  const unavailable = live.hidden || live.soldOut;
   const openDrawer = useUi((s) => s.openDrawer);
   const inCartQty = useCart((s) => s.lines.filter((l) => l.productId === p.id).reduce((t, l) => t + l.qty, 0));
   const personalised = isPersonalised(p);
@@ -159,8 +162,13 @@ function ProductView({ slug }: { slug: string }) {
           <h1 id="product-title" className="m-0 font-serif text-[clamp(38px,4.6vw,64px)] font-medium leading-[1] tracking-[-.01em]">
             {p.name}
           </h1>
-          <p className="mb-0 mt-5 text-[22px] font-bold text-price">{productPrice(p)}</p>
-          {p.priceStatus !== 'set' && <p className="mb-0 mt-1 text-sm text-muted-2">Coco confirms the price with you before payment.</p>}
+          <p className="mb-0 mt-5 text-[22px] font-bold text-price">{formatPrice(live.price)}</p>
+          {live.price === null && <p className="mb-0 mt-1 text-sm text-muted-2">Coco confirms the price with you before payment.</p>}
+          {unavailable && (
+            <p role="status" className="mb-0 mt-3 inline-flex self-start rounded-full bg-[#FBEAEA] px-4 py-2 text-sm font-bold text-[#7A1F1F]">
+              {live.hidden ? 'This piece is no longer available.' : 'Sold out — message Coco to order it custom.'}
+            </p>
+          )}
           <p className="mb-0 mt-6 max-w-[540px] text-[17px] leading-[1.7] text-muted">{p.description}</p>
 
           <dl className="m-0 mt-6 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
@@ -227,9 +235,12 @@ function ProductView({ slug }: { slug: string }) {
             <button
               type="button"
               onClick={onAdd}
-              className="btn btn-primary inline-flex min-h-[54px] flex-1 items-center justify-center gap-2.5 rounded-full border-0 bg-teal-btn px-8 text-base font-bold text-white sm:flex-none"
+              disabled={unavailable}
+              className="btn btn-primary inline-flex min-h-[54px] flex-1 items-center justify-center gap-2.5 rounded-full border-0 bg-teal-btn px-8 text-base font-bold text-white disabled:bg-line disabled:text-muted-2 sm:flex-none"
             >
-              {added ? (
+              {unavailable ? (
+                'Sold out'
+              ) : added ? (
                 <>
                   <Check /> Added to cart
                 </>

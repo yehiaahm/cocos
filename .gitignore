@@ -19,3 +19,4 @@ Thumbs.db
 
 # Cloudflare local dev state
 .wrangler
+.dev.vars

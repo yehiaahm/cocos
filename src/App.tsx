@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Route, Routes, useLocation } from 'react-router';
 import { Layout } from './components/Layout';
 import { CtaFooter, SiteFooter } from './components/Footer';
@@ -5,10 +6,23 @@ import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
 import { ProductPage } from './pages/ProductPage';
 import { CheckoutPage } from './pages/CheckoutPage';
+import { OrderPage } from './pages/OrderPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+
+// The dashboard is a separate chunk: shoppers never download it.
+const AdminApp = lazy(() => import('./admin/AdminApp'));
 
 export function App() {
   const { pathname } = useLocation();
+
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-[#F4F1EA]" aria-busy="true" />}>
+        <AdminApp />
+      </Suspense>
+    );
+  }
+
   return (
     <Layout footer={pathname === '/' ? <CtaFooter /> : <SiteFooter />}>
       <Routes>
@@ -17,6 +31,7 @@ export function App() {
         <Route path="/shop/:category" element={<ShopPage />} />
         <Route path="/product/:slug" element={<ProductPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/order/:number" element={<OrderPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Layout>

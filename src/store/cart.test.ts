@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { lineKey, sanitiseLines, selectCount, useCart } from './cart';
-import { normaliseEgyptPhone } from '../pages/CheckoutPage';
+import { normaliseEgyptPhone } from '../lib/phone';
 
 describe('cart store', () => {
   beforeEach(() => useCart.setState({ lines: [] }));

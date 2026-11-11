@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router';
 import { defaultVariant, type Product } from '../data/catalog';
-import { productPrice } from '../lib/format';
+import { formatPrice } from '../lib/format';
+import { useLiveProduct } from '../store/live';
 import { useAddToCart } from '../lib/useAddToCart';
 import { useCart } from '../store/cart';
 import { Picture } from './Picture';
@@ -24,7 +25,10 @@ interface Props {
 export function ProductCard({ product: p, meta, heading: H = 'h2', index = 0, priority = false, className = '', style }: Props) {
   const inCart = useCart((s) => s.lines.some((l) => l.productId === p.id));
   const addToCart = useAddToCart();
+  const live = useLiveProduct(p);
   const options = p.variants.length;
+  // Hidden from the dashboard: drop out of every list once live data arrives.
+  if (live.hidden) return null;
 
   return (
     <article className={`card group relative h-full ${className}`} style={{ animationDelay: `${Math.min(index, 12) * 0.04}s`, ...style }}>
@@ -32,6 +36,9 @@ export function ProductCard({ product: p, meta, heading: H = 'h2', index = 0, pr
         <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-skeleton max-[560px]:rounded-xl">
           <Picture src={p.image} alt={p.name} sizes={GRID_SIZES} priority={priority} className="h-full w-full" />
           <span className="absolute left-2 top-2 rounded-full bg-cream/95 px-2.5 py-[5px] text-[11px] font-bold text-ink">{p.categoryName}</span>
+          {live.soldOut && (
+            <span className="absolute right-2 top-2 rounded-full bg-[#7A1F1F] px-2.5 py-[5px] text-[11px] font-bold text-white">Sold out</span>
+          )}
           {options > 1 && (
             <span className="absolute bottom-2 right-2 rounded-full bg-ink px-2.5 py-[5px] text-[11px] font-bold text-gold-light">{options} options</span>
           )}
@@ -47,20 +54,21 @@ export function ProductCard({ product: p, meta, heading: H = 'h2', index = 0, pr
           </H>
           <p className="clamp-2 m-0 text-[13.5px] leading-[1.55] text-muted-2 max-[560px]:hidden">{meta ?? p.description}</p>
           <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3">
-            <span className="text-[13px] font-bold text-price">{productPrice(p)}</span>
+            <span className="text-[13px] font-bold text-price">{formatPrice(live.price)}</span>
             <button
               type="button"
+              disabled={live.soldOut}
               onClick={(e) => {
                 const v = defaultVariant(p);
                 addToCart({ productId: p.id, variantId: v.catalogId, image: p.image }, e.currentTarget.closest('article'));
               }}
-              className={`btn relative z-10 min-h-11 rounded-full border-0 px-4 text-[13.5px] font-bold text-white max-[560px]:w-full ${
+              className={`btn relative z-10 min-h-11 rounded-full border-0 px-4 text-[13.5px] font-bold text-white max-[560px]:w-full disabled:bg-line disabled:text-muted-2 disabled:hover:bg-line ${
                 inCart ? 'bg-teal-btn hover:bg-teal-dark' : 'bg-ink hover:bg-teal-dark'
               }`}
             >
               {/* Visible text first so the accessible name contains it (WCAG 2.5.3). */}
-              {inCart ? 'In cart ✓' : 'Add to cart'}
-              <span className="sr-only">{inCart ? ` — add another ${p.name}` : `: ${p.name}`}</span>
+              {live.soldOut ? 'Sold out' : inCart ? 'In cart ✓' : 'Add to cart'}
+              <span className="sr-only">{live.soldOut ? `: ${p.name}` : inCart ? ` — add another ${p.name}` : `: ${p.name}`}</span>
             </button>
           </div>
         </div>

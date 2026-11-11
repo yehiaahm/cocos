@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Coco's Art — handmade home decor e-commerce site",
+  "description": "Coco's Resin Art — handmade home decor e-commerce site",
   "engines": {
     "node": ">=20.19"
   },
@@ -11,13 +11,17 @@
     "images": "node scripts/optimize-images.mjs",
     "predev": "npm run images",
     "dev": "vite",
-    "typecheck": "tsc -b",
+    "typecheck": "tsc -b && tsc -p functions/tsconfig.json",
     "test": "vitest run",
     "prebuild": "npm run images",
-    "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
+    "build": "tsc -b && tsc -p functions/tsconfig.json && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
     "preview": "vite preview --port 4173 --strictPort",
     "preview:cf": "wrangler pages dev dist --port 8788",
-    "deploy": "npm run build && wrangler pages deploy"
+    "deploy": "npm run build && wrangler pages deploy",
+    "setup:secrets": "node scripts/setup-secrets.mjs",
+    "db:migrate": "wrangler d1 migrations apply cocos-art --local",
+    "db:migrate:prod": "wrangler d1 migrations apply cocos-art --remote",
+    "dev:api": "wrangler pages dev dist --port 8788"
   },
   "dependencies": {
     "react": "19.2.9",
@@ -26,6 +30,7 @@
     "zustand": "5.0.16"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "5.20261027.1",
     "@tailwindcss/vite": "4.1.18",
     "@testing-library/react": "16.3.3",
     "@types/node": "22.20.5",

@@ -5,6 +5,10 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    // The API runs in Cloudflare's local runtime (`npm run dev:api`, port 8788).
+    proxy: { '/api': 'http://localhost:8788' },
+  },
   build: {
     target: 'es2020',
     cssMinify: true,
@@ -19,7 +23,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'server/**/*.test.ts'],
     setupFiles: ['src/test-setup.ts'],
   },
 });

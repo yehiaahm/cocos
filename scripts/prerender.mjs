@@ -36,6 +36,21 @@ for (const url of routes) {
 // data-path="*": hosts only serve 404.html for URLs that aren't prerendered routes, so it always hydrates.
 await writeFile(path.join(dist, '404.html'), page('/404').replace('data-path="/404"', 'data-path="*"'));
 
+// Client-rendered shells: the dashboard and customers' private order pages are never prerendered
+// (they need live data and must not be indexed). functions/admin and functions/order serve them for every sub-URL.
+const shell = (title, extraHead = '') =>
+  template
+    .replace('<!--app-head-->', `<title>${title}</title>\n    <meta name="robots" content="noindex, nofollow">${extraHead}`)
+    .replace('<div id="root"><!--app-html--></div>', '<div id="root"></div>');
+await writeFile(
+  path.join(dist, 'admin.html'),
+  shell(
+    `Dashboard · ${site.name}`,
+    '\n    <meta name="apple-mobile-web-app-capable" content="yes">\n    <meta name="apple-mobile-web-app-title" content="Coco Admin">',
+  ).replace('href="/site.webmanifest"', 'href="/admin.webmanifest"'),
+);
+await writeFile(path.join(dist, 'order.html'), shell(`Your order · ${site.name}`));
+
 const today = new Date().toISOString().slice(0, 10);
 const indexable = routes.filter((r) => r !== '/checkout');
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -53,7 +68,7 @@ ${indexable
 await writeFile(path.join(dist, 'sitemap.xml'), sitemap);
 await writeFile(
   path.join(dist, 'robots.txt'),
-  `User-agent: *\nAllow: /\nDisallow: /checkout\n\nSitemap: ${site.url}/sitemap.xml\n`,
+  `User-agent: *\nAllow: /\nDisallow: /checkout\nDisallow: /admin\nDisallow: /order/\nDisallow: /api/\n\nSitemap: ${site.url}/sitemap.xml\n`,
 );
 
 await rm(ssrDir, { recursive: true, force: true });

@@ -5,6 +5,7 @@ import { CartDrawer } from './CartDrawer';
 import { FloatingCart, FlyToCart } from './FloatingCart';
 import { useCart } from '../store/cart';
 import { CART_STORAGE_KEY } from '../store/cart';
+import { useLive } from '../store/live';
 
 /** Scroll to top on new pages, to the anchor for hash links, and leave back/forward alone. */
 function ScrollManager() {
@@ -63,6 +64,8 @@ function RevealObserver() {
 function CartSync() {
   useEffect(() => {
     void useCart.persist.rehydrate();
+    // Live prices / stock / payment details from the dashboard.
+    void useLive.getState().load();
     const onStorage = (e: StorageEvent) => {
       if (e.key === CART_STORAGE_KEY) void useCart.persist.rehydrate();
     };

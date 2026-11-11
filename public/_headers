@@ -16,3 +16,15 @@
 
 /og-image.jpg
   Cache-Control: public, max-age=604800
+
+# Dashboard and private order pages: never cached at the edge, never indexed
+/admin
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+/admin/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+/order/*
+  X-Robots-Tag: noindex, nofollow
+/admin-sw.js
+  Cache-Control: no-cache

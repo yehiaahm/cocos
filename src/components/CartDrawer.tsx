@@ -5,22 +5,26 @@ import { useUi } from '../store/ui';
 import { getProductById, getVariant } from '../data/catalog';
 import { imageUrl } from '../lib/images';
 import { formatPrice } from '../lib/format';
+import { liveFor, useLive } from '../store/live';
+import type { CatalogOverrides } from '../lib/api-types';
 import { ArrowRight, Close } from './Icons';
 
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])';
 
-/** Resolve a cart line against the live catalog (names/photos stay current). */
-export function resolveLine(l: CartLine) {
+/** Resolve a cart line against the catalog and live dashboard data (names, photos, prices, stock). */
+export function resolveLine(l: CartLine, overrides: CatalogOverrides = {}) {
   const p = getProductById(l.productId);
   if (!p) return null;
   const v = getVariant(p, l.variantId);
+  const live = liveFor(overrides, p);
   return {
     line: l,
     product: p,
     variant: v,
     image: v.images[0] ?? p.image,
     variantLabel: p.variants.length > 1 ? v.name : null,
-    unitPrice: p.priceStatus === 'set' ? p.price : null,
+    unitPrice: live.price,
+    unavailable: live.hidden || live.soldOut,
   };
 }
 
@@ -71,6 +75,7 @@ export function CartDrawer() {
   const setQty = useCart((s) => s.setQty);
   const remove = useCart((s) => s.remove);
   const panelRef = useRef<HTMLElement>(null);
+  const overrides = useLive((s) => s.overrides);
 
   // Focus trap, Esc to close, body scroll lock, focus returned to the trigger.
   useEffect(() => {
@@ -108,7 +113,7 @@ export function CartDrawer() {
   }, [open, close, returnFocus]);
 
   if (!open) return null;
-  const items = lines.map(resolveLine).filter((x): x is NonNullable<ReturnType<typeof resolveLine>> => !!x);
+  const items = lines.map((l) => resolveLine(l, overrides)).filter((x): x is NonNullable<ReturnType<typeof resolveLine>> => !!x);
   const allPriced = items.length > 0 && items.every((i) => i.unitPrice !== null);
   const subtotal = allPriced ? items.reduce((t, i) => t + (i.unitPrice ?? 0) * i.line.qty, 0) : null;
 
@@ -160,7 +165,7 @@ export function CartDrawer() {
             </div>
           ) : (
             <ul className="m-0 list-none p-0">
-              {items.map(({ line, product, variantLabel, image, unitPrice }) => (
+              {items.map(({ line, product, variantLabel, image, unitPrice, unavailable }) => (
                 <li key={line.key} className="flex items-center gap-3.5 border-b border-line-2 py-4">
                   <Link to={`/product/${product.slug}?variant=${line.variantId}`} onClick={close} className="flex-none" tabIndex={-1} aria-hidden="true">
                     <img src={imageUrl(image, 320)} alt="" width={76} height={76} className="h-[76px] w-[76px] rounded-[14px] object-cover" loading="lazy" />
@@ -175,7 +180,11 @@ export function CartDrawer() {
                         Personalised: <q className="font-semibold text-ink">{line.personalisation}</q>
                       </span>
                     )}
-                    <span className="text-[12.5px] font-bold text-price">{formatPrice(unitPrice)}</span>
+                    {unavailable ? (
+                      <span className="text-[12.5px] font-bold text-[#9B1C1C]">No longer available — please remove</span>
+                    ) : (
+                      <span className="text-[12.5px] font-bold text-price">{formatPrice(unitPrice)}</span>
+                    )}
                     <div className="flex flex-wrap items-center gap-2">
                       <QtyStepper value={line.qty} min={1} label={product.name} onChange={(n) => setQty(line.key, n)} />
                       <button

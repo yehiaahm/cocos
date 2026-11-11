@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { products, type Product } from './catalog';
+import { useLive } from '../store/live';
 
 export type ProductsState =
   | { status: 'loading'; products: readonly Product[] }
@@ -6,10 +8,11 @@ export type ProductsState =
   | { status: 'ready'; products: readonly Product[] };
 
 /**
- * Single access point for the product list. Today the catalog is bundled, so it is
- * ready immediately (and prerendered for SEO). When products move to an API or CMS,
- * swap this hook for a fetch — the Shop page already renders loading and error states.
+ * Single access point for the product list. The catalog is bundled (and prerendered for SEO);
+ * products the owner hides in the dashboard drop out as soon as the live data arrives.
  */
 export function useProducts(): ProductsState {
-  return { status: 'ready', products };
+  const overrides = useLive((s) => s.overrides);
+  const visible = useMemo(() => products.filter((p) => !overrides[p.id]?.hidden), [overrides]);
+  return { status: 'ready', products: visible };
 }

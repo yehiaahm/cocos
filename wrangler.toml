@@ -3,3 +3,20 @@
 name = "cocos-art"
 pages_build_output_dir = "dist"
 compatibility_date = "2026-10-01"
+
+# Orders database. Create it once with `npx wrangler d1 create cocos-art`
+# and paste the database_id it prints below (see README → "Orders & dashboard").
+[[d1_databases]]
+binding = "DB"
+database_name = "cocos-art"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+# Payment screenshots (InstaPay / wallet transfers). Create with `npx wrangler r2 bucket create cocos-art-uploads`.
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "cocos-art-uploads"
+
+# Secrets (never in this file) — set each with `npx wrangler pages secret put <NAME>`:
+#   ADMIN_PASSWORD, SESSION_SECRET, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT
+# For local development they live in .dev.vars (created by `npm run setup:secrets`).
