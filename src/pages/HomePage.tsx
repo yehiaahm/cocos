@@ -26,7 +26,7 @@ export function HomePage() {
             name: site.name,
             description: site.description,
             url: site.url,
-            logo: absoluteUrl('/apple-touch-icon.png'),
+            logo: absoluteUrl('/brand/logo.png'),
             image: absoluteUrl(site.ogImage),
             address: { '@type': 'PostalAddress', addressCountry: 'EG' },
             currenciesAccepted: site.currency,

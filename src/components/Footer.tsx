@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { Wordmark } from './Logo';
+import { LogoBadge } from './Logo';
 import { Facebook, Instagram, WhatsApp } from './Icons';
 import { contactLink, site } from '../config/site';
 import { categories } from '../data/catalog';
@@ -90,7 +90,7 @@ export function CtaFooter() {
 function FooterBar() {
   return (
     <div className="mt-10 flex flex-wrap items-center justify-between gap-5 border-t border-cream/15 pt-7 text-sm text-mist-2">
-      <Wordmark />
+      <LogoBadge />
       <span>Handmade board games · resin · wood &amp; decoupage · macramé · candles</span>
       <span suppressHydrationWarning>© {year} {site.name}</span>
     </div>

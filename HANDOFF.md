@@ -1,6 +1,6 @@
-# Coco's Art — Website Build Handoff
+# Coco's Resin Art — Website Build Handoff
 
-Handmade home-decor e-commerce site for **Coco's Art** (Instagram: `@coco_resin_art`), Egypt.
+Handmade home-decor e-commerce site for **Coco's Resin Art** (Instagram: `@coco_resin_art`), Egypt.
 Currency **EGP**. The site is in English, with Arabic accent labels.
 
 This package has the approved design, the product data and all product photos. Build a
@@ -98,7 +98,7 @@ The cart is a **drawer** on every page, not a route.
 
 ## 5. Homepage sections (in order)
 1. **Nav**
-   - Logo: SVG brush-stroke "C" that draws itself on load, "Coco's" in script and "ART" in caps.
+   - Logo: the official "Coco's Resin Art" mark (master file `brand/logo-source.jpg`), revealed with a brush-sweep on load. Every logo asset — header/footer WebP, `public/brand/logo.png`, favicons, app icons and the OG image — is generated from it by `node scripts/make-brand-assets.mjs`.
    - Links: Shop, Categories, Board games, Workshops, Custom gifts.
    - Account icon, and a Cart button with a count badge.
    - On phones the links collapse. **Add a hamburger menu** (the reference just hides them).
@@ -230,7 +230,7 @@ type Product = {
 | `spin` / `spinRev` | Disc layers, badge | 26s / 40s / 22s linear |
 | `twinkle` | Gold flecks | 3.6s scale + opacity |
 | `float` | Floating photos | translateY −18px, 7–9s |
-| `draw` | Logo "C" | stroke-dashoffset 900 → 0, 2.2s |
+| `sweep` | Header logo | conic mask `--sweep` 0 → 360deg, 1.9s |
 | `marquee` | Strip | translateX −50%, 38s linear |
 | `shimmer` | Gold text, skeletons | background-position sweep |
 | `pop` | XO marks | scale 0.3 → 1.12 → 1, staggered 0.35s |

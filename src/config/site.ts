@@ -6,11 +6,11 @@
  * button is hidden, so no link on the site is ever dead.
  */
 export const site = {
-  name: "Coco's Art",
-  shortName: 'Coco’s Art',
+  name: "Coco's Resin Art",
+  shortName: 'Coco’s Resin Art',
   tagline: 'Handmade home decor, poured by hand in Egypt',
   description:
-    "Handmade resin, wood & decoupage, macramé and candle pieces, plus heirloom resin board games — made in small batches in Egypt by Coco's Art. Personalised gifts and creative workshops.",
+    "Handmade resin, wood & decoupage, macramé and candle pieces, plus heirloom resin board games — made in small batches in Egypt by Coco's Resin Art. Personalised gifts and creative workshops.",
   locale: 'en_EG',
   country: 'Egypt',
   currency: 'EGP' as const,

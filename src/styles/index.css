@@ -195,12 +195,19 @@
     transform: scale(1.15);
   }
 }
-@keyframes draw {
+/* Logo brush-sweep: a conic mask opens anticlockwise from the top end of the "C",
+   the way the stroke was painted. Without @property support the logo simply shows. */
+@property --sweep {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 360deg;
+}
+@keyframes sweep {
   from {
-    stroke-dashoffset: 900;
+    --sweep: 0deg;
   }
   to {
-    stroke-dashoffset: 0;
+    --sweep: 360deg;
   }
 }
 @keyframes marquee {
@@ -379,10 +386,16 @@
   background: radial-gradient(circle, #fff3c4, #d4af5a 55%, rgba(212, 175, 90, 0) 72%);
   animation: twinkle 3.6s ease-in-out infinite;
 }
-.draw-c {
-  stroke-dasharray: 900;
-  stroke-dashoffset: 900;
-  animation: draw 2.2s cubic-bezier(0.6, 0.1, 0.2, 1) 0.2s forwards;
+.logo-reveal {
+  -webkit-mask-image: conic-gradient(from 45deg, transparent calc(360deg - var(--sweep)), #000 0);
+  mask-image: conic-gradient(from 45deg, transparent calc(360deg - var(--sweep)), #000 0);
+  animation: sweep 1.9s cubic-bezier(0.6, 0.1, 0.2, 1) 0.15s both;
+}
+.logo-link img {
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.logo-link:hover img {
+  transform: rotate(-6deg) scale(1.04);
 }
 .marquee-track {
   animation: marquee 38s linear infinite;
@@ -601,7 +614,8 @@
     opacity: 1 !important;
     transform: none !important;
   }
-  .draw-c {
-    stroke-dashoffset: 0;
+  .logo-reveal {
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 }
