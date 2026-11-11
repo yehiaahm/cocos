@@ -5,23 +5,25 @@
   "type": "module",
   "description": "Coco's Resin Art — handmade home decor e-commerce site",
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22.13"
   },
   "scripts": {
     "images": "node scripts/optimize-images.mjs",
     "predev": "npm run images",
     "dev": "vite",
-    "typecheck": "tsc -b && tsc -p functions/tsconfig.json",
+    "typecheck": "tsc -b && tsc -p functions/tsconfig.json && tsc -p server/node/tsconfig.json",
     "test": "vitest run",
     "prebuild": "npm run images",
-    "build": "tsc -b && tsc -p functions/tsconfig.json && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
+    "build": "tsc -b && tsc -p functions/tsconfig.json && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs && npm run build:server",
     "preview": "vite preview --port 4173 --strictPort",
     "preview:cf": "wrangler pages dev dist --port 8788",
     "deploy": "npm run build && wrangler pages deploy",
     "setup:secrets": "node scripts/setup-secrets.mjs",
     "db:migrate": "wrangler d1 migrations apply cocos-art --local",
     "db:migrate:prod": "wrangler d1 migrations apply cocos-art --remote",
-    "dev:api": "wrangler pages dev dist --port 8788"
+    "dev:api": "wrangler pages dev dist --port 8788",
+    "build:server": "node scripts/build-server.mjs",
+    "start": "node --disable-warning=ExperimentalWarning dist-server/server.mjs"
   },
   "dependencies": {
     "react": "19.2.9",
@@ -37,6 +39,7 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "@vitejs/plugin-react": "5.2.0",
+    "esbuild": "0.28.2",
     "jsdom": "26.1.0",
     "sharp": "0.34.5",
     "tailwindcss": "4.1.18",
