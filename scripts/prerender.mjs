@@ -26,8 +26,10 @@ const page = (url) => {
     .replace('<div id="root"><!--app-html--></div>', `<div id="root" data-path="${url}">${html}</div>`);
 };
 
+// "/shop/resin" is written as dist/shop/resin.html (not shop/resin/index.html) so Cloudflare Pages,
+// Netlify and Vercel all serve it at the clean URL with no trailing-slash redirect.
 for (const url of routes) {
-  const file = url === '/' ? path.join(dist, 'index.html') : path.join(dist, url.slice(1), 'index.html');
+  const file = url === '/' ? path.join(dist, 'index.html') : path.join(dist, `${url.slice(1)}.html`);
   await mkdir(path.dirname(file), { recursive: true });
   await writeFile(file, page(url));
 }

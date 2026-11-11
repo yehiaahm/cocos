@@ -15,7 +15,9 @@
     "test": "vitest run",
     "prebuild": "npm run images",
     "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
-    "preview": "vite preview --port 4173 --strictPort"
+    "preview": "vite preview --port 4173 --strictPort",
+    "preview:cf": "wrangler pages dev dist --port 8788",
+    "deploy": "npm run build && wrangler pages deploy"
   },
   "dependencies": {
     "react": "19.2.9",
@@ -35,6 +37,7 @@
     "tailwindcss": "4.1.18",
     "typescript": "5.9.3",
     "vite": "7.3.8",
-    "vitest": "3.2.7"
+    "vitest": "3.2.7",
+    "wrangler": "4.151.2"
   }
 }

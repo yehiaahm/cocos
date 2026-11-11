@@ -15,7 +15,10 @@ export const site = {
   country: 'Egypt',
   currency: 'EGP' as const,
 
-  /** Production URL, set with VITE_SITE_URL at build time (see .env.example). */
+  /**
+   * Production URL (no trailing slash) — used for canonical links, Open Graph and sitemap.xml.
+   * TODO (owner): replace with the real domain. A VITE_SITE_URL build variable overrides it.
+   */
   url: (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://www.example.com',
 
   /** WhatsApp number in international format, digits only, e.g. "201001234567". */

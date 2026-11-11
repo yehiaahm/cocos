@@ -1,0 +1,5 @@
+# Cloudflare Pages project config (used by Git integration and `npm run deploy`).
+# The production domain is set in src/config/site.ts (or VITE_SITE_URL as a *build* variable).
+name = "cocos-art"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"

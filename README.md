@@ -21,7 +21,7 @@ Node 20.19+ is required (22 LTS recommended).
 |---|---|
 | WhatsApp number (international digits, e.g. `2010…`) | `src/config/site.ts` → `whatsappNumber` |
 | Facebook page URL | `src/config/site.ts` → `facebookUrl` |
-| Production domain | env var `VITE_SITE_URL` on the host (see `.env.example`) |
+| Production domain | `src/config/site.ts` → `url` (or a `VITE_SITE_URL` build variable) |
 | Prices | `data/products.json` → set `price` and `priceStatus: "set"` |
 
 Until the WhatsApp number is set, every WhatsApp button falls back to Instagram and checkout copies the
@@ -29,12 +29,38 @@ order for an Instagram DM. The Facebook button stays hidden until its URL is set
 
 ## Deploying
 
-The build outputs a fully static site in `dist/` — any static host works.
+The build outputs a fully static site in `dist/`. Each page is written as `dist/<path>.html`
+(e.g. `dist/shop/resin.html`), so hosts serve it at the clean URL `/shop/resin` with no redirect.
 
-- **Netlify**: connect the repo; `netlify.toml` is already set up. Add `VITE_SITE_URL` under environment variables.
-- **Vercel**: import the repo; `vercel.json` is already set up. Add `VITE_SITE_URL` under environment variables.
-- **Anything else**: upload `dist/`. Serve `/<path>` from `/<path>/index.html` and use `404.html` for unknown URLs.
-  Cache `/assets/*` forever (file names are hashed).
+### Cloudflare Pages (recommended)
+
+**Option A — connect GitHub (auto-deploys on every push)**
+
+1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git** → pick this repo.
+2. Build settings:
+   - Framework preset: **None**
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - Node version comes from `.node-version` (22).
+3. **Save and Deploy**. Then **Custom domains** → add the shop's domain.
+
+**Option B — deploy from your computer**
+
+```bash
+npx wrangler login     # once
+npm run deploy         # builds, then uploads dist/ to the "cocos-art" Pages project
+```
+
+Test the exact Cloudflare behaviour locally with `npm run build && npm run preview:cf` (http://localhost:8788).
+
+What's already configured: `public/_headers` (security headers, long caching for `/assets/*` and images),
+`404.html` served with a real 404 status, `wrangler.toml` (project name + output dir).
+In the Cloudflare dashboard, leave **Rocket Loader** off (it delays React). Auto Minify isn't needed.
+
+### Other hosts
+- **Netlify** / **Vercel**: import the repo; `netlify.toml` / `vercel.json` are already set up.
+- **Anything else**: upload `dist/`, serve `/<path>` from `/<path>.html`, use `404.html` for unknown URLs,
+  and cache `/assets/*` forever (file names are hashed).
 
 ## How it fits together
 
