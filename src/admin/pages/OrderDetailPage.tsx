@@ -322,15 +322,16 @@ export function OrderDetailPage() {
             </div>
             <dl className="m-0 mt-4 grid gap-2 border-t border-[#F1EEE7] pt-4 text-sm">
               <dt className="text-xs font-bold text-muted-2">العنوان</dt>
+              {/* Customers type in English or Arabic: each line picks its own direction. */}
               <dd className="m-0 whitespace-pre-line">
-                {order.city}
+                <bdi dir="auto">{order.city}</bdi>
                 {'\n'}
-                {order.address}
+                <bdi dir="auto">{order.address}</bdi>
               </dd>
               {order.notes && (
                 <>
                   <dt className="mt-2 text-xs font-bold text-muted-2">ملاحظات العميل</dt>
-                  <dd className="m-0 whitespace-pre-line rounded-lg bg-[#FFF8E6] p-2.5">{order.notes}</dd>
+                  <dd className="m-0 whitespace-pre-line rounded-lg bg-[#FFF8E6] p-2.5" dir="auto">{order.notes}</dd>
                 </>
               )}
             </dl>
