@@ -1,4 +1,5 @@
 import type { Fn } from '../../../server/env';
+import { isAdminEmail } from '../../../server/auth';
 import { HttpError, assertSameOrigin, handle, ipHash, json, rateLimit, readJson, str } from '../../../server/http';
 import {
   checkPasswordStrength,
@@ -24,6 +25,8 @@ export const onRequestPost: Fn = handle(async ({ request, env }) => {
   if (name.length < 2) throw new HttpError(400, 'Please enter your name.', 'name');
   if (!isEmail(email)) throw new HttpError(400, 'Please enter a valid email address.', 'email');
   checkPasswordStrength(password);
+  // The owner's email is reserved for the dashboard sign-in.
+  if (isAdminEmail(env, email)) throw new HttpError(409, 'This email already has an account. Sign in instead.', 'email_taken');
 
   const existing = await env.DB.prepare('SELECT id, google_sub, password_hash FROM users WHERE email = ?')
     .bind(email)

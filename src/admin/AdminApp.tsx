@@ -3,7 +3,6 @@ import { Link, NavLink, Route, Routes, useLocation } from 'react-router';
 import { api } from './api';
 import { Icon } from './ui';
 import { ensureWorker } from './push';
-import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
@@ -163,6 +162,14 @@ function Shell({ children }: { children: ReactNode }) {
   );
 }
 
+function SignInRedirect() {
+  useEffect(() => {
+    const here = window.location.pathname + window.location.search;
+    window.location.replace(`/login?next=${encodeURIComponent(here)}`);
+  }, []);
+  return <div className="min-h-screen bg-[#F4F1EA]" aria-busy="true" />;
+}
+
 export default function AdminApp() {
   useAdminHead();
   const [state, setState] = useState<'checking' | 'anon' | 'authed'>('checking');
@@ -185,7 +192,7 @@ export default function AdminApp() {
   const signOut = useCallback(async () => {
     await api('/api/admin/login', { method: 'DELETE' }).catch(() => undefined);
     lastNew.current = null;
-    setState('anon');
+    window.location.assign('/login');
   }, []);
 
   useEffect(() => {
@@ -209,7 +216,8 @@ export default function AdminApp() {
   }, [state, refresh]);
 
   if (state === 'checking') return <div className="min-h-screen bg-[#F4F1EA]" aria-busy="true" />;
-  if (state === 'anon') return <LoginPage onSuccess={() => void refresh()} />;
+  // Not signed in: the owner uses the shop's normal login page (email + password), then comes back here.
+  if (state === 'anon') return <SignInRedirect />;
 
   return (
     <SessionCtx.Provider value={{ ...info, refresh, signOut }}>

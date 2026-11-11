@@ -6,6 +6,8 @@ export interface Env {
   UPLOADS: R2Bucket;
   /** Static files of the site (Pages built-in). */
   ASSETS: Fetcher;
+  /** The owner's email for signing in to the dashboard on /login (comma-separated for more than one). */
+  ADMIN_EMAIL?: string;
   /** Dashboard password — set with `wrangler pages secret put ADMIN_PASSWORD`. */
   ADMIN_PASSWORD: string;
   /** Long random string used to sign admin sessions. */

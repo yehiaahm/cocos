@@ -74,10 +74,15 @@ export function LoginPage({ initialMode = 'signin' }: { initialMode?: Mode }) {
     const website = (e.currentTarget.elements.namedItem('website') as HTMLInputElement | null)?.value ?? '';
     setBusy(true);
     try {
-      const data = await authRequest<{ user: AccountUser }>(
+      const data = await authRequest<{ user: AccountUser | null; admin?: boolean }>(
         mode === 'register' ? '/api/auth/register' : '/api/auth/login',
         mode === 'register' ? { ...form, website } : { email: form.email, password: form.password },
       );
+      // The shop owner signs in here too and goes straight to the dashboard (a separate app chunk: full load).
+      if (data.admin) {
+        window.location.assign(next === '/admin' || next.startsWith('/admin/') ? next : '/admin');
+        return;
+      }
       setUser(data.user);
       navigate(next, { replace: true });
     } catch (err) {

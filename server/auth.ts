@@ -14,6 +14,23 @@ function assertConfigured(env: Env) {
   }
 }
 
+/** The owner's sign-in email(s): ADMIN_EMAIL, comma-separated, compared lower-case. */
+export function adminEmails(env: Pick<Env, 'ADMIN_EMAIL'>): string[] {
+  return (env.ADMIN_EMAIL ?? '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export const isAdminEmail = (env: Pick<Env, 'ADMIN_EMAIL'>, email: string) => !!email && adminEmails(env).includes(email.trim().toLowerCase());
+
+/** The owner signs in on the shop's normal login page with ADMIN_EMAIL + ADMIN_PASSWORD. */
+export async function checkAdminCredentials(env: Env, email: string, password: string): Promise<boolean> {
+  // Always run the password check so a wrong email takes as long as a wrong password.
+  const passwordOk = await checkPassword(env, password);
+  return isAdminEmail(env, email) && passwordOk;
+}
+
 /** Constant-time password check (compares HMACs so length differences don't leak). */
 export async function checkPassword(env: Env, candidate: string): Promise<boolean> {
   assertConfigured(env);
@@ -30,7 +47,7 @@ export async function checkPassword(env: Env, candidate: string): Promise<boolea
   return diff === 0;
 }
 
-/** Session token = payload.signature. The password fingerprint invalidates sessions when the password changes. */
+/** Session token = payload.signature. The fingerprint invalidates sessions when the admin email or password changes. */
 export async function createSession(env: Env): Promise<string> {
   assertConfigured(env);
   const payload = b64url(
@@ -41,7 +58,7 @@ export async function createSession(env: Env): Promise<string> {
 }
 
 async function fingerprint(env: Env) {
-  const sig = await crypto.subtle.sign('HMAC', await hmacKey(env.SESSION_SECRET), new TextEncoder().encode(`fp:${env.ADMIN_PASSWORD}`));
+  const sig = await crypto.subtle.sign('HMAC', await hmacKey(env.SESSION_SECRET), new TextEncoder().encode(`fp:${adminEmails(env).join(',')}:${env.ADMIN_PASSWORD}`));
   return b64url(sig).slice(0, 12);
 }
 

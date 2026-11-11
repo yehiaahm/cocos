@@ -165,7 +165,7 @@ export function SettingsPage() {
           <PushCard />
           <Card title="الحساب">
             <p className="mb-3 mt-0 text-sm leading-relaxed text-muted-2">
-              لتغيير كلمة المرور: غيّر <code dir="ltr">ADMIN_PASSWORD</code> من إعدادات المشروع على Cloudflare. أي جهاز مسجّل دخول هيخرج تلقائياً.
+              بتدخل من صفحة تسجيل الدخول العادية في الموقع بالإيميل وكلمة المرور. لتغييرهم: غيّر <code dir="ltr">ADMIN_EMAIL</code> أو <code dir="ltr">ADMIN_PASSWORD</code> من إعدادات المشروع (Variables على Railway، أو Secrets على Cloudflare). أي جهاز مسجّل دخول هيخرج تلقائياً.
             </p>
             <Button variant="danger" onClick={() => void signOut()}>
               {Icon.out(18)} تسجيل الخروج

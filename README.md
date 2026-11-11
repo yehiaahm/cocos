@@ -31,6 +31,8 @@ order for an Instagram DM. The Facebook button stays hidden until its URL is set
 ## Orders & admin dashboard
 
 Customers order on the site; orders land in the dashboard at **`/admin`** (Arabic, works on phones).
+The owner signs in on the shop's normal login page (`/login`) with `ADMIN_EMAIL` + `ADMIN_PASSWORD` and lands in the
+dashboard; that email can't be used for a customer account.
 On Railway, see *Deploying → Railway* for the two settings it needs; the Cloudflare setup below is only for Cloudflare hosting.
 
 - **Checkout** (`/checkout`) saves the order to the database: cash on delivery, InstaPay or mobile wallet.
@@ -85,6 +87,7 @@ npx wrangler d1 create cocos-art                 # paste the printed database_id
 npx wrangler r2 bucket create cocos-art-uploads
 npm run db:migrate:prod                          # creates the tables
 npm run setup:secrets -- "your-dashboard-password"   # prints the values below (and writes .dev.vars)
+npx wrangler pages secret put ADMIN_EMAIL      # the owner's sign-in email
 npx wrangler pages secret put ADMIN_PASSWORD
 npx wrangler pages secret put SESSION_SECRET
 npx wrangler pages secret put VAPID_PUBLIC_KEY
@@ -92,10 +95,10 @@ npx wrangler pages secret put VAPID_PRIVATE_KEY
 npx wrangler pages secret put VAPID_SUBJECT      # mailto:you@example.com
 ```
 
-Then deploy (Git integration or `npm run deploy`), open `https://<your-domain>/admin`, sign in, fill in
+Then deploy (Git integration or `npm run deploy`), open `https://<your-domain>/login`, sign in with `ADMIN_EMAIL` + `ADMIN_PASSWORD` (you land in the dashboard), fill in
 **الإعدادات** (InstaPay, wallet, delivery fee) and prices in **المنتجات**, and enable notifications on your phone.
 Keep the VAPID keys forever — new keys mean every phone has to enable notifications again.
-To change the dashboard password, update the `ADMIN_PASSWORD` secret; all devices are signed out.
+To change the dashboard email or password, update `ADMIN_EMAIL` / `ADMIN_PASSWORD`; all devices are signed out.
 
 ### Local development with the API
 
@@ -125,14 +128,14 @@ start (`npm start`) and health check (`/healthz`).
 One-time setup in the Railway service:
 
 1. **Volume** → add one, mount path **`/data`**. Required — without it orders are lost on every redeploy.
-2. **Variables** → add **`ADMIN_PASSWORD`** (the dashboard password). Optional: `VAPID_SUBJECT=mailto:you@example.com`.
-3. Redeploy, then open `https://<your-railway-domain>/admin`.
+2. **Variables** → add **`ADMIN_EMAIL`** (the owner's email) and **`ADMIN_PASSWORD`** (the dashboard password). Optional: `VAPID_SUBJECT=mailto:you@example.com`.
+3. Redeploy, then open `https://<your-railway-domain>/login` and sign in with that email and password — the owner lands in the dashboard.
 
 The session secret and push-notification keys are generated on first start and saved on the volume
 (`/data/secrets.json`); the database is `/data/cocos.db` (back it up by downloading it from the volume).
 Migrations in `migrations/` run automatically on start.
 
-Run the same server locally: `npm run build && ADMIN_PASSWORD=test npm start` → http://localhost:3000.
+Run the same server locally: `npm run build && ADMIN_EMAIL=you@example.com ADMIN_PASSWORD=test npm start` → http://localhost:3000.
 
 ### Cloudflare Pages (alternative)
 

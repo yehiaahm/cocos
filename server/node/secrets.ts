@@ -35,6 +35,7 @@ export function loadSecrets(dataDir: string) {
 
   const env = process.env;
   return {
+    ADMIN_EMAIL: env.ADMIN_EMAIL ?? '',
     ADMIN_PASSWORD: env.ADMIN_PASSWORD ?? '',
     SESSION_SECRET: env.SESSION_SECRET || saved.SESSION_SECRET!,
     VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY || saved.VAPID_PUBLIC_KEY!,

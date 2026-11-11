@@ -23,6 +23,7 @@ const vapidPublic = b64url(Buffer.concat([Buffer.from([4]), Buffer.from(pub.x, '
 
 const password = process.argv.slice(2).find((a) => !a.startsWith('--')) || b64url(randomBytes(9));
 const vars = {
+  ADMIN_EMAIL: 'owner@example.com',
   ADMIN_PASSWORD: password,
   SESSION_SECRET: b64url(randomBytes(32)),
   VAPID_PUBLIC_KEY: vapidPublic,
@@ -31,7 +32,7 @@ const vars = {
 };
 await writeFile(file, Object.entries(vars).map(([k, v]) => `${k}="${v}"`).join('\n') + '\n');
 
-console.log(`Wrote .dev.vars (git-ignored).\n\nDashboard password: ${password}\n`);
+console.log(`Wrote .dev.vars (git-ignored).\n\nDashboard sign-in (on /login): ${vars.ADMIN_EMAIL} / ${password}\nChange ADMIN_EMAIL in .dev.vars to the owner's email.\n`);
 console.log('For production, add each value as a Cloudflare secret:');
 for (const k of Object.keys(vars)) console.log(`  npx wrangler pages secret put ${k}`);
 console.log('\n(Set VAPID_SUBJECT to mailto:<your email>. Keep the same VAPID keys forever, or phones must re-enable notifications.)');

@@ -1,4 +1,5 @@
 import type { Fn } from '../../../server/env';
+import { checkAdminCredentials, createSession, isAdminEmail, sessionCookie } from '../../../server/auth';
 import { HttpError, assertSameOrigin, handle, ipHash, json, rateLimit, readJson } from '../../../server/http';
 import {
   clearUserCookie,
@@ -20,6 +21,15 @@ export const onRequestPost: Fn = handle(async ({ request, env }) => {
 
   const email = normaliseEmail(body.email);
   const password = typeof body.password === 'string' ? body.password.slice(0, 200) : '';
+
+  // The shop owner uses this same page: ADMIN_EMAIL + ADMIN_PASSWORD opens the dashboard.
+  // That email never falls through to a customer account.
+  if (isAdminEmail(env, email)) {
+    if (!(await checkAdminCredentials(env, email, password))) throw new HttpError(401, 'Wrong email or password.', 'bad_credentials');
+    await env.DB.prepare('DELETE FROM rate_limits WHERE bucket = ?').bind(bucket).run();
+    return json({ user: null, admin: true }, { headers: { 'set-cookie': sessionCookie(await createSession(env), request) } });
+  }
+
   const user = email ? await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first<UserRow>() : null;
 
   if (user && !user.password_hash && user.google_sub) {

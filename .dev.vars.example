@@ -1,4 +1,5 @@
 # Local secrets for `wrangler pages dev`. Generate a real file with: npm run setup:secrets
+ADMIN_EMAIL="owner@example.com"
 ADMIN_PASSWORD="change-me"
 SESSION_SECRET="at-least-32-random-characters-here-please"
 VAPID_PUBLIC_KEY=""

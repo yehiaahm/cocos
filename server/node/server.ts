@@ -69,7 +69,9 @@ const db = new NodeD1(path.join(dataDir, 'cocos.db'));
 db.migrate(path.join(root, 'migrations'));
 const site = new StaticSite(distDir);
 const secrets = loadSecrets(dataDir);
-if (!secrets.ADMIN_PASSWORD) console.warn('[warn] ADMIN_PASSWORD is not set — the dashboard login is disabled until you add it.');
+if (!secrets.ADMIN_EMAIL || !secrets.ADMIN_PASSWORD) {
+  console.warn('[warn] ADMIN_EMAIL and ADMIN_PASSWORD must both be set — the dashboard sign-in is disabled until you add them.');
+}
 
 const env: Record<string, unknown> = {
   ...secrets,
