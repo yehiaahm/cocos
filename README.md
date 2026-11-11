@@ -31,6 +31,7 @@ order for an Instagram DM. The Facebook button stays hidden until its URL is set
 ## Orders & admin dashboard
 
 Customers order on the site; orders land in the dashboard at **`/admin`** (Arabic, works on phones).
+On Railway, see *Deploying → Railway* for the two settings it needs; the Cloudflare setup below is only for Cloudflare hosting.
 
 - **Checkout** (`/checkout`) saves the order to the database: cash on delivery, InstaPay or mobile wallet.
   Prices come from the dashboard and are always recalculated on the server.
@@ -83,7 +84,26 @@ their secret token; transfer screenshots are private (served only to the dashboa
 The build outputs a fully static site in `dist/`. Each page is written as `dist/<path>.html`
 (e.g. `dist/shop/resin.html`), so hosts serve it at the clean URL `/shop/resin` with no redirect.
 
-### Cloudflare Pages (recommended)
+### Railway (current host)
+
+The repo runs on Railway as one Node service (`server/node/server.ts`, bundled to `dist-server/server.mjs`).
+It serves the site and runs the same API/dashboard code as Cloudflare, with Node's built-in SQLite as the
+database and files for transfer screenshots. `railway.json` already sets the build (`npm run build`),
+start (`npm start`) and health check (`/healthz`).
+
+One-time setup in the Railway service:
+
+1. **Volume** → add one, mount path **`/data`**. Required — without it orders are lost on every redeploy.
+2. **Variables** → add **`ADMIN_PASSWORD`** (the dashboard password). Optional: `VAPID_SUBJECT=mailto:you@example.com`.
+3. Redeploy, then open `https://<your-railway-domain>/admin`.
+
+The session secret and push-notification keys are generated on first start and saved on the volume
+(`/data/secrets.json`); the database is `/data/cocos.db` (back it up by downloading it from the volume).
+Migrations in `migrations/` run automatically on start.
+
+Run the same server locally: `npm run build && ADMIN_PASSWORD=test npm start` → http://localhost:3000.
+
+### Cloudflare Pages (alternative)
 
 **Option A — connect GitHub (auto-deploys on every push)**
 
