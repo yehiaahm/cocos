@@ -14,6 +14,9 @@ export interface Env {
   VAPID_PUBLIC_KEY?: string;
   VAPID_PRIVATE_KEY?: string;
   VAPID_SUBJECT?: string;
+  /** "Continue with Google" — an OAuth client (Web application) from Google Cloud Console. Optional. */
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
 }
 
 export type Fn<P extends string = never> = PagesFunction<Env, P>;

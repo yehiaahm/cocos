@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { Seo } from '../lib/seo';
 import { useCart, selectCount } from '../store/cart';
 import { useLive } from '../store/live';
+import { useAuth } from '../store/auth';
 import { resolveLine } from '../components/CartDrawer';
 import { imageUrl } from '../lib/images';
 import { formatPrice, plural } from '../lib/format';
@@ -63,6 +64,20 @@ export function CheckoutPage() {
       /* storage unavailable */
     }
   }, []);
+
+  // Signed in: the account's saved details win (only fields the account actually has).
+  const user = useAuth((s) => s.user);
+  const authStatus = useAuth((s) => s.status);
+  useEffect(() => {
+    if (!user) return;
+    setForm((f) => ({
+      ...f,
+      name: user.name || f.name,
+      phone: user.phone || f.phone,
+      city: user.city || f.city,
+      address: user.address || f.address,
+    }));
+  }, [user]);
 
   const items = lines.map((l) => resolveLine(l, overrides)).filter((x): x is NonNullable<ReturnType<typeof resolveLine>> => !!x);
   const allPriced = items.length > 0 && items.every((i) => i.unitPrice !== null);
@@ -197,6 +212,23 @@ export function CheckoutPage() {
               Delivery details
             </h2>
             <p className="mb-6 mt-1 text-sm text-muted-2">Delivery across Egypt. Coco will call or WhatsApp you on this number.</p>
+            {authStatus === 'ready' && !user && (
+              <p className="-mt-2 mb-6 rounded-2xl bg-cream px-4 py-3 text-sm text-muted">
+                <Link to="/login?next=/checkout" className="font-bold text-teal-dark">
+                  Sign in
+                </Link>{' '}
+                to use your saved details and keep track of your orders — or just continue as a guest.
+              </p>
+            )}
+            {user && (
+              <p className="-mt-2 mb-6 rounded-2xl bg-cream px-4 py-3 text-sm text-muted">
+                Signed in as <strong className="text-ink">{user.email}</strong>. This order will appear in{' '}
+                <Link to="/account" className="font-bold text-teal-dark">
+                  your account
+                </Link>
+                .
+              </p>
+            )}
             <div className="grid gap-5 sm:grid-cols-2">
               <Field id="name" label="Full name" error={errors.name}>
                 <input id="co-name" autoComplete="name" value={form.name} onChange={set('name')} aria-invalid={!!errors.name} aria-describedby={errors.name ? 'co-name-err' : undefined} className={inputCls(errors.name)} />

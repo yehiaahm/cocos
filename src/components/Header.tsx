@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { Logo } from './Logo';
-import { Bag, Close, Menu } from './Icons';
+import { Bag, Close, Menu, User } from './Icons';
 import { selectCount, useCart } from '../store/cart';
 import { useUi } from '../store/ui';
+import { useAuth } from '../store/auth';
+import { Avatar } from '../pages/AccountPage';
 
 export const NAV_LINKS = [
   { to: '/shop', label: 'Shop' },
@@ -30,6 +32,23 @@ export function CartButton({ className = '' }: { className?: string }) {
       </span>
       <span className="sr-only">{count === 1 ? 'item' : 'items'}</span>
     </button>
+  );
+}
+
+/** Account icon: "Sign in" for guests, the customer's avatar once signed in. */
+export function AccountButton() {
+  const user = useAuth((s) => s.user);
+  const { pathname } = useLocation();
+  const to = user ? '/account' : pathname === '/login' || pathname === '/account' ? '/login' : `/login?next=${encodeURIComponent(pathname)}`;
+  return (
+    <Link
+      to={to}
+      aria-label={user ? `Your account (${user.name})` : 'Sign in'}
+      aria-current={pathname === '/account' || pathname === '/login' ? 'page' : undefined}
+      className="btn inline-flex h-[46px] min-w-[46px] items-center justify-center gap-2 rounded-full border-[1.5px] border-line bg-transparent px-1 text-sm font-bold text-ink no-underline hover:border-ink hover:text-ink aria-[current=page]:border-ink"
+    >
+      {user ? <Avatar user={user} size={34} /> : <User />}
+    </Link>
   );
 }
 
@@ -91,6 +110,7 @@ export function Header() {
           )}
         </nav>
         <div className="flex items-center gap-2.5">
+          <AccountButton />
           <CartButton />
           <button
             ref={toggleRef}

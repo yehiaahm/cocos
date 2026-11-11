@@ -52,7 +52,7 @@ await writeFile(
 await writeFile(path.join(dist, 'order.html'), shell(`Your order · ${site.name}`));
 
 const today = new Date().toISOString().slice(0, 10);
-const indexable = routes.filter((r) => r !== '/checkout');
+const indexable = routes.filter((r) => !['/checkout', '/login', '/account'].includes(r));
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${indexable
@@ -68,7 +68,7 @@ ${indexable
 await writeFile(path.join(dist, 'sitemap.xml'), sitemap);
 await writeFile(
   path.join(dist, 'robots.txt'),
-  `User-agent: *\nAllow: /\nDisallow: /checkout\nDisallow: /admin\nDisallow: /order/\nDisallow: /api/\n\nSitemap: ${site.url}/sitemap.xml\n`,
+  `User-agent: *\nAllow: /\nDisallow: /checkout\nDisallow: /login\nDisallow: /account\nDisallow: /admin\nDisallow: /order/\nDisallow: /api/\n\nSitemap: ${site.url}/sitemap.xml\n`,
 );
 
 await rm(ssrDir, { recursive: true, force: true });

@@ -3,6 +3,7 @@ import { HttpError, assertSameOrigin, handle, ipHash, json, rateLimit, randomTok
 import { getProduct, loadOverrides, overrideFor } from '../../../server/catalog';
 import { addEvent, computeTotals, getSettings } from '../../../server/orders';
 import { notifyAdmins } from '../../../server/push';
+import { getSessionUser } from '../../../server/accounts';
 import { normaliseEgyptPhone } from '../../../src/lib/phone';
 import { PAYMENT_METHODS, type CreateOrderInput, type PaymentMethod } from '../../../src/lib/api-types';
 
@@ -57,13 +58,16 @@ export const onRequestPost: Fn = handle(async ({ request, env, waitUntil }) => {
   const settings = await getSettings(env.DB);
   const { subtotal, total } = computeTotals(lines, settings.deliveryFee);
   const token = randomToken();
+  // Signed-in customers: the order joins their account and their delivery details are remembered.
+  const user = await getSessionUser(env, request);
 
   // One transaction: order, its number (CA-1001…), items, first timeline event.
   const stmts = [
     env.DB.prepare(
-      `INSERT INTO orders (token, payment_method, customer_name, phone, city, address, notes, subtotal, delivery_fee, total, ip_hash)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(token, method, name, phone, city, address, notes, subtotal, settings.deliveryFee, total, hash),
+      `INSERT INTO orders (token, payment_method, customer_name, phone, city, address, notes, subtotal, delivery_fee, total, ip_hash, user_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(token, method, name, phone, city, address, notes, subtotal, settings.deliveryFee, total, hash, user?.id ?? null),
+    ...(user ? [env.DB.prepare('UPDATE users SET phone = ?, city = ?, address = ? WHERE id = ?').bind(phone, city, address, user.id)] : []),
     env.DB.prepare("UPDATE orders SET number = 'CA-' || (1000 + id) WHERE token = ?").bind(token),
     ...lines.map((l) =>
       env.DB.prepare(

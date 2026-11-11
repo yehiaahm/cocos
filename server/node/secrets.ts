@@ -40,5 +40,7 @@ export function loadSecrets(dataDir: string) {
     VAPID_PUBLIC_KEY: env.VAPID_PUBLIC_KEY || saved.VAPID_PUBLIC_KEY!,
     VAPID_PRIVATE_KEY: env.VAPID_PRIVATE_KEY || saved.VAPID_PRIVATE_KEY!,
     VAPID_SUBJECT: env.VAPID_SUBJECT || 'mailto:admin@example.com',
+    GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID ?? '',
+    GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET ?? '',
   };
 }

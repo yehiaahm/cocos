@@ -43,6 +43,37 @@ On Railway, see *Deploying → Railway* for the two settings it needs; the Cloud
   message (Web Push). Enable it from the dashboard. On iPhone first open `/admin` in Safari →
   Share → *Add to Home Screen*, then enable it from the home-screen app.
 
+## Customer accounts & Google sign-in
+
+Shoppers can create an account at **`/login`** (email + password, or **Continue with Google**) and see
+their profile, saved delivery details and every order at **`/account`**. Accounts are optional: guests can
+still check out. Orders placed while signed in are linked to the account, and checkout is pre-filled.
+
+- API: `/api/auth/register`, `/api/auth/login` (POST sign in, DELETE sign out), `/api/auth/me` (GET / PATCH profile),
+  `/api/auth/google` → Google → `/api/auth/google/callback`, `/api/account/orders`. Schema: `migrations/0002_accounts.sql`.
+- Security: PBKDF2-SHA256 password hashes; HttpOnly session cookie with only its hash stored in the database;
+  rate-limited sign-in and sign-up; Google uses the authorization-code flow with PKCE + state. Signing in with
+  Google links an existing account with the same (Google-verified) email.
+
+**Already set up:** Google Cloud project **`cocos-resin-art`**, OAuth client **"Cocos website"** (Web application),
+redirect URIs for `localhost:3000`, `5173`, `8788` and `3200`. The keys are in the git-ignored `.dev.vars`. The app is
+in *Testing* mode until it is published (Google Auth Platform → Audience → **Publish app**), which needs the site's
+public domain added as a redirect URI and on the Branding page (home page + `/privacy` link).
+
+**Turning on "Continue with Google"** (the button stays hidden until both variables are set):
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → create or pick a project → **APIs & Services** →
+   **OAuth consent screen**: app name "Coco's Resin Art", support email, scopes `openid`, `email`, `profile`, then **Publish app**.
+2. **Credentials** → **Create credentials** → **OAuth client ID** → type **Web application**.
+3. **Authorised redirect URIs** — add one per address the site runs on:
+   - `https://<your-domain>/api/auth/google/callback`
+   - `https://<your-railway-domain>/api/auth/google/callback`
+   - `http://localhost:3000/api/auth/google/callback` (local Node server) and/or `http://localhost:8788/api/auth/google/callback` (wrangler)
+4. Copy the **Client ID** and **Client secret** into the host's variables:
+   - Railway → **Variables**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, then redeploy.
+   - Cloudflare: `npx wrangler pages secret put GOOGLE_CLIENT_ID` and `... GOOGLE_CLIENT_SECRET`, plus `npm run db:migrate:prod`.
+   - Local: add both to `.dev.vars` (see `.dev.vars.example`), or pass them as env vars to `npm start`.
+
 It runs on Cloudflare: **Pages Functions** (`functions/` + `server/`) for the API, **D1** for the database
 (`migrations/`), **R2** for transfer screenshots.
 

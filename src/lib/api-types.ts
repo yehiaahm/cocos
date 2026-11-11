@@ -23,6 +23,37 @@ export interface PaymentSettings {
   deliveryNote: string;
 }
 
+/** A signed-in customer (GET /api/auth/me). */
+export interface AccountUser {
+  id: number;
+  email: string;
+  name: string;
+  avatarUrl: string | null;
+  phone: string | null;
+  city: string | null;
+  address: string | null;
+  hasPassword: boolean;
+  google: boolean;
+  createdAt: string;
+}
+
+export interface AuthMe {
+  user: AccountUser | null;
+  /** Whether "Continue with Google" is configured on the server. */
+  google: boolean;
+}
+
+export interface AccountOrderSummary {
+  number: string;
+  token: string;
+  status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  total: number | null;
+  itemCount: number;
+  image: string | null;
+  createdAt: string;
+}
+
 export interface CreateOrderInput {
   items: { productId: string; variantId: string; qty: number; personalisation?: string }[];
   customer: { name: string; phone: string; city: string; address: string; notes?: string };

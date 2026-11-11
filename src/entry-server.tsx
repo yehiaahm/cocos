@@ -27,6 +27,9 @@ export const routes: string[] = [
   ...categories.map((c) => `/shop/${c.slug}`),
   ...products.map((p) => `/product/${p.slug}`),
   '/checkout',
+  '/login',
+  '/account',
+  '/privacy',
 ];
 
 export { site } from './config/site';

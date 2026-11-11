@@ -4,3 +4,7 @@ SESSION_SECRET="at-least-32-random-characters-here-please"
 VAPID_PUBLIC_KEY=""
 VAPID_PRIVATE_KEY=""
 VAPID_SUBJECT="mailto:admin@example.com"
+# Optional: "Continue with Google" (Google Cloud Console → APIs & Services → Credentials → OAuth client ID, Web application).
+# Authorised redirect URI: http://localhost:8788/api/auth/google/callback (and https://<your-domain>/api/auth/google/callback)
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""

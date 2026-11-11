@@ -92,7 +92,10 @@ function FooterBar() {
     <div className="mt-10 flex flex-wrap items-center justify-between gap-5 border-t border-cream/15 pt-7 text-sm text-mist-2">
       <LogoBadge />
       <span>Handmade board games · resin · wood &amp; decoupage · macramé · candles</span>
-      <span suppressHydrationWarning>© {year} {site.name}</span>
+      <span className="flex flex-wrap items-center gap-4">
+        <Link to="/privacy" className="text-mist-2 no-underline hover:text-cream">Privacy &amp; terms</Link>
+        <span suppressHydrationWarning>© {year} {site.name}</span>
+      </span>
     </div>
   );
 }
