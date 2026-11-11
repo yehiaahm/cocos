@@ -1,0 +1,46 @@
+/**
+ * Every business detail the owner may need to change lives in this file.
+ *
+ * TODO (owner): fill in `whatsappNumber` and `facebookUrl` (HANDOFF §12.2).
+ * Until then, WhatsApp buttons fall back to Instagram and the Facebook
+ * button is hidden, so no link on the site is ever dead.
+ */
+export const site = {
+  name: "Coco's Art",
+  shortName: 'Coco’s Art',
+  tagline: 'Handmade home decor, poured by hand in Egypt',
+  description:
+    "Handmade resin, wood & decoupage, macramé and candle pieces, plus heirloom resin board games — made in small batches in Egypt by Coco's Art. Personalised gifts and creative workshops.",
+  locale: 'en_EG',
+  country: 'Egypt',
+  currency: 'EGP' as const,
+
+  /** Production URL, set with VITE_SITE_URL at build time (see .env.example). */
+  url: (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://www.example.com',
+
+  /** WhatsApp number in international format, digits only, e.g. "201001234567". */
+  whatsappNumber: '',
+  instagramHandle: 'coco_resin_art',
+  instagramUrl: 'https://instagram.com/coco_resin_art',
+  /** Full Facebook page URL, e.g. "https://www.facebook.com/cocosart". */
+  facebookUrl: '',
+
+  /** Social preview image (1200×630), relative to the site root. */
+  ogImage: '/og-image.jpg',
+} as const;
+
+export const hasWhatsApp = site.whatsappNumber.replace(/\D/g, '').length >= 10;
+
+/** WhatsApp chat link with a prefilled message, or Instagram while no number is configured. */
+export function contactLink(message: string): { href: string; channel: 'whatsapp' | 'instagram' } {
+  if (hasWhatsApp) {
+    const n = site.whatsappNumber.replace(/\D/g, '');
+    return { href: `https://wa.me/${n}?text=${encodeURIComponent(message)}`, channel: 'whatsapp' };
+  }
+  return { href: site.instagramUrl, channel: 'instagram' };
+}
+
+export function absoluteUrl(path: string): string {
+  if (/^https?:\/\//.test(path)) return path;
+  return `${site.url}${path.startsWith('/') ? '' : '/'}${path}`;
+}

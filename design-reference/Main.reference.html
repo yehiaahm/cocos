@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Coco's Art — Home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&amp;family=Manrope:wght@400;500;600;700&amp;family=Pinyon+Script&amp;family=Tajawal:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F3EC}
+a{color:#0E6F6C}a:hover{color:#0B2E33}
+*{box-sizing:border-box}
+.serif{font-family:'Cormorant Garamond',Georgia,serif}
+.script{font-family:'Pinyon Script',cursive}
+.ar{font-family:'Tajawal',sans-serif}
+/* ---------- motion ---------- */
+@keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinRev{to{transform:rotate(-360deg)}}
+@keyframes morph{0%,100%{border-radius:58% 42% 47% 53%/45% 55% 45% 55%}33%{border-radius:42% 58% 62% 38%/55% 40% 60% 45%}66%{border-radius:50% 50% 38% 62%/38% 62% 48% 52%}}
+@keyframes float{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-18px) rotate(var(--r,0deg))}}
+@keyframes twinkle{0%,100%{opacity:.25;transform:scale(.6)}50%{opacity:1;transform:scale(1.15)}}
+@keyframes draw{from{stroke-dashoffset:900}to{stroke-dashoffset:0}}
+@keyframes marquee{to{transform:translateX(-50%)}}
+@keyframes shimmer{from{background-position:-200% 0}to{background-position:200% 0}}
+@keyframes pop{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+@keyframes drip{0%{transform:scaleY(0);opacity:0}30%{opacity:1}100%{transform:scaleY(1);opacity:1}}
+@keyframes pour{0%,100%{transform:translateX(-6%) rotate(-4deg)}50%{transform:translateX(6%) rotate(4deg)}}
+.rise{opacity:0;animation:rise .9s cubic-bezier(.2,.7,.2,1) forwards}
+.d1{animation-delay:.1s}.d2{animation-delay:.25s}.d3{animation-delay:.4s}.d4{animation-delay:.55s}.d5{animation-delay:.7s}
+.morph{animation:morph 14s ease-in-out infinite}
+.swirl{animation:spin 26s linear infinite}
+.swirlRev{animation:spinRev 40s linear infinite}
+.float{animation:float 7s ease-in-out infinite}
+.float.b{animation-duration:9s;animation-delay:-3s}
+.float.c{animation-duration:8s;animation-delay:-5s}
+.spinBadge{animation:spin 22s linear infinite}
+.fleck{position:absolute;border-radius:50%;background:radial-gradient(circle,#FFF3C4,#D4AF5A 55%,rgba(212,175,90,0) 72%);animation:twinkle 3.6s ease-in-out infinite}
+.drawC{stroke-dasharray:900;stroke-dashoffset:900;animation:draw 2.2s cubic-bezier(.6,.1,.2,1) .2s forwards}
+.track{animation:marquee 38s linear infinite}
+.pop{opacity:0;animation:pop .5s cubic-bezier(.3,1.4,.5,1) forwards}
+@supports (animation-timeline: view()){
+  .reveal{animation:rise linear both;animation-timeline:view();animation-range:entry 0% cover 28%}
+}
+/* ---------- interaction ---------- */
+.lift{transition:transform .45s cubic-bezier(.2,.7,.2,1),box-shadow .45s}
+.lift:hover{transform:translateY(-8px);box-shadow:0 28px 60px -28px rgba(11,46,51,.45)}
+.zoom img{transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+.zoom:hover img{transform:scale(1.08)}
+.btn{transition:transform .25s,background .25s,color .25s,box-shadow .25s}
+.btn:hover{transform:translateY(-2px)}
+.btnP:hover{background:#0E6F6C !important;box-shadow:0 14px 30px -12px rgba(14,111,108,.6)}
+.btnG:hover{background:#0B2E33 !important;color:#F7F3EC !important}
+.goldline{background:linear-gradient(90deg,#B8913A,#F3DE9E,#B8913A,#F3DE9E,#B8913A);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 6s linear infinite}
+.nav a{color:#0B2E33;text-decoration:none;position:relative}
+.nav a::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;background:#14A3A0;transform:scaleX(0);transform-origin:left;transition:transform .35s}
+.nav a:hover::after{transform:scaleX(1)}
+.tab{transition:background .3s,color .3s,border-color .3s}
+.tab:hover{border-color:#14A3A0 !important}
+.ig img{transition:transform .8s,filter .8s}
+.ig:hover img{transform:scale(1.1);filter:saturate(1.2)}
+/* ---------- responsive ---------- */
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:40px;align-items:center}
+.bento{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:260px;gap:20px}
+.span2{grid-column:span 2}.row2{grid-row:span 2}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:center}
+.igrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.shopgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.catwrap{display:grid;grid-template-columns:320px minmax(0,1fr);gap:28px;align-items:stretch}
+.catlist{display:flex;flex-direction:column;gap:10px}
+.catpanel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}
+.cattab{transition:background .35s,color .35s,border-color .35s,transform .35s}
+.cattab:hover{transform:translateX(6px)}
+.chip{transition:background .25s,color .25s,border-color .25s}
+.chip:hover{background:#F7F3EC;color:#0B2E33 !important;border-color:#F7F3EC !important}
+@media (max-width:980px){.shopgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.catwrap,.catpanel{grid-template-columns:minmax(0,1fr)}.catlist{flex-direction:row;overflow-x:auto}.cattab{min-width:200px}}
+@media (max-width:980px){
+  .hero,.split{grid-template-columns:minmax(0,1fr)}
+  .bento{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:220px}
+  .igrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .navlinks{display:none !important}
+}
+@media (max-width:560px){
+  .bento{grid-template-columns:minmax(0,1fr)}
+  .span2,.row2{grid-column:auto;grid-row:auto}
+}
+.nomotion *{animation:none !important;opacity:1 !important;transform:none !important}
+sc-for,sc-if{display:contents}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.cartScrim{animation:fadeIn .3s ease}
+.cartPanel{animation:slideIn .45s cubic-bezier(.2,.7,.2,1)}
+.qty:hover{background:#0B2E33 !important;color:#F7F3EC !important}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes bumpA{0%,100%{transform:scale(1)}30%{transform:scale(1.14) rotate(-3deg)}55%{transform:scale(.95) rotate(2deg)}75%{transform:scale(1.04)}}
+@keyframes bumpB{0%,100%{transform:scale(1)}30%{transform:scale(1.14) rotate(-3deg)}55%{transform:scale(.95) rotate(2deg)}75%{transform:scale(1.04)}}
+@keyframes flyXA{from{transform:translateX(var(--sx))}to{transform:translateX(var(--ex))}}
+@keyframes flyXB{from{transform:translateX(var(--sx))}to{transform:translateX(var(--ex))}}
+@keyframes flyYA{0%{transform:translateY(var(--sy)) scale(1);opacity:1}100%{transform:translateY(var(--ey)) scale(.3);opacity:.35}}
+@keyframes flyYB{0%{transform:translateY(var(--sy)) scale(1);opacity:1}100%{transform:translateY(var(--ey)) scale(.3);opacity:.35}}
+.floatCart{animation:slideUp .5s cubic-bezier(.2,.9,.3,1.2) both;transition:box-shadow .3s}
+.floatCart:hover{box-shadow:0 26px 50px -14px rgba(11,46,51,.75) !important}
+.floatCart.bumpA{animation:bumpA .6s ease .7s both}
+.floatCart.bumpB{animation:bumpB .6s ease .7s both}
+.flyXA{animation:flyXA .8s linear forwards}.flyXB{animation:flyXB .8s linear forwards}
+.flyYA{animation:flyYA .8s cubic-bezier(.6,-.55,.9,.5) forwards}.flyYB{animation:flyYB .8s cubic-bezier(.6,-.55,.9,.5) forwards}
+@media (max-width:560px){.shopgrid{gap:10px}.shopgrid article{padding:8px !important}.shopgrid h3{font-size:19px !important}.shopgrid button{width:100%}}
+</style>
+</helmet>
+
+<div class="{{motionClass}}" style="background: #F7F3EC; color: #0B2E33; font-family: 'Manrope', system-ui, sans-serif; overflow: hidden;">
+
+<!-- ================= NAV ================= -->
+<header style="position: relative; z-index: 5; max-width: 1280px; margin: 0 auto; padding: 22px 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+  <a href="#top" aria-label="Coco's Art home" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+    <svg width="54" height="54" viewBox="0 0 200 200" aria-hidden="true">
+      <defs>
+        <linearGradient id="nC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4FD1C5"/><stop offset=".55" stop-color="#14A3A0"/><stop offset="1" stop-color="#0B4F5A"/></linearGradient>
+        <filter id="nRough"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="9"/></filter>
+      </defs>
+      <circle cx="100" cy="100" r="96" fill="#fff"/>
+      <path class="drawC" d="M150 52 A66 66 0 1 0 156 140" fill="none" stroke="url(#nC)" stroke-width="30" stroke-linecap="round" filter="url(#nRough)"/>
+    </svg>
+    <span style="display: flex; flex-direction: column; line-height: 1;">
+      <span class="script" style="font-size: 30px; color: #8A6A1F;">Coco's</span>
+      <span style="font-size: 11px; letter-spacing: .32em; text-transform: uppercase; color: #0B2E33; font-weight: 700; margin-top: 2px;">Art</span>
+    </span>
+  </a>
+  <nav class="nav navlinks" aria-label="Main" style="display: flex; gap: 36px; font-size: 15px; font-weight: 600;">
+    <a href="Shop.dc.html">Shop</a>
+    <a href="#collections">Categories</a>
+    <a href="#games">Board games</a>
+    <a href="#workshops">Workshops</a>
+    <a href="#gifts">Custom gifts</a>
+  </nav>
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <a class="btn" href="#account" aria-label="Account" style="width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid #D9D0C1; color: #0B2E33; display: flex; align-items: center; justify-content: center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
+    <button class="btn btnP" type="button" onClick="{{openCart}}" aria-label="Open cart" style="display: inline-flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 20px; border-radius: 999px; border: 0; cursor: pointer; background: #0B2E33; color: #F7F3EC; font: 700 14px Manrope, sans-serif;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+      Cart
+      <span style="min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; background: #D4AF5A; color: #0B2E33; font-size: 12px; display: inline-flex; align-items: center; justify-content: center;">{{cart}}</span>
+    </button>
+  </div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section id="top" style="position: relative; max-width: 1280px; margin: 0 auto; padding: 40px 32px 96px;">
+  <div aria-hidden="true" class="morph" style="position: absolute; width: 620px; height: 620px; right: -220px; top: -160px; background: radial-gradient(circle at 40% 40%, rgba(79,209,197,.28), rgba(79,209,197,0) 65%); filter: blur(10px);"></div>
+  <div class="hero" style="position: relative;">
+    <div>
+      <p class="rise d1" style="margin: 0 0 22px; display: inline-flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #0E6F6C;">
+        <span style="width: 34px; height: 2px; background: #14A3A0;"></span>Handmade home decor
+      </p>
+      <h1 class="serif rise d2" style="margin: 0; font-size: clamp(52px, 7vw, 104px); line-height: .95; font-weight: 500; letter-spacing: -.02em;">
+        Art you can <em class="goldline" style="font-style: italic;">hold,</em><br>poured by hand.
+      </h1>
+      <p class="rise d3" style="margin: 28px 0 0; max-width: 500px; font-size: 18px; line-height: 1.65; color: #3F5457;">
+        Resin, wood, macramé and candle pieces, plus heirloom board games — every one made in small batches, and every one ready to carry your name.
+      </p>
+      <div class="rise d4" style="margin-top: 38px; display: flex; gap: 14px; flex-wrap: wrap;">
+        <a class="btn btnP" href="Shop.dc.html" style="display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 30px; border-radius: 999px; background: #14A3A0; color: #fff; text-decoration: none; font-weight: 700; font-size: 16px;">
+          Shop now
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="btn btnG" href="#workshops" style="display: inline-flex; align-items: center; min-height: 56px; padding: 0 30px; border-radius: 999px; border: 1.5px solid #0B2E33; color: #0B2E33; text-decoration: none; font-weight: 700; font-size: 16px; background: transparent;">Book a workshop</a>
+      </div>
+      <div class="rise d5" style="margin-top: 56px; display: flex; gap: 44px; flex-wrap: wrap;">
+        <div><div class="serif" style="font-size: 44px; font-weight: 600; line-height: 1;">600+</div><div style="font-size: 13px; color: #4A5E61; margin-top: 6px;">pieces shared</div></div>
+        <div style="width: 1px; background: #D9D0C1;"></div>
+        <div><div class="serif" style="font-size: 44px; font-weight: 600; line-height: 1;">5</div><div style="font-size: 13px; color: #4A5E61; margin-top: 6px;">crafts, one studio</div></div>
+        <div style="width: 1px; background: #D9D0C1;"></div>
+        <div><div class="serif" style="font-size: 44px; font-weight: 600; line-height: 1;">4</div><div style="font-size: 13px; color: #4A5E61; margin-top: 6px;">hands-on workshops</div></div>
+      </div>
+    </div>
+
+    <!-- resin pour composition -->
+    <div class="rise d3" style="position: relative; height: 600px;">
+      <div style="position: absolute; left: 50%; top: 50%; width: 460px; height: 460px; margin: -230px 0 0 -230px;">
+        <!-- soft shadow -->
+        <div style="position: absolute; inset: 30px -10px -30px 10px; border-radius: 50%; background: rgba(11,46,51,.28); filter: blur(40px);"></div>
+        <!-- the pour -->
+        <div class="morph" style="position: absolute; inset: 0; overflow: hidden; background: radial-gradient(circle at 32% 30%, #A6F0E6 0%, #3CC7BA 22%, #128E91 45%, #0B5560 68%, #072B33 100%); box-shadow: inset 0 0 0 10px rgba(255,255,255,.55), inset 0 0 50px rgba(255,255,255,.35);">
+          <div class="swirl" style="position: absolute; inset: -30%; background: conic-gradient(from 20deg, rgba(255,255,255,0) 0deg, rgba(255,255,255,.55) 18deg, rgba(255,255,255,0) 40deg, rgba(7,43,51,.45) 110deg, rgba(255,255,255,0) 150deg, rgba(212,175,90,.55) 200deg, rgba(255,255,255,0) 230deg, rgba(255,255,255,.4) 300deg, rgba(255,255,255,0) 330deg); mix-blend-mode: soft-light;"></div>
+          <div class="swirlRev" style="position: absolute; inset: -20%; background: radial-gradient(ellipse 30% 12% at 30% 60%, rgba(255,255,255,.8), rgba(255,255,255,0) 70%), radial-gradient(ellipse 22% 9% at 70% 35%, rgba(255,255,255,.7), rgba(255,255,255,0) 70%), radial-gradient(ellipse 18% 6% at 55% 80%, rgba(243,222,158,.9), rgba(243,222,158,0) 70%);"></div>
+          <div class="fleck" style="width: 14px; height: 14px; left: 26%; top: 34%;"></div>
+          <div class="fleck" style="width: 9px; height: 9px; left: 62%; top: 22%; animation-delay: -1.2s;"></div>
+          <div class="fleck" style="width: 18px; height: 18px; left: 70%; top: 58%; animation-delay: -2.1s;"></div>
+          <div class="fleck" style="width: 7px; height: 7px; left: 40%; top: 72%; animation-delay: -.6s;"></div>
+          <div class="fleck" style="width: 11px; height: 11px; left: 18%; top: 60%; animation-delay: -2.8s;"></div>
+          <div class="fleck" style="width: 6px; height: 6px; left: 50%; top: 45%; animation-delay: -1.7s;"></div>
+          <div class="fleck" style="width: 12px; height: 12px; left: 80%; top: 40%; animation-delay: -3.1s;"></div>
+          <!-- glossy highlight -->
+          <div style="position: absolute; left: 14%; top: 9%; width: 42%; height: 22%; border-radius: 50%; background: linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,0)); transform: rotate(-24deg);"></div>
+        </div>
+      </div>
+
+      <!-- floating real pieces -->
+      <div class="float" style="--r: -6deg; position: absolute; left: 0; top: 40px; width: 170px; height: 170px; border-radius: 50%; overflow: hidden; border: 6px solid #fff; box-shadow: 0 24px 50px -20px rgba(11,46,51,.55);">
+        <img src="/images/legacy-crops/coaster2.jpg" alt="Teal resin coasters with gold leaf" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+      </div>
+      <div class="float b" style="--r: 5deg; position: absolute; right: 0; bottom: 36px; width: 196px; height: 236px; border-radius: 26px; overflow: hidden; border: 6px solid #fff; box-shadow: 0 24px 50px -20px rgba(11,46,51,.55);">
+        <img src="/images/products/4c968890.jpg" alt="Pearl and gold resin chess set" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+      </div>
+      <div class="float c" style="--r: -3deg; position: absolute; left: 30px; bottom: 10px; padding: 14px 18px; border-radius: 18px; background: #fff; box-shadow: 0 20px 40px -18px rgba(11,46,51,.4); display: flex; align-items: center; gap: 12px;">
+        <span style="width: 38px; height: 38px; border-radius: 50%; background: conic-gradient(#14A3A0, #4FD1C5, #D4AF5A, #14A3A0); display: block;"></span>
+        <span style="font-size: 13px; line-height: 1.35;"><strong style="display: block; font-size: 14px;">Personalised</strong><span style="color: #4A5E61;">names, colours, dates</span></span>
+      </div>
+
+      <!-- rotating badge -->
+      <div style="position: absolute; right: 36px; top: 10px; width: 132px; height: 132px; border-radius: 50%; background: #0B2E33; display: flex; align-items: center; justify-content: center;">
+        <svg class="spinBadge" width="132" height="132" viewBox="0 0 132 132" style="position: absolute; inset: 0;" aria-hidden="true">
+          <defs><path id="bdg" d="M66 66 m-48 0 a48 48 0 1 1 96 0 a48 48 0 1 1 -96 0"/></defs>
+          <text fill="#F3DE9E" font-family="Manrope, sans-serif" font-size="11.5" font-weight="700" letter-spacing="3.4"><textPath href="#bdg">HANDMADE • ONE OF A KIND • </textPath></text>
+        </svg>
+        <span class="script" style="font-size: 34px; color: #F3DE9E;">C</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MARQUEE ================= -->
+<div aria-hidden="true" style="background: #0B2E33; color: #F7F3EC; padding: 22px 0; overflow: hidden; transform: rotate(-1.2deg); margin: 0 -20px;">
+  <div class="track serif" style="display: flex; width: max-content; gap: 48px; font-size: 34px; font-style: italic; white-space: nowrap;">
+    <span>Resin</span><span style="color: #D4AF5A;">✦</span><span>Candles</span><span style="color: #D4AF5A;">✦</span><span>Decoupage</span><span style="color: #D4AF5A;">✦</span><span>Board games</span><span style="color: #D4AF5A;">✦</span><span>Macramé</span><span style="color: #D4AF5A;">✦</span><span>Ramadan &amp; Eid</span><span style="color: #D4AF5A;">✦</span><span>Custom gifts</span><span style="color: #D4AF5A;">✦</span>
+    <span>Resin</span><span style="color: #D4AF5A;">✦</span><span>Candles</span><span style="color: #D4AF5A;">✦</span><span>Decoupage</span><span style="color: #D4AF5A;">✦</span><span>Board games</span><span style="color: #D4AF5A;">✦</span><span>Macramé</span><span style="color: #D4AF5A;">✦</span><span>Ramadan &amp; Eid</span><span style="color: #D4AF5A;">✦</span><span>Custom gifts</span><span style="color: #D4AF5A;">✦</span>
+  </div>
+</div>
+
+<!-- ================= COLLECTIONS ================= -->
+<section id="collections" style="max-width: 1280px; margin: 0 auto; padding: 130px 32px 110px;">
+  <div class="reveal" style="display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; margin-bottom: 52px;">
+    <div>
+      <p style="margin: 0 0 14px; font-size: 13px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #0E6F6C;">Shop by category</p>
+      <h2 class="serif" style="margin: 0; font-size: clamp(40px, 5vw, 68px); line-height: 1; font-weight: 500; letter-spacing: -.01em;">Five materials.<br><em>One steady hand.</em></h2>
+    </div>
+    <p style="margin: 0; max-width: 380px; font-size: 16px; line-height: 1.7; color: #3F5457;">From glossy ocean coasters to hand-poured candles — pieces for your table, your shelf and the people you love.</p>
+  </div>
+
+  <div class="catwrap reveal">
+    <div role="tablist" aria-label="Shop by category" class="catlist">
+      <sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+        <button type="button" role="tab" class="cattab" aria-selected="{{c.sel}}" onClick="{{c.pick}}" style="{{c.style}}">
+          <span style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
+            <span class="serif" style="font-size: 30px; font-weight: 500; line-height: 1;">{{c.name}}</span>
+            <span style="font-size: 13px; opacity: .75;">{{c.count}}</span>
+          </span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </sc-for>
+    </div>
+
+    <div class="catpanel" style="position: relative; border-radius: 32px; overflow: hidden; background: #0B2E33; color: #F7F3EC; min-height: 540px;">
+      <div class="zoom" style="position: relative; min-height: 300px; overflow: hidden; background: #E9DFCF;">
+        <sc-if value="{{cat.img}}" hint-placeholder-val="{{true}}">
+          <img src="{{cat.img}}" alt="{{cat.alt}}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">
+        </sc-if>
+        <sc-if value="{{cat.noImg}}" hint-placeholder-val="{{false}}">
+          <svg viewBox="0 0 200 260" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0; width: 100%; height: 100%;" role="img" aria-label="Knotted macramé pattern">
+            <g fill="none" stroke="#B9A88C" stroke-width="5" stroke-linecap="round">
+              <path d="M20 0 V60 Q20 90 50 110 T80 170 V260"/><path d="M60 0 V60 Q60 90 30 110 T0 170"/><path d="M100 0 V60 Q100 90 130 110 T160 170 V260"/><path d="M140 0 V60 Q140 90 110 110 T80 170"/><path d="M180 0 V60 Q180 90 150 110 T120 170 V260"/><path d="M200 70 Q190 100 170 110"/>
+            </g>
+          </svg>
+        </sc-if>
+        <span class="ar" dir="rtl" lang="ar" style="position: absolute; right: 18px; top: 18px; padding: 8px 16px; border-radius: 999px; background: rgba(247,243,236,.94); color: #0B2E33; font-size: 16px; font-weight: 700;">{{cat.ar}}</span>
+      </div>
+      <div style="padding: 44px 40px; display: flex; flex-direction: column; gap: 18px;">
+        <span style="font-size: 12px; letter-spacing: .22em; text-transform: uppercase; font-weight: 700; color: #4FD1C5;">{{cat.count}}</span>
+        <h3 class="serif" style="margin: 0; font-size: 56px; font-weight: 500; line-height: .95;">{{cat.name}}</h3>
+        <p style="margin: 0; font-size: 16px; line-height: 1.7; color: #C9DAD9;">{{cat.desc}}</p>
+        <sc-if value="{{cat.hasSubs}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px;">
+            <sc-for list="{{cat.subs}}" as="s" hint-placeholder-count="8">
+              <a class="chip" href="Shop.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid rgba(247,243,236,.28); color: #F7F3EC; text-decoration: none; font-size: 14px; font-weight: 600;">{{s}}</a>
+            </sc-for>
+          </div>
+        </sc-if>
+        <a class="btn" href="Shop.dc.html" style="margin-top: auto; align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; min-height: 54px; padding: 0 28px; border-radius: 999px; background: #D4AF5A; color: #0B2E33; text-decoration: none; font-weight: 700;">Shop all {{cat.name}}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SHOP ================= -->
+<section id="shop" style="max-width: 1280px; margin: 0 auto; padding: 20px 32px 120px;">
+  <div class="reveal" style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin-bottom: 36px;">
+    <div>
+      <p style="margin: 0 0 14px; font-size: 13px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #0E6F6C;">Shop online</p>
+      <h2 class="serif" style="margin: 0; font-size: clamp(38px, 4.5vw, 60px); line-height: 1; font-weight: 500;">Best sellers, <em>ready to ship.</em></h2>
+    </div>
+    <a href="Shop.dc.html" style="font-weight: 700; font-size: 15px;">View all 80 products →</a>
+  </div>
+  <div class="shopgrid">
+    <sc-for list="{{products}}" as="p" hint-placeholder-count="4">
+      <article class="lift reveal" style="background: #fff; border-radius: 26px; padding: 12px; display: flex; flex-direction: column;">
+        <div class="zoom" style="position: relative; aspect-ratio: 4 / 5; border-radius: 18px; overflow: hidden;">
+          <img src="{{p.img}}" alt="{{p.name}}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+          <span style="position: absolute; left: 12px; top: 12px; padding: 6px 12px; border-radius: 999px; background: rgba(247,243,236,.94); font-size: 12px; font-weight: 700;">{{p.tag}}</span>
+        </div>
+        <div style="padding: 16px 8px 6px; display: flex; flex-direction: column; gap: 4px; flex-grow: 1;">
+          <h3 class="serif" style="margin: 0; font-size: 26px; font-weight: 600; line-height: 1.1;">{{p.name}}</h3>
+          <p style="margin: 0; font-size: 14px; color: #4A5E61;">{{p.meta}}</p>
+          <div style="margin-top: auto; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <span style="font-weight: 700; font-size: 14px; color: #7A5C14;">Price pending</span>
+            <button class="btn" type="button" onClick="{{p.add}}" style="{{p.btnStyle}}">{{p.btnLabel}}</button>
+          </div>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+  <div class="reveal" style="margin-top: 28px; display: flex; gap: 28px; flex-wrap: wrap; justify-content: center; font-size: 14px; font-weight: 600; color: #3F5457;">
+    <span>✦ Card, wallet or cash on delivery</span><span>✦ Delivery across Egypt</span><span>✦ Gift wrapping at checkout</span>
+  </div>
+</section>
+
+<!-- ================= BOARD GAMES ================= -->
+<section id="games" style="position: relative; background: #0B2E33; color: #F7F3EC; overflow: hidden;">
+  <div aria-hidden="true" class="morph" style="position: absolute; width: 700px; height: 700px; left: -260px; bottom: -340px; background: radial-gradient(circle, rgba(20,163,160,.45), rgba(20,163,160,0) 65%);"></div>
+  <div class="split" style="position: relative; max-width: 1280px; margin: 0 auto; padding: 120px 32px;">
+    <div class="reveal" style="position: relative; height: 480px;">
+      <div style="position: absolute; inset: 0 60px 40px 0; border-radius: 32px; overflow: hidden;">
+        <img src="/images/legacy-crops/xo.jpg" alt="Rainbow resin tic-tac-toe board" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+      </div>
+      <!-- live XO board -->
+      <div style="position: absolute; right: 0; bottom: 0; width: 230px; padding: 20px; border-radius: 26px; background: #F7F3EC; box-shadow: 0 30px 60px -20px rgba(0,0,0,.6);">
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+          <sc-for list="{{xo}}" as="c" hint-placeholder-count="9">
+            <div style="aspect-ratio: 1; border-radius: 12px; background: #E3EFEE; display: flex; align-items: center; justify-content: center;">
+              <sc-if value="{{c.x}}" hint-placeholder-val="{{false}}"><svg class="pop" style="{{c.delay}}" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#14A3A0" stroke-width="3.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></sc-if>
+              <sc-if value="{{c.o}}" hint-placeholder-val="{{false}}"><svg class="pop" style="{{c.delay}}" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#B8913A" stroke-width="3.4" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/></svg></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    <div class="reveal">
+      <p style="margin: 0 0 14px; font-size: 13px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #4FD1C5;">Board games collection</p>
+      <h2 class="serif" style="margin: 0; font-size: clamp(42px, 5vw, 72px); line-height: 1; font-weight: 500;">Game night,<br><em class="goldline">but make it art.</em></h2>
+      <p style="margin: 26px 0 0; max-width: 470px; font-size: 17px; line-height: 1.7; color: #C9DAD9;">Heirloom-weight sets in poured resin — made to live on the coffee table long after the last round.</p>
+      <div style="margin-top: 36px; display: flex; flex-direction: column; gap: 2px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid rgba(247,243,236,.16);"><span class="serif" style="font-size: 30px;">XO</span><span style="font-size: 14px; color: #A9C4C3;">Tic-tac-toe in any colourway</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid rgba(247,243,236,.16);"><span class="serif" style="font-size: 30px;">Domino</span><span style="font-size: 14px; color: #A9C4C3;">Amber, ocean &amp; marble sets</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid rgba(247,243,236,.16);"><span class="serif" style="font-size: 30px;">Chess</span><span style="font-size: 14px; color: #A9C4C3;">Poured board, sculpted pieces</span></div>
+      </div>
+      <a class="btn" href="Shop.dc.html" style="margin-top: 36px; display: inline-flex; align-items: center; gap: 10px; min-height: 54px; padding: 0 28px; border-radius: 999px; background: #D4AF5A; color: #0B2E33; text-decoration: none; font-weight: 700;">Shop board games
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WORKSHOPS ================= -->
+<section id="workshops" style="max-width: 1280px; margin: 0 auto; padding: 130px 32px 110px;">
+  <div class="reveal" style="text-align: center; max-width: 760px; margin: 0 auto 56px;">
+    <p class="ar" dir="rtl" lang="ar" style="margin: 0; font-size: 26px; font-weight: 700; color: #0E6F6C;">ورش إبداعية</p>
+    <h2 class="serif" style="margin: 8px 0 0; font-size: clamp(42px, 5vw, 72px); line-height: 1; font-weight: 500;">Let's get <em>creative.</em></h2>
+    <p style="margin: 22px auto 0; max-width: 560px; font-size: 17px; line-height: 1.7; color: #3F5457;">Two creative days, one week apart — you learn and pour on day one, let it cure, then come back to finish your piece.</p>
+  </div>
+
+  <div role="tablist" aria-label="Workshops" style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 40px;">
+    <sc-for list="{{workshops}}" as="w" hint-placeholder-count="4">
+      <button class="tab" type="button" role="tab" aria-selected="{{w.sel}}" onClick="{{w.pick}}" style="{{w.tabStyle}}">{{w.name}}</button>
+    </sc-for>
+  </div>
+
+  <div class="split reveal" style="gap: 48px; background: #fff; border-radius: 36px; padding: 28px; box-shadow: 0 40px 80px -50px rgba(11,46,51,.45);">
+    <div class="zoom" style="position: relative; border-radius: 24px; overflow: hidden; height: 440px;">
+      <img src="{{active.img}}" alt="{{active.alt}}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+      <span style="position: absolute; left: 18px; top: 18px; padding: 8px 14px; border-radius: 999px; background: rgba(247,243,236,.94); font-size: 13px; font-weight: 700;">{{active.tag}}</span>
+    </div>
+    <div style="padding: 12px 20px 12px 0;">
+      <p class="ar" dir="rtl" lang="ar" style="margin: 0; font-size: 20px; color: #8A6A1F; font-weight: 700; text-align: left;">{{active.ar}}</p>
+      <h3 class="serif" style="margin: 4px 0 0; font-size: 52px; line-height: 1; font-weight: 500;">{{active.name}}</h3>
+      <p style="margin: 18px 0 0; font-size: 16px; line-height: 1.7; color: #3F5457;">{{active.desc}}</p>
+
+      <!-- timeline -->
+      <div style="margin-top: 34px; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 18px; row-gap: 0;">
+        <span style="width: 40px; height: 40px; border-radius: 50%; background: #14A3A0; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center;">1</span>
+        <div style="padding-bottom: 18px;"><strong style="font-size: 16px;">Day 1 — Learn &amp; create</strong><p style="margin: 4px 0 0; font-size: 14px; color: #4A5E61;">{{active.day1}}</p></div>
+        <span style="justify-self: center; width: 2px; height: 46px; background: repeating-linear-gradient(#B8913A 0 5px, transparent 5px 10px); margin-top: -14px;"></span>
+        <div style="padding-bottom: 14px; margin-top: -10px;"><span style="font-size: 13px; font-weight: 700; color: #7A5C14; letter-spacing: .08em; text-transform: uppercase;">One week break — your piece cures</span></div>
+        <span style="width: 40px; height: 40px; border-radius: 50%; background: #0B2E33; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center;">2</span>
+        <div><strong style="font-size: 16px;">Day 2 — Finish your project</strong><p style="margin: 4px 0 0; font-size: 14px; color: #4A5E61;">{{active.day2}}</p></div>
+      </div>
+
+      <div style="margin-top: 34px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+        <a class="btn btnP" href="#book" style="display: inline-flex; align-items: center; min-height: 52px; padding: 0 26px; border-radius: 999px; background: #0B2E33; color: #fff; text-decoration: none; font-weight: 700;">Book &amp; pay online</a>
+        <span style="font-size: 14px; color: #4A5E61;">Mix &amp; match courses — ask about special offers</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CUSTOM GIFTS ================= -->
+<section id="gifts" style="background: linear-gradient(180deg, #F7F3EC, #ECE3D3);">
+  <div class="split" style="max-width: 1280px; margin: 0 auto; padding: 110px 32px 120px;">
+    <div class="reveal">
+      <p style="margin: 0 0 14px; font-size: 13px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #0E6F6C;">We customise your gifts</p>
+      <h2 class="serif" style="margin: 0; font-size: clamp(42px, 5vw, 72px); line-height: 1; font-weight: 500;">A gift with<br>their <em class="script" style="font-style: normal; color: #8A6A1F; font-size: 1.15em;">name</em> in it.</h2>
+      <p style="margin: 24px 0 0; max-width: 470px; font-size: 17px; line-height: 1.7; color: #3F5457;">Birthdays, weddings, Secret Santa or a full corporate event — tell us the moment and we'll pour it.</p>
+
+      <ol style="list-style: none; margin: 40px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px;">
+        <li class="lift" style="display: flex; gap: 18px; align-items: center; padding: 18px 22px; border-radius: 20px; background: #fff;">
+          <span class="serif" style="font-size: 34px; color: #14A3A0; width: 36px;">01</span><span><strong>Tell us the occasion</strong><span style="display: block; font-size: 14px; color: #4A5E61; margin-top: 2px;">Who it's for and when you need it</span></span>
+        </li>
+        <li class="lift" style="display: flex; gap: 18px; align-items: center; padding: 18px 22px; border-radius: 20px; background: #fff;">
+          <span class="serif" style="font-size: 34px; color: #14A3A0; width: 36px;">02</span><span><strong>Pick colours &amp; details</strong><span style="display: block; font-size: 14px; color: #4A5E61; margin-top: 2px;">Names, initials, dates, flowers, gold leaf</span></span>
+        </li>
+        <li class="lift" style="display: flex; gap: 18px; align-items: center; padding: 18px 22px; border-radius: 20px; background: #fff;">
+          <span class="serif" style="font-size: 34px; color: #14A3A0; width: 36px;">03</span><span><strong>We pour, cure &amp; wrap it</strong><span style="display: block; font-size: 14px; color: #4A5E61; margin-top: 2px;">Ready to gift, straight out of the box</span></span>
+        </li>
+      </ol>
+    </div>
+    <div class="reveal" style="position: relative; height: 600px;">
+      <div class="float" style="--r: 3deg; position: absolute; right: 0; top: 0; width: 78%; height: 88%; border-radius: 200px 200px 28px 28px; overflow: hidden; box-shadow: 0 40px 80px -40px rgba(11,46,51,.55);">
+        <img src="/images/legacy-crops/bouquet.jpg" alt="Festive personalised bouquet with a name ribbon" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+      </div>
+      <div class="float b" style="--r: -5deg; position: absolute; left: 0; bottom: 0; width: 46%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; border: 8px solid #F7F3EC; box-shadow: 0 30px 60px -30px rgba(11,46,51,.55);">
+        <img src="/images/legacy-crops/skull.jpg" alt="Marbled red, white and blue resin skull" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= INSTAGRAM ================= -->
+<section style="max-width: 1280px; margin: 0 auto; padding: 100px 32px;">
+  <div class="reveal" style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 32px;">
+    <h2 class="serif" style="margin: 0; font-size: 44px; font-weight: 500;">Fresh from the studio</h2>
+    <a href="https://instagram.com/coco_resin_art" style="font-weight: 700; font-size: 15px;">@coco_resin_art →</a>
+  </div>
+  <div class="igrid reveal">
+    <a class="ig" href="https://instagram.com/coco_resin_art" style="display: block; aspect-ratio: 1; border-radius: 18px; overflow: hidden;"><img src="/images/legacy-crops/coasters.jpg" alt="Resin coaster close-up" style="width: 100%; height: 100%; object-fit: cover; display: block;"></a>
+    <a class="ig" href="https://instagram.com/coco_resin_art" style="display: block; aspect-ratio: 1; border-radius: 18px; overflow: hidden;"><img src="/images/legacy-crops/bouquet.jpg" alt="Holiday bouquet" style="width: 100%; height: 100%; object-fit: cover; display: block;"></a>
+    <a class="ig" href="https://instagram.com/coco_resin_art" style="display: block; aspect-ratio: 1; border-radius: 18px; overflow: hidden;"><img src="/images/legacy-crops/xo.jpg" alt="Resin XO board" style="width: 100%; height: 100%; object-fit: cover; display: block;"></a>
+    <a class="ig" href="https://instagram.com/coco_resin_art" style="display: block; aspect-ratio: 1; border-radius: 18px; overflow: hidden;"><img src="/images/legacy-crops/workshop.jpg" alt="Candle-making workshop" style="width: 100%; height: 100%; object-fit: cover; display: block;"></a>
+    <a class="ig" href="https://instagram.com/coco_resin_art" style="display: block; aspect-ratio: 1; border-radius: 18px; overflow: hidden;"><img src="/images/legacy-crops/skull.jpg" alt="Marbled resin skull" style="width: 100%; height: 100%; object-fit: cover; display: block;"></a>
+    <a class="ig" href="https://instagram.com/coco_resin_art" style="display: block; aspect-ratio: 1; border-radius: 18px; overflow: hidden;"><img src="/images/legacy-crops/pyramids.jpg" alt="Concrete pyramids" style="width: 100%; height: 100%; object-fit: cover; display: block;"></a>
+  </div>
+</section>
+
+<!-- ================= CTA / FOOTER ================= -->
+<footer id="contact" style="position: relative; background: #072B33; color: #F7F3EC; overflow: hidden;">
+  <div aria-hidden="true" class="morph" style="position: absolute; width: 520px; height: 520px; right: -120px; top: -180px; background: radial-gradient(circle at 35% 35%, #4FD1C5, #14A3A0 40%, #0B5560 75%); opacity: .55;"></div>
+  <div aria-hidden="true" class="morph" style="position: absolute; width: 260px; height: 260px; left: 8%; bottom: -150px; background: radial-gradient(circle, #D4AF5A, rgba(212,175,90,0) 70%); opacity: .5; animation-delay: -5s;"></div>
+  <div style="position: relative; max-width: 1280px; margin: 0 auto; padding: 120px 32px 48px;">
+    <p class="script reveal" style="margin: 0; font-size: 46px; color: #F3DE9E;">Let's make something</p>
+    <h2 class="serif reveal" style="margin: 0; font-size: clamp(54px, 8vw, 128px); line-height: .92; font-weight: 500; letter-spacing: -.02em;">poured <em>just for you.</em></h2>
+    <div class="reveal" style="margin-top: 48px; display: flex; gap: 14px; flex-wrap: wrap;">
+      <a class="btn" href="#contact" style="display: inline-flex; align-items: center; gap: 10px; min-height: 58px; padding: 0 30px; border-radius: 999px; background: #F7F3EC; color: #072B33; text-decoration: none; font-weight: 700;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
+        Custom order on WhatsApp</a>
+      <a class="btn" href="https://instagram.com/coco_resin_art" style="display: inline-flex; align-items: center; gap: 10px; min-height: 58px; padding: 0 30px; border-radius: 999px; border: 1.5px solid rgba(247,243,236,.5); color: #F7F3EC; text-decoration: none; font-weight: 700;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg>
+        Instagram</a>
+      <a class="btn" href="https://www.facebook.com/" style="display: inline-flex; align-items: center; gap: 10px; min-height: 58px; padding: 0 30px; border-radius: 999px; border: 1.5px solid rgba(247,243,236,.5); color: #F7F3EC; text-decoration: none; font-weight: 700;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h-2.5A4.5 4.5 0 0 0 8 7.5V10H5.5v4H8v7h4v-7h3l.5-4H12V7.8c0-.6.4-1 1-1h2z"/></svg>
+        Facebook</a>
+    </div>
+
+    <div style="margin-top: 110px; padding-top: 28px; border-top: 1px solid rgba(247,243,236,.16); display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 14px; color: #A9C4C3;">
+      <span style="display: flex; align-items: baseline; gap: 10px;"><span class="script" style="font-size: 30px; color: #F3DE9E;">Coco's</span><span style="letter-spacing: .3em; text-transform: uppercase; font-size: 11px; font-weight: 700; color: #F7F3EC;">Art</span></span>
+      <span>Handmade board games · resin · wood &amp; decoupage · macramé · candles</span>
+      <span>© 2026 Coco's Art</span>
+    </div>
+  </div>
+</footer>
+
+<!-- FLYING ITEM -->
+<sc-if value="{{flyOn}}" hint-placeholder-val="{{false}}">
+  <div aria-hidden="true" class="{{flyXClass}}" style="{{flyStyle}}">
+    <img class="{{flyYClass}}" src="{{flyImg}}" alt="" style="display: block; width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 16px 30px -10px rgba(11,46,51,.55);">
+  </div>
+</sc-if>
+
+<!-- FLOATING CART -->
+<sc-if value="{{cartHas}}" hint-placeholder-val="{{false}}">
+  <div style="position: fixed; left: 0; right: 0; bottom: 20px; z-index: 50; display: flex; justify-content: center; padding: 0 16px; pointer-events: none;">
+    <button class="floatCart {{bumpClass}}" type="button" onClick="{{openCart}}" aria-label="View cart" style="pointer-events: auto; display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 8px 8px 8px 8px; border-radius: 999px; border: 0; cursor: pointer; background: #0B2E33; color: #F7F3EC; font: 700 15px Manrope, sans-serif; box-shadow: 0 20px 44px -16px rgba(11,46,51,.65);">
+      <span style="position: relative; width: 44px; height: 44px; flex: none; border-radius: 50%; background: #14A3A0; display: flex; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+        <span style="position: absolute; top: -5px; right: -5px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: #D4AF5A; color: #0B2E33; font-size: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid #0B2E33;">{{cart}}</span>
+      </span>
+      <span style="white-space: nowrap;">{{floatText}}</span>
+      <span style="display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: #F7F3EC; color: #0B2E33; font-size: 14px; white-space: nowrap;">View
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg></span>
+    </button>
+  </div>
+</sc-if>
+
+<!-- CART DRAWER -->
+<sc-if value="{{cartOpen}}" hint-placeholder-val="{{false}}">
+  <div style="position: fixed; inset: 0; z-index: 60;">
+    <button class="cartScrim" type="button" aria-label="Close cart" onClick="{{closeCart}}" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0; margin: 0; padding: 0; background: rgba(7,43,51,.5); cursor: pointer;"></button>
+    <aside class="cartPanel" role="dialog" aria-modal="true" aria-label="Shopping cart" style="position: absolute; top: 0; right: 0; height: 100%; width: 100%; max-width: 420px; background: #F7F3EC; color: #0B2E33; display: flex; flex-direction: column; box-shadow: -30px 0 60px -30px rgba(0,0,0,.45); font-family: Manrope, sans-serif;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 24px; border-bottom: 1px solid #E2D9CA;">
+        <h2 class="serif" style="margin: 0; font-size: 34px; font-weight: 500;">Your cart <span style="font-family: Manrope, sans-serif; font-size: 15px; font-weight: 700; color: #4A5E61;">({{cart}})</span></h2>
+        <button type="button" aria-label="Close cart" onClick="{{closeCart}}" style="width: 44px; height: 44px; flex: none; border-radius: 50%; border: 1.5px solid #D9D0C1; background: transparent; color: #0B2E33; cursor: pointer; display: flex; align-items: center; justify-content: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+      <sc-if value="{{showAdded}}" hint-placeholder-val="{{false}}">
+        <div role="status" style="margin: 14px 24px 0; padding: 12px 14px; border-radius: 14px; background: #E3EFEE; color: #0B4F5A; font-size: 14px; font-weight: 600; display: flex; gap: 10px; align-items: center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E6F6C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+          <span>Added: {{lastAdded}}</span>
+        </div>
+      </sc-if>
+      <div style="flex: 1; overflow-y: auto; padding: 4px 24px;">
+        <sc-if value="{{cartEmpty}}" hint-placeholder-val="{{false}}">
+          <div style="text-align: center; padding: 70px 10px;">
+            <p class="serif" style="margin: 0; font-size: 30px;">Your cart is <em>empty.</em></p>
+            <p style="margin: 10px 0 0; color: #4A5E61; font-size: 14px;">Find something handmade you'll love.</p>
+          </div>
+        </sc-if>
+        <sc-for list="{{cartItems}}" as="ci" hint-placeholder-count="2">
+          <div style="display: flex; gap: 14px; align-items: center; padding: 16px 0; border-bottom: 1px solid #E2D9CA;">
+            <img src="{{ci.img}}" alt="{{ci.name}}" style="width: 76px; height: 76px; border-radius: 14px; object-fit: cover; flex: none;">
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px;">
+              <strong style="font-size: 15px; line-height: 1.3;">{{ci.name}}</strong>
+              <span style="font-size: 12.5px; font-weight: 700; color: #7A5C14;">Price pending</span>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <div style="display: inline-flex; align-items: center; border: 1.5px solid #D9D0C1; border-radius: 999px; background: #fff;">
+                  <button class="qty" type="button" aria-label="Decrease quantity" onClick="{{ci.dec}}" style="width: 44px; height: 40px; border: 0; border-radius: 999px; background: transparent; color: #0B2E33; font: 700 18px Manrope, sans-serif; cursor: pointer;">−</button>
+                  <span style="min-width: 22px; text-align: center; font-weight: 700;">{{ci.qty}}</span>
+                  <button class="qty" type="button" aria-label="Increase quantity" onClick="{{ci.inc}}" style="width: 44px; height: 40px; border: 0; border-radius: 999px; background: transparent; color: #0B2E33; font: 700 18px Manrope, sans-serif; cursor: pointer;">+</button>
+                </div>
+                <button type="button" onClick="{{ci.remove}}" style="min-height: 44px; padding: 0 6px; border: 0; background: transparent; color: #0E6F6C; font: 700 13.5px Manrope, sans-serif; text-decoration: underline; cursor: pointer;">Remove</button>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding: 18px 24px 24px; border-top: 1px solid #E2D9CA; background: #fff; display: flex; flex-direction: column; gap: 12px;">
+        <sc-if value="{{cartHas}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-weight: 700;">Subtotal</span><span style="font-weight: 700; color: #7A5C14;">Price pending</span></div>
+          <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #4A5E61;">Coco will confirm your total before payment. Delivery across Egypt.</p>
+          <a class="btn" href="#checkout" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; border-radius: 999px; background: #14A3A0; color: #fff; text-decoration: none; font-weight: 700; font-size: 16px;">Checkout
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </sc-if>
+        <button type="button" onClick="{{closeCart}}" style="min-height: 50px; border-radius: 999px; border: 1.5px solid #0B2E33; background: transparent; color: #0B2E33; font: 700 15px Manrope, sans-serif; cursor: pointer;">Continue shopping</button>
+      </div>
+    </aside>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"motion":{"editor":"boolean","default":true,"section":"Motion"},"$preview":{"width":1440,"height":6400}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { picked: 'resin', cat: 'resin', cart: {}, cartOpen: false, lastAdded: '' };
+  }
+  componentDidMount() {
+    this.setState({ cart: this.loadCart() });
+  }
+  loadCart() {
+    try { const v = JSON.parse(window.localStorage.getItem('coco-cart') || '{}'); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; }
+  }
+  saveCart(c) {
+    try { window.localStorage.setItem('coco-cart', JSON.stringify(c)); } catch (e) {}
+  }
+  updateCart(c, extra) {
+    this.saveCart(c);
+    this.setState(Object.assign({ cart: c }, extra || {}));
+  }
+  addToCart(p, e) {
+    const c = Object.assign({}, this.state.cart);
+    const cur = c[p.id];
+    c[p.id] = { id: p.id, name: p.name, img: p.img, qty: (cur ? cur.qty : 0) + 1 };
+    let vars = '';
+    try {
+      const el = e && e.currentTarget;
+      const card = el && el.closest ? (el.closest('article') || el) : null;
+      const r = card ? card.getBoundingClientRect() : null;
+      const W = window.innerWidth, H = window.innerHeight;
+      const sx = r ? r.left + r.width / 2 - 40 : W / 2 - 40;
+      const sy = r ? r.top + Math.min(r.height / 3, 140) - 40 : H / 2 - 40;
+      vars = '--sx: ' + Math.round(sx) + 'px; --sy: ' + Math.round(sy) + 'px; --ex: ' + Math.round(W / 2 - 40) + 'px; --ey: ' + Math.round(H - 92) + 'px;';
+    } catch (err) { vars = ''; }
+    this.updateCart(c, { fx: (this.state.fx || 0) + 1, flyImg: p.img, flyVars: vars, justAdded: true, lastAdded: '' });
+    clearTimeout(this._t1); clearTimeout(this._t2);
+    this._t1 = setTimeout(() => this.setState({ flyImg: '' }), 900);
+    this._t2 = setTimeout(() => this.setState({ justAdded: false }), 1900);
+  }
+  componentWillUnmount() {
+    clearTimeout(this._t1); clearTimeout(this._t2);
+  }
+  changeQty(id, d) {
+    const c = Object.assign({}, this.state.cart);
+    if (!c[id]) return;
+    const q = c[id].qty + d;
+    if (q <= 0) delete c[id]; else c[id] = Object.assign({}, c[id], { qty: q });
+    this.updateCart(c, { lastAdded: '' });
+  }
+  removeItem(id) {
+    const c = Object.assign({}, this.state.cart);
+    delete c[id];
+    this.updateCart(c, { lastAdded: '' });
+  }
+  cartVals() {
+    const c = this.state.cart || {};
+    const list = Object.keys(c).map((k) => c[k]);
+    const count = list.reduce((t, i) => t + i.qty, 0);
+    const fx = this.state.fx || 0;
+    return {
+      cart: count,
+      floatText: this.state.justAdded ? 'Added to cart ✓' : count + (count === 1 ? ' item' : ' items') + ' in your cart',
+      bumpClass: fx ? (fx % 2 ? 'bumpA' : 'bumpB') : '',
+      flyOn: !!this.state.flyImg && !!this.state.flyVars && this.props.motion !== false,
+      flyImg: this.state.flyImg || '',
+      flyXClass: fx % 2 ? 'flyXA' : 'flyXB',
+      flyYClass: fx % 2 ? 'flyYA' : 'flyYB',
+      flyStyle: 'position: fixed; left: 0; top: 0; z-index: 70; pointer-events: none; ' + (this.state.flyVars || ''),
+      cartItems: list.map((i) => ({ name: i.name, img: i.img, qty: i.qty,
+        inc: () => this.changeQty(i.id, 1), dec: () => this.changeQty(i.id, -1), remove: () => this.removeItem(i.id) })),
+      cartEmpty: list.length === 0,
+      cartHas: list.length > 0,
+      cartOpen: !!this.state.cartOpen,
+      showAdded: !!this.state.lastAdded,
+      lastAdded: this.state.lastAdded || '',
+      openCart: () => this.setState({ cartOpen: true, lastAdded: '' }),
+      closeCart: () => this.setState({ cartOpen: false, lastAdded: '' })
+    };
+  }
+  renderVals() {
+    const picked = this.state.picked;
+    const data = [
+      { id: 'resin', name: 'Resin art', ar: 'ريزن آرت', tag: 'Most popular', img: '/images/legacy-crops/coaster2.jpg', alt: 'Resin coasters made in the workshop',
+        desc: 'Mix pigments, play with cells and lacing, and seal in gold leaf. You leave with your own ocean coasters or tray.',
+        day1: 'Colour theory, safe mixing and your first pour', day2: 'Demould, sand and polish to a glass finish' },
+      { id: 'candles', name: 'Candle making', ar: 'صناعة الشموع', tag: 'Cosy & calm', img: '/images/legacy-crops/workshop.jpg', alt: 'Guests making candles around a long table',
+        desc: 'Choose wax, wick and fragrance, then pour candles in jars and moulds — dried flowers and all.',
+        day1: 'Wax types, scent blending and the pour', day2: 'Trim, label and decorate your candles' },
+      { id: 'decoupage', name: 'Decoupage', ar: 'ديكوباج', tag: 'Beginner friendly', img: '/images/legacy-crops/bouquet.jpg', alt: 'Decorated festive keepsake',
+        desc: 'Turn plain wooden boxes and trays into patterned keepsakes with papers, paints and varnish.',
+        day1: 'Prep the surface and lay your design', day2: 'Seal, distress and varnish the final piece' },
+      { id: 'concrete', name: 'Concrete art', ar: 'فن الخرسانة', tag: 'Modern decor', img: '/images/legacy-crops/pyramids.jpg', alt: 'Concrete pyramids made in class',
+        desc: 'Cast planters, trays and sculptural decor in concrete, then finish them with colour and gold.',
+        day1: 'Mix, cast and set your moulds', day2: 'Demould, paint and finish your decor' }
+    ];
+    const workshops = data.map((w) => {
+      const sel = w.id === picked;
+      return Object.assign({}, w, {
+        sel: sel ? 'true' : 'false',
+        pick: () => this.setState({ picked: w.id }),
+        tabStyle: 'min-height: 48px; padding: 0 24px; border-radius: 999px; font: 700 15px Manrope, sans-serif; cursor: pointer; border: 1.5px solid ' + (sel ? '#0B2E33' : '#D9D0C1') + '; background: ' + (sel ? '#0B2E33' : 'transparent') + '; color: ' + (sel ? '#F7F3EC' : '#0B2E33') + ';'
+      });
+    });
+    const active = data.find((w) => w.id === picked) || data[0];
+    const marks = ['x','o','x','','x','o','o','','x'];
+    const xo = marks.map((m, i) => ({ x: m === 'x', o: m === 'o', delay: 'animation-delay:' + (0.6 + i * 0.35) + 's' }));
+    const added = this.state.cart || {};
+    const items = [
+      { id: 'coco-052', name: 'Resin XO Game Set', meta: 'Board games · 6 colourways', tag: 'Board games', img: '/images/products/f5fbe12d.jpg' },
+      { id: 'coco-010', name: 'Ocean Seashell Dish', meta: 'Resin · real seashells', tag: 'Resin', img: '/images/products/2d4c7956.jpg' },
+      { id: 'coco-062', name: 'Resin Chess Set', meta: 'Board games · 4 colourways', tag: 'Board games', img: '/images/products/4c968890.jpg' },
+      { id: 'coco-091', name: 'Rose Candle in Resin Holder', meta: 'Candles · 4 colourways', tag: 'Candles', img: '/images/products/3611cd74.jpg' }
+    ];
+    const products = items.map((p) => {
+      const on = !!added[p.id];
+      return Object.assign({}, p, {
+        btnLabel: on ? 'In cart ✓' : 'Add to cart',
+        add: (e) => this.addToCart(p, e),
+        btnStyle: 'min-height: 44px; padding: 0 18px; border-radius: 999px; border: 0; cursor: pointer; font: 700 14px Manrope, sans-serif; background: ' + (on ? '#14A3A0' : '#0B2E33') + '; color: #fff;'
+      });
+    });
+    const catData = [
+      { id: 'resin', name: 'Resin', ar: 'ريزن', n: 28, img: '/images/products/2d4c7956.jpg', alt: 'Ocean resin dish rimmed with seashells',
+        desc: 'Glossy, hand-poured pieces in ocean blues, marble and gold — coasters, dishes, clocks, notebooks and seasonal decor.',
+        subs: ['Coasters', 'Trays & dishes', 'Wall clocks', 'Notebooks', 'Ashtrays', 'Ramadan decor', 'Phone cases', 'Bookmarks'] },
+      { id: 'gaming', name: 'Board Games', ar: 'ألعاب', n: 12, img: '/images/products/f5fbe12d.jpg', alt: 'Five glitter resin tic-tac-toe boards',
+        desc: 'Heirloom-weight game sets poured in resin — chess, domino, backgammon and XO in any colourway.',
+        subs: ['Chess', 'Domino', 'Backgammon', 'XO'] },
+      { id: 'wood', name: 'Wood & Decoupage', ar: 'خشب وديكوباج', n: 25, img: '/images/products/d52de0c5.jpg', alt: 'Hexagonal wooden mosque lantern',
+        desc: 'Lanterns, trays, crescents and keepsakes in wood — painted, stencilled and finished with decoupage.',
+        subs: ['Ramadan lanterns', 'Trays', 'Crescents & stands', 'Coasters', 'Quran stands', 'Incense burners'] },
+      { id: 'macrame', name: 'Macramé', ar: 'مكرمية', n: 6, img: '/images/products/aec6b1b6.jpg', alt: 'Cream macramé sunburst mirror',
+        desc: 'Hand-knotted cotton pieces that soften any room — mirrors, wall hangings, plant hangers and bags.',
+        subs: ['Mirrors', 'Wall hangings', 'Plant hangers', 'Bags & pouches'] },
+      { id: 'candles', name: 'Candles', ar: 'شموع', n: 9, img: '/images/products/3611cd74.jpg', alt: 'Pink rose candle in a fuchsia resin holder',
+        desc: 'Sculpted candles and rose candles in resin holders — for gifting, Ramadan nights and Halloween.',
+        subs: ['Rose candle holders', 'Skull candles', 'Seasonal candles', 'Ramadan candles'] }
+    ];
+    const catId = this.state.cat;
+    const cats = catData.map((c) => {
+      const sel = c.id === catId;
+      return {
+        name: c.name,
+        count: c.n + ' products',
+        sel: sel ? 'true' : 'false',
+        pick: () => this.setState({ cat: c.id }),
+        style: 'display: flex; align-items: center; justify-content: space-between; gap: 16px; text-align: left; min-height: 88px; padding: 0 24px; border-radius: 22px; cursor: pointer; font-family: Manrope, sans-serif; border: 1.5px solid ' + (sel ? '#0B2E33' : '#E2D9CA') + '; background: ' + (sel ? '#0B2E33' : '#fff') + '; color: ' + (sel ? '#F7F3EC' : '#0B2E33') + ';'
+      };
+    });
+    const c0 = catData.find((c) => c.id === catId) || catData[0];
+    const cat = Object.assign({}, c0, {
+      noImg: !c0.img,
+      hasSubs: c0.subs.length > 0,
+      count: c0.n + ' products'
+    });
+    const motion = this.props.motion ?? true;
+    return Object.assign({ workshops, active, xo, products, cats, cat, motionClass: motion ? '' : 'nomotion' }, this.cartVals());
+  }
+}
+</script>
+</body>
+</html>

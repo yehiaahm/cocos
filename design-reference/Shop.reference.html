@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Coco's Art — Shop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&amp;family=Manrope:wght@400;500;600;700&amp;family=Pinyon+Script&amp;family=Tajawal:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F3EC}
+a{color:#0E6F6C}a:hover{color:#0B2E33}
+*{box-sizing:border-box}
+sc-for,sc-if{display:contents}
+.serif{font-family:'Cormorant Garamond',Georgia,serif}
+.script{font-family:'Pinyon Script',cursive}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes shimmer{from{background-position:-200% 0}to{background-position:200% 0}}
+@keyframes morph{0%,100%{border-radius:58% 42% 47% 53%/45% 55% 45% 55%}50%{border-radius:42% 58% 62% 38%/55% 40% 60% 45%}}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+.rise{opacity:0;animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
+.d1{animation-delay:.1s}.d2{animation-delay:.22s}.d3{animation-delay:.34s}
+.morph{animation:morph 14s ease-in-out infinite}
+.card{animation:rise .6s cubic-bezier(.2,.7,.2,1) both;transition:transform .45s cubic-bezier(.2,.7,.2,1),box-shadow .45s;border-radius:24px}
+.card:hover{transform:translateY(-6px);box-shadow:0 26px 56px -30px rgba(11,46,51,.5)}
+.card img{transition:transform 1.1s cubic-bezier(.2,.7,.2,1)}
+.card:hover img{transform:scale(1.07)}
+.pill{transition:background .25s,color .25s,border-color .25s}
+.pill:hover{border-color:#14A3A0 !important}
+.btn{transition:transform .25s,background .25s}
+.btn:hover{transform:translateY(-2px)}
+.badge{animation:pop .45s ease}
+.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.skel{background:linear-gradient(90deg,#ECE4D6,#F7F3EC,#ECE4D6);background-size:200% 100%;animation:shimmer 1.4s linear infinite}
+.nav a{color:#0B2E33;text-decoration:none}
+.nav a:hover{color:#0E6F6C}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.search:focus{outline:2px solid #14A3A0;outline-offset:2px}
+.cartScrim{animation:fadeIn .3s ease}
+.cartPanel{animation:slideIn .45s cubic-bezier(.2,.7,.2,1)}
+.qty:hover{background:#0B2E33 !important;color:#F7F3EC !important}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes bumpA{0%,100%{transform:scale(1)}30%{transform:scale(1.14) rotate(-3deg)}55%{transform:scale(.95) rotate(2deg)}75%{transform:scale(1.04)}}
+@keyframes bumpB{0%,100%{transform:scale(1)}30%{transform:scale(1.14) rotate(-3deg)}55%{transform:scale(.95) rotate(2deg)}75%{transform:scale(1.04)}}
+@keyframes flyXA{from{transform:translateX(var(--sx))}to{transform:translateX(var(--ex))}}
+@keyframes flyXB{from{transform:translateX(var(--sx))}to{transform:translateX(var(--ex))}}
+@keyframes flyYA{0%{transform:translateY(var(--sy)) scale(1);opacity:1}100%{transform:translateY(var(--ey)) scale(.3);opacity:.35}}
+@keyframes flyYB{0%{transform:translateY(var(--sy)) scale(1);opacity:1}100%{transform:translateY(var(--ey)) scale(.3);opacity:.35}}
+.floatCart{animation:slideUp .5s cubic-bezier(.2,.9,.3,1.2) both;transition:box-shadow .3s}
+.floatCart:hover{box-shadow:0 26px 50px -14px rgba(11,46,51,.75) !important}
+.floatCart.bumpA{animation:bumpA .6s ease .7s both}
+.floatCart.bumpB{animation:bumpB .6s ease .7s both}
+.flyXA{animation:flyXA .8s linear forwards}.flyXB{animation:flyXB .8s linear forwards}
+.flyYA{animation:flyYA .8s cubic-bezier(.6,-.55,.9,.5) forwards}.flyYB{animation:flyYB .8s cubic-bezier(.6,-.55,.9,.5) forwards}
+.pills{display:flex;gap:10px;flex-wrap:wrap}
+@media (max-width:1100px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:820px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.navlinks{display:none !important}.pills{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}}
+@media (max-width:560px){
+  .grid{gap:10px}
+  .cardin{padding:8px !important;border-radius:18px !important}
+  .cardin .ph{border-radius:12px !important}
+  .pname{font-size:18px !important}
+  .pdesc{display:none !important}
+  .addbtn{width:100%}
+  .wrap{padding-left:16px !important;padding-right:16px !important}
+}
+</style>
+</helmet>
+
+<div style="background: #F7F3EC; color: #0B2E33; font-family: 'Manrope', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden;">
+
+<!-- NAV -->
+<header class="wrap" style="max-width: 1280px; margin: 0 auto; padding: 22px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+  <a href="Main.dc.html" aria-label="Coco's Art home" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+    <svg width="50" height="50" viewBox="0 0 200 200" aria-hidden="true">
+      <defs><linearGradient id="sC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4FD1C5"/><stop offset=".55" stop-color="#14A3A0"/><stop offset="1" stop-color="#0B4F5A"/></linearGradient></defs>
+      <circle cx="100" cy="100" r="96" fill="#fff"/>
+      <path d="M150 52 A66 66 0 1 0 156 140" fill="none" stroke="url(#sC)" stroke-width="30" stroke-linecap="round"/>
+    </svg>
+    <span style="display: flex; flex-direction: column; line-height: 1;">
+      <span class="script" style="font-size: 30px; color: #8A6A1F;">Coco's</span>
+      <span style="font-size: 11px; letter-spacing: .32em; text-transform: uppercase; color: #0B2E33; font-weight: 700; margin-top: 2px;">Art</span>
+    </span>
+  </a>
+  <nav class="nav navlinks" aria-label="Main" style="display: flex; gap: 34px; font-size: 15px; font-weight: 600;">
+    <a href="Main.dc.html">Home</a>
+    <a href="Shop.dc.html" aria-current="page" style="color: #0E6F6C;">Shop</a>
+    <a href="Main.dc.html">Workshops</a>
+    <a href="Main.dc.html">Custom gifts</a>
+  </nav>
+  <button class="btn" type="button" onClick="{{openCart}}" aria-label="Open cart" style="display: inline-flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 20px; border-radius: 999px; border: 0; cursor: pointer; background: #0B2E33; color: #F7F3EC; font: 700 14px Manrope, sans-serif;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+    Cart
+    <span style="min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; background: #D4AF5A; color: #0B2E33; font-size: 12px; display: inline-flex; align-items: center; justify-content: center;">{{cart}}</span>
+  </button>
+</header>
+
+<!-- HERO BAND -->
+<section class="wrap" style="position: relative; max-width: 1280px; margin: 0 auto; padding: 24px 32px 40px;">
+  <div aria-hidden="true" class="morph" style="position: absolute; width: 520px; height: 520px; right: -200px; top: -220px; background: radial-gradient(circle at 40% 40%, rgba(79,209,197,.3), rgba(79,209,197,0) 65%);"></div>
+  <p class="rise d1" style="position: relative; margin: 0 0 12px; font-size: 13px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #0E6F6C;">The shop</p>
+  <h1 class="serif rise d2" style="position: relative; margin: 0; font-size: clamp(40px, 6vw, 84px); line-height: .95; font-weight: 500; letter-spacing: -.02em;">Every piece, <em>made by hand.</em></h1>
+  <p class="rise d3" style="position: relative; margin: 18px 0 0; max-width: 560px; font-size: 17px; line-height: 1.65; color: #3F5457;">Board games, resin, wood &amp; decoupage, macramé and candles — most pieces come in several colourways.</p>
+</section>
+
+<!-- FILTERS -->
+<section class="wrap" style="max-width: 1280px; margin: 0 auto; padding: 0 32px 28px; display: flex; flex-direction: column; gap: 16px;">
+  <div class="pills" role="tablist" aria-label="Category">
+    <sc-for list="{{cats}}" as="c" hint-placeholder-count="6">
+      <button class="pill" type="button" role="tab" aria-selected="{{c.sel}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}} <span style="opacity: .7; font-weight: 600;">{{c.count}}</span></button>
+    </sc-for>
+  </div>
+  <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+    <div class="pills" style="align-items: center; gap: 8px;">
+      <span style="font-size: 13px; font-weight: 700; color: #4A5E61; margin-right: 4px; white-space: nowrap;">Occasion</span>
+      <sc-for list="{{occs}}" as="o" hint-placeholder-count="5">
+        <button class="pill" type="button" aria-pressed="{{o.sel}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button>
+      </sc-for>
+    </div>
+    <label style="position: relative; display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 16px; border-radius: 999px; background: #fff; border: 1.5px solid #E2D9CA; flex: 1 1 260px; max-width: 360px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4A5E61" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Search products</span>
+      <input class="search" type="search" placeholder="Search products" value="{{q}}" onChange="{{onSearch}}" style="border: 0; background: transparent; font: 500 15px Manrope, sans-serif; color: #0B2E33; width: 100%; min-height: 40px;">
+    </label>
+  </div>
+  <p style="margin: 4px 0 0; font-size: 14px; color: #4A5E61;" aria-live="polite">{{resultText}}</p>
+</section>
+
+<!-- GRID -->
+<section class="wrap" style="max-width: 1280px; margin: 0 auto; padding: 0 32px 120px;">
+  <sc-if value="{{loading}}" hint-placeholder-val="{{false}}">
+    <div class="grid">
+      <sc-for list="{{skeletons}}" as="s" hint-placeholder-count="8">
+        <div class="cardin" style="background: #fff; border-radius: 24px; padding: 12px;"><div class="skel ph" style="aspect-ratio: 4 / 5; border-radius: 16px;"></div><div class="skel" style="height: 22px; border-radius: 8px; margin: 16px 6px 8px;"></div><div class="skel" style="height: 14px; width: 60%; border-radius: 8px; margin: 0 6px 10px;"></div></div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ready}}" hint-placeholder-val="{{true}}">
+    <div class="grid">
+      <sc-for list="{{shown}}" as="p" hint-placeholder-count="8">
+        <article class="card" style="{{p.delay}}">
+          <div class="cardin" style="background: #fff; border-radius: 24px; padding: 12px; display: flex; flex-direction: column; height: 100%;">
+            <div class="ph" style="position: relative; aspect-ratio: 4 / 5; border-radius: 16px; overflow: hidden; background: #ECE4D6;">
+              <img src="{{p.img}}" alt="{{p.name}}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+              <span style="position: absolute; left: 8px; top: 8px; padding: 5px 10px; border-radius: 999px; background: rgba(247,243,236,.94); font-size: 11px; font-weight: 700;">{{p.catLabel}}</span>
+              <sc-if value="{{p.multi}}" hint-placeholder-val="{{false}}">
+                <span style="position: absolute; right: 8px; bottom: 8px; padding: 5px 10px; border-radius: 999px; background: #0B2E33; color: #F3DE9E; font-size: 11px; font-weight: 700;">{{p.optionsLabel}}</span>
+              </sc-if>
+            </div>
+            <div style="padding: 14px 6px 4px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
+              <h2 class="serif pname" style="margin: 0; font-size: 23px; font-weight: 600; line-height: 1.12;">{{p.name}}</h2>
+              <p class="clamp pdesc" style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #4A5E61;">{{p.desc}}</p>
+              <div style="margin-top: auto; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 13px; font-weight: 700; color: #7A5C14;">Price pending</span>
+                <button class="btn addbtn" type="button" onClick="{{p.add}}" style="{{p.btnStyle}}">{{p.btnLabel}}</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+    <div style="text-align: center; padding: 80px 20px; background: #fff; border-radius: 28px;">
+      <h2 class="serif" style="margin: 0; font-size: 40px; font-weight: 500;">Nothing here <em>yet.</em></h2>
+      <p style="margin: 12px 0 24px; color: #4A5E61;">Try another category or occasion — or ask us for a custom piece.</p>
+      <button class="btn" type="button" onClick="{{reset}}" style="min-height: 50px; padding: 0 26px; border-radius: 999px; border: 0; background: #0B2E33; color: #fff; font: 700 15px Manrope, sans-serif; cursor: pointer;">Clear filters</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{failed}}" hint-placeholder-val="{{false}}">
+    <p style="text-align: center; padding: 60px 20px; color: #4A5E61;">Products could not be loaded. Please refresh the page.</p>
+  </sc-if>
+</section>
+
+<footer style="background: #072B33; color: #A9C4C3;">
+  <div class="wrap" style="max-width: 1280px; margin: 0 auto; padding: 36px 32px; display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 14px;">
+    <span style="display: flex; align-items: baseline; gap: 10px;"><span class="script" style="font-size: 30px; color: #F3DE9E;">Coco's</span><span style="letter-spacing: .3em; text-transform: uppercase; font-size: 11px; font-weight: 700; color: #F7F3EC;">Art</span></span>
+    <span>Board games · resin · wood &amp; decoupage · macramé · candles</span>
+    <a href="Main.dc.html" style="color: #F3DE9E; font-weight: 700;">Back to home</a>
+  </div>
+</footer>
+
+<!-- FLYING ITEM -->
+<sc-if value="{{flyOn}}" hint-placeholder-val="{{false}}">
+  <div aria-hidden="true" class="{{flyXClass}}" style="{{flyStyle}}">
+    <img class="{{flyYClass}}" src="{{flyImg}}" alt="" style="display: block; width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 16px 30px -10px rgba(11,46,51,.55);">
+  </div>
+</sc-if>
+
+<!-- FLOATING CART -->
+<sc-if value="{{cartHas}}" hint-placeholder-val="{{false}}">
+  <div style="position: fixed; left: 0; right: 0; bottom: 20px; z-index: 50; display: flex; justify-content: center; padding: 0 16px; pointer-events: none;">
+    <button class="floatCart {{bumpClass}}" type="button" onClick="{{openCart}}" aria-label="View cart" style="pointer-events: auto; display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 8px 8px 8px 8px; border-radius: 999px; border: 0; cursor: pointer; background: #0B2E33; color: #F7F3EC; font: 700 15px Manrope, sans-serif; box-shadow: 0 20px 44px -16px rgba(11,46,51,.65);">
+      <span style="position: relative; width: 44px; height: 44px; flex: none; border-radius: 50%; background: #14A3A0; display: flex; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+        <span style="position: absolute; top: -5px; right: -5px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: #D4AF5A; color: #0B2E33; font-size: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid #0B2E33;">{{cart}}</span>
+      </span>
+      <span style="white-space: nowrap;">{{floatText}}</span>
+      <span style="display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: #F7F3EC; color: #0B2E33; font-size: 14px; white-space: nowrap;">View
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg></span>
+    </button>
+  </div>
+</sc-if>
+
+<!-- CART DRAWER -->
+<sc-if value="{{cartOpen}}" hint-placeholder-val="{{false}}">
+  <div style="position: fixed; inset: 0; z-index: 60;">
+    <button class="cartScrim" type="button" aria-label="Close cart" onClick="{{closeCart}}" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0; margin: 0; padding: 0; background: rgba(7,43,51,.5); cursor: pointer;"></button>
+    <aside class="cartPanel" role="dialog" aria-modal="true" aria-label="Shopping cart" style="position: absolute; top: 0; right: 0; height: 100%; width: 100%; max-width: 420px; background: #F7F3EC; color: #0B2E33; display: flex; flex-direction: column; box-shadow: -30px 0 60px -30px rgba(0,0,0,.45); font-family: Manrope, sans-serif;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 24px; border-bottom: 1px solid #E2D9CA;">
+        <h2 class="serif" style="margin: 0; font-size: 34px; font-weight: 500;">Your cart <span style="font-family: Manrope, sans-serif; font-size: 15px; font-weight: 700; color: #4A5E61;">({{cart}})</span></h2>
+        <button type="button" aria-label="Close cart" onClick="{{closeCart}}" style="width: 44px; height: 44px; flex: none; border-radius: 50%; border: 1.5px solid #D9D0C1; background: transparent; color: #0B2E33; cursor: pointer; display: flex; align-items: center; justify-content: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+      <sc-if value="{{showAdded}}" hint-placeholder-val="{{false}}">
+        <div role="status" style="margin: 14px 24px 0; padding: 12px 14px; border-radius: 14px; background: #E3EFEE; color: #0B4F5A; font-size: 14px; font-weight: 600; display: flex; gap: 10px; align-items: center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E6F6C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+          <span>Added: {{lastAdded}}</span>
+        </div>
+      </sc-if>
+      <div style="flex: 1; overflow-y: auto; padding: 4px 24px;">
+        <sc-if value="{{cartEmpty}}" hint-placeholder-val="{{false}}">
+          <div style="text-align: center; padding: 70px 10px;">
+            <p class="serif" style="margin: 0; font-size: 30px;">Your cart is <em>empty.</em></p>
+            <p style="margin: 10px 0 0; color: #4A5E61; font-size: 14px;">Find something handmade you'll love.</p>
+          </div>
+        </sc-if>
+        <sc-for list="{{cartItems}}" as="ci" hint-placeholder-count="2">
+          <div style="display: flex; gap: 14px; align-items: center; padding: 16px 0; border-bottom: 1px solid #E2D9CA;">
+            <img src="{{ci.img}}" alt="{{ci.name}}" style="width: 76px; height: 76px; border-radius: 14px; object-fit: cover; flex: none;">
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px;">
+              <strong style="font-size: 15px; line-height: 1.3;">{{ci.name}}</strong>
+              <span style="font-size: 12.5px; font-weight: 700; color: #7A5C14;">Price pending</span>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <div style="display: inline-flex; align-items: center; border: 1.5px solid #D9D0C1; border-radius: 999px; background: #fff;">
+                  <button class="qty" type="button" aria-label="Decrease quantity" onClick="{{ci.dec}}" style="width: 44px; height: 40px; border: 0; border-radius: 999px; background: transparent; color: #0B2E33; font: 700 18px Manrope, sans-serif; cursor: pointer;">−</button>
+                  <span style="min-width: 22px; text-align: center; font-weight: 700;">{{ci.qty}}</span>
+                  <button class="qty" type="button" aria-label="Increase quantity" onClick="{{ci.inc}}" style="width: 44px; height: 40px; border: 0; border-radius: 999px; background: transparent; color: #0B2E33; font: 700 18px Manrope, sans-serif; cursor: pointer;">+</button>
+                </div>
+                <button type="button" onClick="{{ci.remove}}" style="min-height: 44px; padding: 0 6px; border: 0; background: transparent; color: #0E6F6C; font: 700 13.5px Manrope, sans-serif; text-decoration: underline; cursor: pointer;">Remove</button>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding: 18px 24px 24px; border-top: 1px solid #E2D9CA; background: #fff; display: flex; flex-direction: column; gap: 12px;">
+        <sc-if value="{{cartHas}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-weight: 700;">Subtotal</span><span style="font-weight: 700; color: #7A5C14;">Price pending</span></div>
+          <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #4A5E61;">Coco will confirm your total before payment. Delivery across Egypt.</p>
+          <a class="btn" href="#checkout" style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; border-radius: 999px; background: #14A3A0; color: #fff; text-decoration: none; font-weight: 700; font-size: 16px;">Checkout
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </sc-if>
+        <button type="button" onClick="{{closeCart}}" style="min-height: 50px; border-radius: 999px; border: 1.5px solid #0B2E33; background: transparent; color: #0B2E33; font: 700 15px Manrope, sans-serif; cursor: pointer;">Continue shopping</button>
+      </div>
+    </aside>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":9800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { products: [], loading: true, failed: false, cat: 'all', occ: 'all', q: '', cart: {}, cartOpen: false, lastAdded: '' };
+  }
+  componentDidMount() {
+    this.setState({ cart: this.loadCart() });
+    fetch('/data/products.json')
+      .then((r) => r.json())
+      .then((d) => this.setState({ products: d, loading: false }))
+      .catch(() => this.setState({ loading: false, failed: true }));
+  }
+  loadCart() {
+    try { const v = JSON.parse(window.localStorage.getItem('coco-cart') || '{}'); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; }
+  }
+  saveCart(c) {
+    try { window.localStorage.setItem('coco-cart', JSON.stringify(c)); } catch (e) {}
+  }
+  updateCart(c, extra) {
+    this.saveCart(c);
+    this.setState(Object.assign({ cart: c }, extra || {}));
+  }
+  addToCart(p, e) {
+    const c = Object.assign({}, this.state.cart);
+    const cur = c[p.id];
+    c[p.id] = { id: p.id, name: p.name, img: p.img, qty: (cur ? cur.qty : 0) + 1 };
+    let vars = '';
+    try {
+      const el = e && e.currentTarget;
+      const card = el && el.closest ? (el.closest('article') || el) : null;
+      const r = card ? card.getBoundingClientRect() : null;
+      const W = window.innerWidth, H = window.innerHeight;
+      const sx = r ? r.left + r.width / 2 - 40 : W / 2 - 40;
+      const sy = r ? r.top + Math.min(r.height / 3, 140) - 40 : H / 2 - 40;
+      vars = '--sx: ' + Math.round(sx) + 'px; --sy: ' + Math.round(sy) + 'px; --ex: ' + Math.round(W / 2 - 40) + 'px; --ey: ' + Math.round(H - 92) + 'px;';
+    } catch (err) { vars = ''; }
+    this.updateCart(c, { fx: (this.state.fx || 0) + 1, flyImg: p.img, flyVars: vars, justAdded: true, lastAdded: '' });
+    clearTimeout(this._t1); clearTimeout(this._t2);
+    this._t1 = setTimeout(() => this.setState({ flyImg: '' }), 900);
+    this._t2 = setTimeout(() => this.setState({ justAdded: false }), 1900);
+  }
+  componentWillUnmount() {
+    clearTimeout(this._t1); clearTimeout(this._t2);
+  }
+  changeQty(id, d) {
+    const c = Object.assign({}, this.state.cart);
+    if (!c[id]) return;
+    const q = c[id].qty + d;
+    if (q <= 0) delete c[id]; else c[id] = Object.assign({}, c[id], { qty: q });
+    this.updateCart(c, { lastAdded: '' });
+  }
+  removeItem(id) {
+    const c = Object.assign({}, this.state.cart);
+    delete c[id];
+    this.updateCart(c, { lastAdded: '' });
+  }
+  cartVals() {
+    const c = this.state.cart || {};
+    const list = Object.keys(c).map((k) => c[k]);
+    const count = list.reduce((t, i) => t + i.qty, 0);
+    const fx = this.state.fx || 0;
+    return {
+      cart: count,
+      floatText: this.state.justAdded ? 'Added to cart ✓' : count + (count === 1 ? ' item' : ' items') + ' in your cart',
+      bumpClass: fx ? (fx % 2 ? 'bumpA' : 'bumpB') : '',
+      flyOn: !!this.state.flyImg && !!this.state.flyVars,
+      flyImg: this.state.flyImg || '',
+      flyXClass: fx % 2 ? 'flyXA' : 'flyXB',
+      flyYClass: fx % 2 ? 'flyYA' : 'flyYB',
+      flyStyle: 'position: fixed; left: 0; top: 0; z-index: 70; pointer-events: none; ' + (this.state.flyVars || ''),
+      cartItems: list.map((i) => ({ name: i.name, img: i.img, qty: i.qty,
+        inc: () => this.changeQty(i.id, 1), dec: () => this.changeQty(i.id, -1), remove: () => this.removeItem(i.id) })),
+      cartEmpty: list.length === 0,
+      cartHas: list.length > 0,
+      cartOpen: !!this.state.cartOpen,
+      showAdded: !!this.state.lastAdded,
+      lastAdded: this.state.lastAdded || '',
+      openCart: () => this.setState({ cartOpen: true, lastAdded: '' }),
+      closeCart: () => this.setState({ cartOpen: false, lastAdded: '' })
+    };
+  }
+  renderVals() {
+    const s = this.state;
+    const CATS = [
+      { id: 'all', label: 'All' },
+      { id: 'gaming', label: 'Board Games' },
+      { id: 'resin', label: 'Resin' },
+      { id: 'wood-decoupage', label: 'Wood & Decoupage' },
+      { id: 'macrame', label: 'Macramé' },
+      { id: 'candles', label: 'Candles' }
+    ];
+    const OCCS = [
+      { id: 'all', label: 'All' },
+      { id: 'ramadan', label: 'Ramadan & Eid' },
+      { id: 'halloween', label: 'Halloween' },
+      { id: 'christmas', label: 'Christmas' },
+      { id: 'personalised', label: 'Personalised' }
+    ];
+    const label = {};
+    CATS.forEach((c) => { label[c.id] = c.label; });
+    const q = s.q.trim().toLowerCase();
+    const matchOcc = (p) => s.occ === 'all' || p.tags.indexOf(s.occ) > -1;
+    const matchQ = (p) => !q || (p.name + ' ' + p.desc).toLowerCase().indexOf(q) > -1;
+    const base = s.products.filter((p) => matchOcc(p) && matchQ(p));
+    const pillStyle = (sel, big) => 'flex: none; white-space: nowrap; min-height: ' + (big ? 46 : 42) + 'px; padding: 0 ' + (big ? 20 : 16) + 'px; border-radius: 999px; cursor: pointer; font: 700 ' + (big ? 15 : 13.5) + 'px Manrope, sans-serif; border: 1.5px solid ' + (sel ? '#0B2E33' : '#D9D0C1') + '; background: ' + (sel ? '#0B2E33' : 'transparent') + '; color: ' + (sel ? '#F7F3EC' : '#0B2E33') + ';';
+    const cats = CATS.map((c) => {
+      const sel = s.cat === c.id;
+      const n = c.id === 'all' ? base.length : base.filter((p) => p.cat === c.id).length;
+      return { label: c.label, count: String(n), sel: sel ? 'true' : 'false', style: pillStyle(sel, true), pick: () => this.setState({ cat: c.id }) };
+    });
+    const occs = OCCS.map((o) => {
+      const sel = s.occ === o.id;
+      return { label: o.label, sel: sel ? 'true' : 'false', style: pillStyle(sel, false), pick: () => this.setState({ occ: o.id }) };
+    });
+    const cartMap = s.cart || {};
+    const list = base.filter((p) => s.cat === 'all' || p.cat === s.cat);
+    const shown = list.map((p, i) => {
+      const on = !!cartMap[p.id];
+      return {
+        name: p.name, desc: p.desc, img: p.img, catLabel: label[p.cat] || '',
+        multi: p.options > 1, optionsLabel: p.options + ' options',
+        delay: 'animation-delay: ' + Math.min(i, 12) * 0.04 + 's;',
+        btnLabel: on ? 'In cart ✓' : 'Add to cart',
+        btnStyle: 'min-height: 44px; padding: 0 16px; border-radius: 999px; border: 0; cursor: pointer; font: 700 13.5px Manrope, sans-serif; color: #fff; background: ' + (on ? '#14A3A0' : '#0B2E33') + ';',
+        add: (e) => this.addToCart(p, e)
+      };
+    });
+    const ready = !s.loading && !s.failed && shown.length > 0;
+    return Object.assign({
+      cats, occs, shown, q: s.q,
+      loading: s.loading, ready, failed: s.failed,
+      empty: !s.loading && !s.failed && shown.length === 0,
+      skeletons: [1, 2, 3, 4, 5, 6, 7, 8],
+      resultText: s.loading ? 'Loading products…' : shown.length + (shown.length === 1 ? ' product' : ' products'),
+      onSearch: (e) => this.setState({ q: e.target.value }),
+      reset: () => this.setState({ cat: 'all', occ: 'all', q: '' })
+    }, this.cartVals());
+  }
+}
+</script>
+</body>
+</html>

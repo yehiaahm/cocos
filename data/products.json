@@ -1,0 +1,2213 @@
+{
+  "store": "Coco's Art",
+  "currency": "EGP",
+  "categories": [
+    {
+      "slug": "gaming",
+      "name": "Board Games",
+      "count": 12
+    },
+    {
+      "slug": "resin",
+      "name": "Resin",
+      "count": 28
+    },
+    {
+      "slug": "wood-decoupage",
+      "name": "Wood & Decoupage",
+      "count": 25
+    },
+    {
+      "slug": "macrame",
+      "name": "Macramé",
+      "count": 6
+    },
+    {
+      "slug": "candles",
+      "name": "Candles",
+      "count": 9
+    }
+  ],
+  "occasions": [
+    {
+      "slug": "ramadan",
+      "name": "Ramadan & Eid"
+    },
+    {
+      "slug": "halloween",
+      "name": "Halloween"
+    },
+    {
+      "slug": "christmas",
+      "name": "Christmas"
+    },
+    {
+      "slug": "personalised",
+      "name": "Personalised"
+    }
+  ],
+  "products": [
+    {
+      "id": "coco-001",
+      "slug": "green-gold-domino-set",
+      "name": "Green & Gold Domino Set",
+      "category": "gaming",
+      "categoryName": "Board Games",
+      "description": "Glossy green resin dominoes flecked with gold, paired with ivory tiles engraved with letters.",
+      "image": "/images/products/41eaec64.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-001",
+          "name": "Green & Gold Domino Set",
+          "material": "Resin",
+          "images": [
+            "/images/products/41eaec64.jpg",
+            "/images/products/7999bf2c.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-002",
+      "slug": "crimson-gold-coaster-set",
+      "name": "Crimson & Gold Coaster Set",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "Deep crimson coasters set with real dried flowers and gold leaf, with a matching stand.",
+      "image": "/images/products/f71628f3.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-002",
+          "name": "Crimson & Gold Coaster Set",
+          "material": "Resin, dried flowers, gold leaf",
+          "images": [
+            "/images/products/f71628f3.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-003",
+      "slug": "blue-floral-quarter-coasters",
+      "name": "Blue Floral Quarter Coasters",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "Four quarter-circle coasters in ocean blue with pressed flowers that join into one round piece.",
+      "image": "/images/products/a3465002.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-003",
+          "name": "Blue Floral Quarter Coasters",
+          "material": "Resin, dried flowers",
+          "images": [
+            "/images/products/a3465002.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-004",
+      "slug": "butterfly-coaster-set",
+      "name": "Butterfly Coaster Set",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "Clear resin coasters with delicate butterflies, presented on a matching holder.",
+      "image": "/images/products/efbfd676.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-004",
+          "name": "Butterfly Coaster Set",
+          "material": "Resin",
+          "images": [
+            "/images/products/efbfd676.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-005",
+      "slug": "purple-rectangular-tray",
+      "name": "Purple Rectangular Tray",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A glossy violet serving tray with soft marbled swirls — for coffee tables and vanities.",
+      "image": "/images/products/c81f58b4.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-005",
+          "name": "Purple Rectangular Tray",
+          "material": "Resin",
+          "images": [
+            "/images/products/c81f58b4.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-006",
+      "slug": "red-floral-oval-tray",
+      "name": "Red Floral Oval Tray",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "An oval tray filled with red dried blooms under a crystal-clear resin finish.",
+      "image": "/images/products/4656b6e8.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-006",
+          "name": "Red Floral Oval Tray",
+          "material": "Resin, dried flowers",
+          "images": [
+            "/images/products/4656b6e8.jpg",
+            "/images/products/859853ae.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-007",
+      "slug": "tree-bird-wall-clock",
+      "name": "Tree & Bird Wall Clock",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A statement wall clock with a tree-and-birds silhouette over a poured resin face.",
+      "image": "/images/products/c1eaa8fe.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-007",
+          "name": "Tree & Bird Wall Clock",
+          "material": "Resin",
+          "images": [
+            "/images/products/c1eaa8fe.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-008",
+      "slug": "resin-feather-dish",
+      "name": "Resin Feather Dish",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A feather-shaped trinket dish in metallic resin swirls.",
+      "image": "/images/products/4fb2b423.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-008",
+          "name": "Bronze & Black Feather Dish",
+          "material": "Resin",
+          "images": [
+            "/images/products/b46c5f4a.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-009",
+          "name": "Emerald Feather Dish",
+          "material": "Resin",
+          "images": [
+            "/images/products/afe13eee.jpg",
+            "/images/products/6608eb9d.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-019",
+          "name": "Champagne Gold Feather Dish",
+          "material": "Resin",
+          "images": [
+            "/images/products/4fb2b423.jpg",
+            "/images/products/ea91119d.jpg",
+            "/images/products/4f8920a9.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-010",
+      "slug": "ocean-seashell-dish",
+      "name": "Ocean Seashell Dish",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A wave-ribbed dish in blue and turquoise, rimmed with real seashells.",
+      "image": "/images/products/2d4c7956.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-010",
+          "name": "Ocean Seashell Dish",
+          "material": "Resin, real seashells",
+          "images": [
+            "/images/products/2d4c7956.jpg",
+            "/images/products/f81e4da4.jpg",
+            "/images/products/94e40cde.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-011",
+      "slug": "starfish-sea-dish",
+      "name": "Starfish Sea Dish",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A sea-inspired dish with a starfish set in clear ocean-blue resin.",
+      "image": "/images/products/63d2d636.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-011",
+          "name": "Starfish Sea Dish",
+          "material": "Resin, starfish",
+          "images": [
+            "/images/products/63d2d636.jpg",
+            "/images/products/ac876fc6.jpg",
+            "/images/products/ac9e1648.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-012",
+      "slug": "sculpted-skull-ashtray",
+      "name": "Sculpted Skull Ashtray",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A sculpted skull ashtray poured in bold resin colourways.",
+      "image": "/images/products/6d1ef10d.jpg",
+      "tags": [
+        "halloween"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-012",
+          "name": "Orange & Black Skull Ashtray",
+          "material": "Resin",
+          "images": [
+            "/images/products/f3f43d3f.jpg",
+            "/images/products/9a1ae0de.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-018",
+          "name": "Purple & Gold Skull Ashtray",
+          "material": "Resin",
+          "images": [
+            "/images/products/fcb22e7a.jpg",
+            "/images/products/cd88ce76.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-083",
+          "name": "Black & Gold Skull Ashtray",
+          "material": "Resin",
+          "images": [
+            "/images/products/6d1ef10d.jpg",
+            "/images/products/1ebc150c.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-090",
+          "name": "Purple & Neon Skull Ashtray",
+          "material": "Resin",
+          "images": [
+            "/images/products/e65e42d6.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-013",
+      "slug": "rainbow-dreamcatcher",
+      "name": "Rainbow Dreamcatcher",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A resin dreamcatcher with rainbow feathers — a bright wall piece for bedrooms and nurseries.",
+      "image": "/images/products/259fc534.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-013",
+          "name": "Rainbow Dreamcatcher",
+          "material": "Resin",
+          "images": [
+            "/images/products/259fc534.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-016",
+      "slug": "yellow-floral-domino-set",
+      "name": "Yellow Floral Domino Set",
+      "category": "gaming",
+      "categoryName": "Board Games",
+      "description": "Sunny yellow dominoes with purple dried flowers and gold-dot pips.",
+      "image": "/images/products/b535b6bf.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-016",
+          "name": "Yellow Floral Domino Set",
+          "material": "Resin, dried flowers, gold flakes",
+          "images": [
+            "/images/products/b535b6bf.jpg",
+            "/images/products/2f12c9af.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-017",
+      "slug": "amber-petal-coaster-set",
+      "name": "Amber Petal Coaster Set",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "Warm amber coasters with petal detail, presented on a matching stand.",
+      "image": "/images/products/93fba1f4.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-017",
+          "name": "Amber Petal Coaster Set",
+          "material": "Resin",
+          "images": [
+            "/images/products/93fba1f4.jpg",
+            "/images/products/8801e911.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-020",
+      "slug": "ramadan-crescent-star-tray",
+      "name": "Ramadan Crescent & Star Tray",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A sunny crescent-and-star tray decorated with shells — a festive Ramadan centrepiece.",
+      "image": "/images/products/178622e1.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-020",
+          "name": "Ramadan Crescent & Star Tray",
+          "material": "Resin, seashells",
+          "images": [
+            "/images/products/178622e1.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-022",
+      "slug": "hand-painted-ramadan-tabliya",
+      "name": "Hand-Painted Ramadan Tabliya",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A low traditional tabliya table, hand-painted in festive Ramadan colours.",
+      "image": "/images/products/a4642b7a.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-022",
+          "name": "Hand-Painted Ramadan Tabliya",
+          "material": "Hand-painted wood",
+          "images": [
+            "/images/products/a4642b7a.jpg",
+            "/images/products/9794f3c5.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-023",
+      "slug": "laser-cut-crescent-star-stand",
+      "name": "Laser-Cut Crescent & Star Stand",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A laser-cut crescent and star stand for shelves and Ramadan tables.",
+      "image": "/images/products/4449bd16.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-023",
+          "name": "Laser-Cut Crescent & Star Stand",
+          "material": "Wood (MDF)",
+          "images": [
+            "/images/products/4449bd16.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-024",
+      "slug": "blue-tile-crescent",
+      "name": "Blue Tile Crescent",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A wooden crescent wrapped in blue-tile decoupage patterns.",
+      "image": "/images/products/76b2fa8c.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-024",
+          "name": "Blue Tile Crescent",
+          "material": "Wood, decoupage",
+          "images": [
+            "/images/products/76b2fa8c.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-025",
+      "slug": "hamsa-decoupage-coasters",
+      "name": "Hamsa Decoupage Coasters",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "Hamsa-shaped wooden coasters finished in decoupage patterns.",
+      "image": "/images/products/c7baf995.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-025",
+          "name": "Blue Tile Hamsa Coasters",
+          "material": "Wood, decoupage",
+          "images": [
+            "/images/products/c7baf995.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-026",
+          "name": "Pink Floral Hamsa Coasters",
+          "material": "Wood, decoupage",
+          "images": [
+            "/images/products/43246782.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-028",
+      "slug": "mustard-brown-stencilled-lantern",
+      "name": "Mustard & Brown Stencilled Lantern",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A wooden lantern painted mustard and brown with stencilled patterns.",
+      "image": "/images/products/89687acd.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-028",
+          "name": "Mustard & Brown Stencilled Lantern",
+          "material": "Painted wood, stencil",
+          "images": [
+            "/images/products/89687acd.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-029",
+      "slug": "hexagonal-mosque-lantern",
+      "name": "Hexagonal Mosque Lantern",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A six-sided lantern in orange and gold with mosque cut-outs.",
+      "image": "/images/products/d52de0c5.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-029",
+          "name": "Hexagonal Mosque Lantern",
+          "material": "Wood",
+          "images": [
+            "/images/products/d52de0c5.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-030",
+      "slug": "champagne-mashrabiya-lantern",
+      "name": "Champagne Mashrabiya Lantern",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A champagne mashrabiya lantern with a hinged door for a candle.",
+      "image": "/images/products/1277bec0.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-030",
+          "name": "Champagne Mashrabiya Lantern",
+          "material": "Wood",
+          "images": [
+            "/images/products/1277bec0.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-031",
+      "slug": "whirling-dervish-mini-lanterns",
+      "name": "Whirling Dervish Mini Lanterns",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "Mini lanterns with whirling-dervish cut-outs, in turquoise and copper.",
+      "image": "/images/products/7bb28a3a.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-031",
+          "name": "Whirling Dervish Mini Lanterns",
+          "material": "Wood",
+          "images": [
+            "/images/products/7bb28a3a.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-032",
+      "slug": "cream-crescent-stars-lantern",
+      "name": "Cream Crescent & Stars Lantern",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A cream wooden lantern cut with crescents and stars.",
+      "image": "/images/products/53a2c2ba.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-032",
+          "name": "Cream Crescent & Stars Lantern",
+          "material": "Wood",
+          "images": [
+            "/images/products/53a2c2ba.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-033",
+      "slug": "khayamiya-crescent-lantern",
+      "name": "Khayamiya Crescent & Lantern",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A crescent-and-lantern piece in khayamiya patterns, white or gold frame.",
+      "image": "/images/products/a6d0d6ba.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-033",
+          "name": "Khayamiya Crescent & Lantern — White Frame",
+          "material": "Wood, decoupage",
+          "images": [
+            "/images/products/a6d0d6ba.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-034",
+          "name": "Khayamiya Crescent & Lantern — Gold Frame",
+          "material": "Wood, decoupage",
+          "images": [
+            "/images/products/424d2593.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-035",
+      "slug": "crescent-stand-with-hanging-lantern",
+      "name": "Crescent Stand with Hanging Lantern",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A \"Ramadan Kareem\" crescent stand with a hanging green lantern.",
+      "image": "/images/products/866102b3.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-035",
+          "name": "Crescent Stand with Hanging Lantern",
+          "material": "Wood (MDF)",
+          "images": [
+            "/images/products/866102b3.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-036",
+      "slug": "ramadan-kareem-gold-mosque-stand",
+      "name": "Ramadan Kareem Gold Mosque Stand",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A mosque-silhouette stand finished in gold leaf.",
+      "image": "/images/products/c5c0d08b.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-036",
+          "name": "Ramadan Kareem Gold Mosque Stand",
+          "material": "Wood, gold leaf",
+          "images": [
+            "/images/products/c5c0d08b.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-037",
+      "slug": "quran-stand-rahla",
+      "name": "Quran Stand (Rahla)",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A carved-look folding rahla to hold the Quran.",
+      "image": "/images/products/a38a23f0.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-037",
+          "name": "Quran Stand (Rahla)",
+          "material": "Wood (MDF)",
+          "images": [
+            "/images/products/a38a23f0.jpg",
+            "/images/products/acfa9c2e.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-038",
+      "slug": "wa-hayah-nesting-trays-set-of-3",
+      "name": "\"Wa Hayah\" Nesting Trays (Set of 3)",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "Three nesting trays stencilled with Arabic lettering.",
+      "image": "/images/products/bddec501.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-038",
+          "name": "\"Wa Hayah\" Nesting Trays (Set of 3)",
+          "material": "Wood, stencil",
+          "images": [
+            "/images/products/bddec501.jpg",
+            "/images/products/aa6c8c74.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-039",
+      "slug": "allah-akram-ramadan-tray",
+      "name": "Allah Akram Ramadan Tray",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A blue Ramadan tray with \"Allah Akram\" calligraphy.",
+      "image": "/images/products/0f3fb63a.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-039",
+          "name": "Allah Akram Ramadan Tray",
+          "material": "Wood, decoupage",
+          "images": [
+            "/images/products/0f3fb63a.jpg",
+            "/images/products/da6b67de.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-040",
+      "slug": "mashrabiya-lattice-serving-tray",
+      "name": "Mashrabiya Lattice Serving Tray",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A serving tray with mashrabiya lattice sides.",
+      "image": "/images/products/772c4e19.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-040",
+          "name": "Mashrabiya Lattice Serving Tray",
+          "material": "Wood",
+          "images": [
+            "/images/products/772c4e19.jpg",
+            "/images/products/deac7645.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-041",
+      "slug": "mashrabiya-arch-suhoor-stand",
+      "name": "Mashrabiya Arch Suhoor Stand",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "An arched mashrabiya stand for suhoor and iftar spreads.",
+      "image": "/images/products/e4e21f0c.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-041",
+          "name": "Mashrabiya Arch Suhoor Stand",
+          "material": "Wood (with grey tile insert)",
+          "images": [
+            "/images/products/e4e21f0c.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-042",
+      "slug": "resin-ramadan-lantern",
+      "name": "Resin Ramadan Lantern",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A glowing Ramadan lantern cast in coloured resin.",
+      "image": "/images/products/db0517ba.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-042",
+          "name": "Yellow Resin Ramadan Lantern",
+          "material": "Resin",
+          "images": [
+            "/images/products/4b4b6a01.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-072",
+          "name": "Resin Ramadan Lanterns (Multi-Colour)",
+          "material": "Resin",
+          "images": [
+            "/images/products/db0517ba.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-044",
+      "slug": "star-cut-out-candle-lantern",
+      "name": "Star Cut-Out Candle Lantern",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A lidded golden lantern pierced with stars.",
+      "image": "/images/products/629b6555.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-044",
+          "name": "Star Cut-Out Candle Lantern",
+          "material": "Wood",
+          "images": [
+            "/images/products/629b6555.jpg",
+            "/images/products/ffe19723.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-045",
+      "slug": "old-cairo-decoupage-tray",
+      "name": "Old Cairo Decoupage Tray",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "An Old Cairo scene under a glossy finish, with \"Hayah\" lettering.",
+      "image": "/images/products/d91959e3.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-045",
+          "name": "Old Cairo Decoupage Tray",
+          "material": "Wood, decoupage, gloss finish",
+          "images": [
+            "/images/products/d91959e3.jpg",
+            "/images/products/95919a9f.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-046",
+      "slug": "illuminated-laser-cut-lantern",
+      "name": "Illuminated Laser-Cut Lantern",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A laser-cut lantern with built-in light.",
+      "image": "/images/products/b4ac9875.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-046",
+          "name": "Illuminated Laser-Cut Lantern",
+          "material": "Wood",
+          "images": [
+            "/images/products/b4ac9875.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-047",
+      "slug": "silver-mashrabiya-round-tray",
+      "name": "Silver Mashrabiya Round Tray",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A round tray in silver with mashrabiya patterning.",
+      "image": "/images/products/38e9c274.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-047",
+          "name": "Silver Mashrabiya Round Tray",
+          "material": "Wood (MDF)",
+          "images": [
+            "/images/products/38e9c274.jpg",
+            "/images/products/b88d8e09.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-048",
+      "slug": "ramadan-calligraphy-tea-light-holder",
+      "name": "Ramadan Calligraphy Tea-Light Holder",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A calligraphy tea-light holder in silver or gold.",
+      "image": "/images/products/43b93988.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-048",
+          "name": "Ramadan Calligraphy Tea-Light Holder",
+          "material": "Wood (MDF)",
+          "images": [
+            "/images/products/43b93988.jpg",
+            "/images/products/01862ae1.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-049",
+      "slug": "ramadan-mubarak-mosque-stand",
+      "name": "Ramadan Mubarak Mosque Stand",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A glittering mosque stand with LED candles.",
+      "image": "/images/products/3861f52d.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-049",
+          "name": "Ramadan Mubarak Mosque Stand",
+          "material": "Wood, glitter",
+          "images": [
+            "/images/products/3861f52d.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-050",
+      "slug": "wooden-incense-burner-mabkhara",
+      "name": "Wooden Incense Burner (Mabkhara)",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "A wooden mabkhara with a metal bowl for bakhoor.",
+      "image": "/images/products/6e842aa7.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-050",
+          "name": "Wooden Incense Burner (Mabkhara)",
+          "material": "Wood, metal bowl",
+          "images": [
+            "/images/products/6e842aa7.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-051",
+      "slug": "dallah-coaster-set-with-stand",
+      "name": "Dallah Coaster Set with Stand",
+      "category": "wood-decoupage",
+      "categoryName": "Wood & Decoupage",
+      "description": "Dallah-shaped coasters in rose and gold with a matching stand.",
+      "image": "/images/products/9fed2006.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-051",
+          "name": "Dallah Coaster Set with Stand",
+          "material": "Wood, stencil",
+          "images": [
+            "/images/products/9fed2006.jpg",
+            "/images/products/c36afe62.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-052",
+      "slug": "resin-xo-game-set",
+      "name": "Resin XO Game Set",
+      "category": "gaming",
+      "categoryName": "Board Games",
+      "description": "A handmade tic-tac-toe set — pick your colourway.",
+      "image": "/images/products/f5fbe12d.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-052",
+          "name": "Matte XO Game Set",
+          "material": "Unconfirmed (concrete, jesmonite or resin)",
+          "images": [
+            "/images/products/b1cc2a77.jpg",
+            "/images/products/fb27be9c.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-058",
+          "name": "Black Marble XO Set",
+          "material": "Resin",
+          "images": [
+            "/images/products/060030b1.jpg",
+            "/images/products/610ae82e.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-073",
+          "name": "Neon & Black XO Set",
+          "material": "Resin",
+          "images": [
+            "/images/products/8f8b126a.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-074",
+          "name": "Yellow Marble XO Set",
+          "material": "Resin (pieces may be concrete/plaster)",
+          "images": [
+            "/images/products/4c59819b.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-075",
+          "name": "Orange Marble XO Set",
+          "material": "Resin (pieces may be concrete/plaster)",
+          "images": [
+            "/images/products/c0fc1f01.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-076",
+          "name": "Glitter XO Collection",
+          "material": "Resin, glitter",
+          "images": [
+            "/images/products/f5fbe12d.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-053",
+      "slug": "beach-domino-set",
+      "name": "Beach Domino Set",
+      "category": "gaming",
+      "categoryName": "Board Games",
+      "description": "Ocean-blue dominoes with real sand and tiny shells.",
+      "image": "/images/products/6e94e67c.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-053",
+          "name": "Beach Domino Set",
+          "material": "Resin, sand, shells",
+          "images": [
+            "/images/products/6e94e67c.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-054",
+      "slug": "resin-backgammon-board",
+      "name": "Resin Backgammon Board",
+      "category": "gaming",
+      "categoryName": "Board Games",
+      "description": "A purple-and-red resin backgammon (tawla) board in a wooden case.",
+      "image": "/images/products/da983176.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-054",
+          "name": "Resin Backgammon Board",
+          "material": "Resin, wood case",
+          "images": [
+            "/images/products/da983176.jpg",
+            "/images/products/2ebfd106.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-055",
+      "slug": "ombre-resin-bookmarks",
+      "name": "Ombre Resin Bookmarks",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "Ombre resin bookmarks with tassels.",
+      "image": "/images/products/e123097b.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-055",
+          "name": "Ombre Resin Bookmarks",
+          "material": "Resin",
+          "images": [
+            "/images/products/e123097b.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-056",
+      "slug": "personalised-resin-notebook-a5",
+      "name": "Personalised Resin Notebook (A5)",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "An A5 ring-bound notebook with a poured resin cover and your name.",
+      "image": "/images/products/1a615249.jpg",
+      "tags": [
+        "personalised"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-056",
+          "name": "Personalised Resin Notebook (A5)",
+          "material": "Resin cover, ring binding",
+          "images": [
+            "/images/products/90151176.jpg",
+            "/images/products/81d57c56.jpg",
+            "/images/products/3dbedbc9.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-063",
+          "name": "Monogram Notebook & Bookmark Set",
+          "material": "Resin",
+          "images": [
+            "/images/products/e4af9cd0.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-064",
+          "name": "Neon Name Notebook",
+          "material": "Resin",
+          "images": [
+            "/images/products/1a615249.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-057",
+      "slug": "christmas-resin-letters",
+      "name": "Christmas Resin Letters",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "Resin initials topped with tiny Santa hats.",
+      "image": "/images/products/90151176.jpg",
+      "tags": [
+        "christmas",
+        "personalised"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-057",
+          "name": "Christmas Resin Letters",
+          "material": "Resin",
+          "images": [
+            "/images/products/90151176.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-059",
+      "slug": "ocean-pearl-domino-set",
+      "name": "Ocean Pearl Domino Set",
+      "category": "gaming",
+      "categoryName": "Board Games",
+      "description": "Ocean dominoes with sand, shells and pearl pips.",
+      "image": "/images/products/3d55f9d7.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-059",
+          "name": "Ocean Pearl Domino Set",
+          "material": "Resin, sand, shells, pearls",
+          "images": [
+            "/images/products/3d55f9d7.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-060",
+      "slug": "resin-domino-in-gift-box",
+      "name": "Resin Domino in Gift Box",
+      "category": "gaming",
+      "categoryName": "Board Games",
+      "description": "Glittering resin dominoes presented in a footed gift box.",
+      "image": "/images/products/aebab176.jpg",
+      "tags": [
+        "personalised"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-060",
+          "name": "Black & Gold Personalised Domino",
+          "material": "Resin, gold leaf, velvet box",
+          "images": [
+            "/images/products/91f8cc2a.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-081",
+          "name": "Galaxy Pink Domino Set",
+          "material": "Resin, glitter, wood box",
+          "images": [
+            "/images/products/4249dd66.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-082",
+          "name": "Red & Gold Nugget Domino Set",
+          "material": "Resin, gold flakes, wood box",
+          "images": [
+            "/images/products/aebab176.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-061",
+      "slug": "wooden-domino-set-with-box",
+      "name": "Wooden Domino Set with Box",
+      "category": "gaming",
+      "categoryName": "Board Games",
+      "description": "A classic wooden domino set with its own box.",
+      "image": "/images/products/c54bdd4f.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-061",
+          "name": "Wooden Domino Set with Box",
+          "material": "Wood",
+          "images": [
+            "/images/products/c54bdd4f.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-062",
+      "slug": "resin-chess-set",
+      "name": "Resin Chess Set",
+      "category": "gaming",
+      "categoryName": "Board Games",
+      "description": "A full resin chess set and board in your choice of colours.",
+      "image": "/images/products/4c968890.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-062",
+          "name": "Beach Resin Chess Set",
+          "material": "Resin, sand, shells",
+          "images": [
+            "/images/products/d2961796.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-079",
+          "name": "Ocean Gradient Chess Set",
+          "material": "Resin, sand, shells",
+          "images": [
+            "/images/products/aacc8cd8.jpg",
+            "/images/products/7c3b0828.jpg",
+            "/images/products/8018a878.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-080",
+          "name": "Pearl & Gold Chess Set",
+          "material": "Resin",
+          "images": [
+            "/images/products/4c968890.jpg",
+            "/images/products/a999417b.jpg",
+            "/images/products/dcd5cab2.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-089",
+          "name": "Purple & Pearl Chess Set",
+          "material": "Resin",
+          "images": [
+            "/images/products/8661d715.jpg",
+            "/images/products/adcea258.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-065",
+      "slug": "ombre-resin-notebooks-2-sizes",
+      "name": "Ombre Resin Notebooks (2 Sizes)",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "Ombre resin notebooks in two sizes.",
+      "image": "/images/products/83e2bc66.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-065",
+          "name": "Ombre Resin Notebooks (2 Sizes)",
+          "material": "Resin",
+          "images": [
+            "/images/products/83e2bc66.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-066",
+      "slug": "ocean-beach-roman-wall-clock",
+      "name": "Ocean Beach Roman Wall Clock",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A beach-scene wall clock with Roman numerals.",
+      "image": "/images/products/e09c62f9.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-066",
+          "name": "Ocean Beach Roman Wall Clock",
+          "material": "Resin, sand",
+          "images": [
+            "/images/products/e09c62f9.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-067",
+      "slug": "chemistry-alkane-wall-clock",
+      "name": "Chemistry Alkane Wall Clock",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A wall clock showing alkane structures — for chemistry lovers.",
+      "image": "/images/products/a0af44dd.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-067",
+          "name": "Chemistry Alkane Wall Clock",
+          "material": "Resin",
+          "images": [
+            "/images/products/a0af44dd.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-068",
+      "slug": "beach-resin-phone-case",
+      "name": "Beach Resin Phone Case",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A beach phone case with sand and a starfish.",
+      "image": "/images/products/cd335202.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-068",
+          "name": "Beach Resin Phone Case",
+          "material": "Resin, sand, starfish",
+          "images": [
+            "/images/products/cd335202.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-069",
+      "slug": "mosque-crescent-stand-ramadan-kareem",
+      "name": "Mosque Crescent Stand \"Ramadan Kareem\"",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A mosque-and-crescent stand in green, maroon or green-and-black.",
+      "image": "/images/products/d3e706c0.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-069",
+          "name": "Mosque Crescent Stand \"Ramadan Kareem\"",
+          "material": "Resin",
+          "images": [
+            "/images/products/d3e706c0.jpg",
+            "/images/products/5ec4dcb3.jpg",
+            "/images/products/e34ad818.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-070",
+      "slug": "geometric-crescent-calligraphy-stand",
+      "name": "Geometric Crescent & Calligraphy Stand",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A geometric crescent with calligraphy, in turquoise, maroon or black.",
+      "image": "/images/products/edaeb891.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-070",
+          "name": "Geometric Crescent & Calligraphy Stand",
+          "material": "Resin",
+          "images": [
+            "/images/products/edaeb891.jpg",
+            "/images/products/5e237f4b.jpg",
+            "/images/products/5e23a14f.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-071",
+      "slug": "star-in-crescent-stand-coasters",
+      "name": "Star-in-Crescent Stand & Coasters",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A star-in-crescent stand with matching coasters in many colours.",
+      "image": "/images/products/5e23a14f.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-071",
+          "name": "Star-in-Crescent Stand & Coasters",
+          "material": "Resin, gold leaf",
+          "images": [
+            "/images/products/5e23a14f.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-077",
+      "slug": "ocean-beach-wall-clock",
+      "name": "Ocean Beach Wall Clock",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A beach-scene wall clock with standard numerals.",
+      "image": "/images/products/c4301379.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-077",
+          "name": "Ocean Beach Wall Clock",
+          "material": "Resin, sand, shells",
+          "images": [
+            "/images/products/c4301379.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-078",
+      "slug": "seashell-trinket-box",
+      "name": "Seashell Trinket Box",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A lidded shell-shaped box in blue and turquoise.",
+      "image": "/images/products/4c6826a1.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-078",
+          "name": "Seashell Trinket Box",
+          "material": "Resin",
+          "images": [
+            "/images/products/4c6826a1.jpg",
+            "/images/products/57993081.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-085",
+      "slug": "pumpkin-lidded-box",
+      "name": "Pumpkin Lidded Box",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A glossy orange pumpkin box with a green lid.",
+      "image": "/images/products/5b184c00.jpg",
+      "tags": [
+        "halloween"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-085",
+          "name": "Pumpkin Lidded Box",
+          "material": "Resin",
+          "images": [
+            "/images/products/5b184c00.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-086",
+      "slug": "green-marble-domino-xo-set",
+      "name": "Green Marble Domino & XO Set",
+      "category": "gaming",
+      "categoryName": "Board Games",
+      "description": "Green-marble dominoes in a wooden box with a matching XO board.",
+      "image": "/images/products/fd60bb4a.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-086",
+          "name": "Green Marble Domino & XO Set",
+          "material": "Resin, wood box",
+          "images": [
+            "/images/products/fd60bb4a.jpg",
+            "/images/products/674e46f9.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-087",
+      "slug": "amber-marble-domino-xo-set",
+      "name": "Amber Marble Domino & XO Set",
+      "category": "gaming",
+      "categoryName": "Board Games",
+      "description": "Amber-marble dominoes in a wooden box with a matching XO board.",
+      "image": "/images/products/5615c699.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-087",
+          "name": "Amber Marble Domino & XO Set",
+          "material": "Resin, wood box",
+          "images": [
+            "/images/products/5615c699.jpg",
+            "/images/products/a1c88e0e.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-088",
+      "slug": "beach-domino-in-laser-cut-box",
+      "name": "Beach Domino in Laser-Cut Box",
+      "category": "gaming",
+      "categoryName": "Board Games",
+      "description": "Beach dominoes in a wooden box with a silver laser-cut lid.",
+      "image": "/images/products/93818300.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-088",
+          "name": "Beach Domino in Laser-Cut Box",
+          "material": "Resin, sand, wood box",
+          "images": [
+            "/images/products/93818300.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-091",
+      "slug": "rose-candle-in-resin-holder",
+      "name": "Rose Candle in Resin Holder",
+      "category": "candles",
+      "categoryName": "Candles",
+      "description": "A bubble-textured resin holder filled with rose-shaped candles.",
+      "image": "/images/products/3611cd74.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-091",
+          "name": "Rose Candle in Resin Holder — Black / Red",
+          "material": "Resin holder, wax candle",
+          "images": [
+            "/images/products/b6eec5a5.jpg",
+            "/images/products/a3a70dc7.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-100",
+          "name": "Rose Candle in Resin Holder — Fuchsia",
+          "material": "Resin holder, wax candle",
+          "images": [
+            "/images/products/3611cd74.jpg",
+            "/images/products/55d358ab.jpg",
+            "/images/products/5a9f8204.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-101",
+          "name": "Rose Candle in Resin Holder — Ocean Sand",
+          "material": "Resin holder, sand, wax candles",
+          "images": [
+            "/images/products/001ef062.jpg",
+            "/images/products/93f55026.jpg",
+            "/images/products/5a9f8204.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-102",
+          "name": "Rose Candle in Resin Holder — Mint",
+          "material": "Resin holder, wax candles",
+          "images": [
+            "/images/products/fccb21c4.jpg",
+            "/images/products/5a9f8204.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-092",
+      "slug": "sand-sea-gold-roman-clock",
+      "name": "Sand & Sea Gold Roman Clock",
+      "category": "resin",
+      "categoryName": "Resin",
+      "description": "A sand-and-sea wall clock with gold Roman numerals.",
+      "image": "/images/products/3dbedbc9.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-092",
+          "name": "Sand & Sea Gold Roman Clock",
+          "material": "Resin, sand",
+          "images": [
+            "/images/products/3dbedbc9.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-093",
+      "slug": "macrame-plant-hanger",
+      "name": "Macramé Plant Hanger",
+      "category": "macrame",
+      "categoryName": "Macramé",
+      "description": "A red macrame plant hanger with spiral knots.",
+      "image": "/images/products/396517f8.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-093",
+          "name": "Macrame Plant Hanger",
+          "material": "Cotton cord",
+          "images": [
+            "/images/products/396517f8.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-094",
+      "slug": "macrame-sunburst-mirror",
+      "name": "Macramé Sunburst Mirror",
+      "category": "macrame",
+      "categoryName": "Macramé",
+      "description": "A round mirror framed in hand-knotted macramé.",
+      "image": "/images/products/aec6b1b6.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-094",
+          "name": "Macrame Sunburst Mirror",
+          "material": "Cotton cord, mirror",
+          "images": [
+            "/images/products/b3a8eb41.jpg"
+          ]
+        },
+        {
+          "catalogId": "coco-099",
+          "name": "Boho Macrame Mirror",
+          "material": "Cotton cord, mirror",
+          "images": [
+            "/images/products/aec6b1b6.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-095",
+      "slug": "mustard-macrame-wall-hanging",
+      "name": "Mustard Macramé Wall Hanging",
+      "category": "macrame",
+      "categoryName": "Macramé",
+      "description": "A mustard-and-brown wall hanging on a wooden dowel.",
+      "image": "/images/products/f80a7118.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-095",
+          "name": "Mustard Macrame Wall Hanging",
+          "material": "Cotton cord, wooden dowel",
+          "images": [
+            "/images/products/f80a7118.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-096",
+      "slug": "macrame-ring-wall-hanging",
+      "name": "Macramé Ring Wall Hanging",
+      "category": "macrame",
+      "categoryName": "Macramé",
+      "description": "A turquoise-and-peach ring hanging with knotted leaves.",
+      "image": "/images/products/b83e12b2.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-096",
+          "name": "Macrame Ring Wall Hanging",
+          "material": "Cotton cord, wooden beads",
+          "images": [
+            "/images/products/b83e12b2.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-097",
+      "slug": "macrame-crossbody-bag",
+      "name": "Macramé Crossbody Bag",
+      "category": "macrame",
+      "categoryName": "Macramé",
+      "description": "A green-and-cream crossbody bag with a braided strap and fringe.",
+      "image": "/images/products/c9264c52.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-097",
+          "name": "Macrame Crossbody Bag",
+          "material": "Cotton cord",
+          "images": [
+            "/images/products/c9264c52.jpg",
+            "/images/products/47db4335.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-098",
+      "slug": "fuchsia-macrame-pouch",
+      "name": "Fuchsia Macramé Pouch",
+      "category": "macrame",
+      "categoryName": "Macramé",
+      "description": "A bright fuchsia knotted pouch.",
+      "image": "/images/products/b179cb4d.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-098",
+          "name": "Fuchsia Macrame Pouch",
+          "material": "Cotton cord",
+          "images": [
+            "/images/products/b179cb4d.jpg",
+            "/images/products/36bbf89e.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-103",
+      "slug": "paisley-tin-candle",
+      "name": "Paisley Tin Candle",
+      "category": "candles",
+      "categoryName": "Candles",
+      "description": "A hand-poured candle in a patterned paisley tin.",
+      "image": "/images/products/77cb123e.jpg",
+      "tags": [],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-103",
+          "name": "Paisley Tin Candle",
+          "material": "Wax, tin",
+          "images": [
+            "/images/products/77cb123e.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-104",
+      "slug": "cream-gold-skull-candle",
+      "name": "Cream & Gold Skull Candle",
+      "category": "candles",
+      "categoryName": "Candles",
+      "description": "A cream skull candle brushed with gold shimmer.",
+      "image": "/images/products/906e11e1.jpg",
+      "tags": [
+        "halloween"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-104",
+          "name": "Cream & Gold Skull Candle",
+          "material": "Wax",
+          "images": [
+            "/images/products/906e11e1.jpg",
+            "/images/products/21cfe314.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-105",
+      "slug": "stacked-skulls-candle",
+      "name": "Stacked Skulls Candle",
+      "category": "candles",
+      "categoryName": "Candles",
+      "description": "A tall stacked-skulls candle in mauve.",
+      "image": "/images/products/9756cdaf.jpg",
+      "tags": [
+        "halloween"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-105",
+          "name": "Stacked Skulls Candle",
+          "material": "Wax",
+          "images": [
+            "/images/products/9756cdaf.jpg",
+            "/images/products/baaebf53.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-106",
+      "slug": "floral-skull-candle",
+      "name": "Floral Skull Candle",
+      "category": "candles",
+      "categoryName": "Candles",
+      "description": "A mauve skull candle crowned with roses.",
+      "image": "/images/products/d72c7289.jpg",
+      "tags": [
+        "halloween"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-106",
+          "name": "Floral Skull Candle",
+          "material": "Wax",
+          "images": [
+            "/images/products/d72c7289.jpg",
+            "/images/products/56bd5947.jpg",
+            "/images/products/ee8075cd.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-107",
+      "slug": "pumpkin-candle",
+      "name": "Pumpkin Candle",
+      "category": "candles",
+      "categoryName": "Candles",
+      "description": "A cream-and-gold pumpkin candle.",
+      "image": "/images/products/baaebf53.jpg",
+      "tags": [
+        "halloween"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-107",
+          "name": "Pumpkin Candle",
+          "material": "Wax",
+          "images": [
+            "/images/products/baaebf53.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-108",
+      "slug": "ramadan-lantern-candles",
+      "name": "Ramadan Lantern Candles",
+      "category": "candles",
+      "categoryName": "Candles",
+      "description": "Lantern-shaped candles and flat \"Ramadan Kareem\" candles in soft colours.",
+      "image": "/images/products/cf627a6f.jpg",
+      "tags": [
+        "ramadan"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-108",
+          "name": "Ramadan Lantern Candles",
+          "material": "Wax",
+          "images": [
+            "/images/products/cf627a6f.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-109",
+      "slug": "christmas-tree-tray-candle-with-snowman",
+      "name": "Christmas Tree Tray Candle with Snowman",
+      "category": "candles",
+      "categoryName": "Candles",
+      "description": "A Christmas-tree tray filled with wax snow, a snowman and stars.",
+      "image": "/images/products/d92b0cb4.jpg",
+      "tags": [
+        "christmas"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-109",
+          "name": "Christmas Tree Tray Candle with Snowman",
+          "material": "Wax; tray resin or wood",
+          "images": [
+            "/images/products/d92b0cb4.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco-110",
+      "slug": "christmas-dough-bowl-candle",
+      "name": "Christmas Dough Bowl Candle",
+      "category": "candles",
+      "categoryName": "Candles",
+      "description": "A multi-wick dough-bowl candle with a tree, snowman and snowflakes.",
+      "image": "/images/products/5eaa7ab8.jpg",
+      "tags": [
+        "christmas"
+      ],
+      "price": null,
+      "currency": "EGP",
+      "priceStatus": "pending",
+      "variants": [
+        {
+          "catalogId": "coco-110",
+          "name": "Christmas Dough Bowl Candle",
+          "material": "Wax, wooden bowl",
+          "images": [
+            "/images/products/5eaa7ab8.jpg"
+          ]
+        }
+      ]
+    }
+  ]
+}
