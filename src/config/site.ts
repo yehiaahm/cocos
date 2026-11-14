@@ -22,11 +22,11 @@ export const site = {
   url: (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://www.example.com',
 
   /** WhatsApp number in international format, digits only, e.g. "201001234567". */
-  whatsappNumber: '',
+  whatsappNumber: '201005199355',
   instagramHandle: 'coco_resin_art',
-  instagramUrl: 'https://instagram.com/coco_resin_art',
+  instagramUrl: 'https://www.instagram.com/coco_resin_art?srtk=eXk5dW03cG84dnY3&utm_source=qr',
   /** Full Facebook page URL, e.g. "https://www.facebook.com/cocosart". */
-  facebookUrl: '',
+  facebookUrl: 'https://www.facebook.com/share/18JoSzFYdK/?mibextid=wwXIfr',
 
   /** Social preview image (1200×630), relative to the site root. */
   ogImage: '/og-image.jpg',

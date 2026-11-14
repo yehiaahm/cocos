@@ -10,6 +10,7 @@ import { formatPrice, plural } from '../lib/format';
 import { normaliseEgyptPhone } from '../lib/phone';
 import type { CreateOrderInput, PaymentMethod } from '../lib/api-types';
 import { ArrowRight } from '../components/Icons';
+import { site } from '../config/site';
 
 const GOVERNORATES = [
   'Cairo', 'Giza', 'Alexandria', 'Qalyubia', 'Sharqia', 'Dakahlia', 'Gharbia', 'Monufia', 'Beheira',
@@ -89,10 +90,10 @@ export function CheckoutPage() {
   const methods: { id: PaymentMethod; title: string; desc: string }[] = [
     { id: 'cod', title: 'Cash on delivery', desc: 'Pay in cash when your order arrives.' },
     ...(payment?.instapay
-      ? [{ id: 'instapay' as const, title: 'InstaPay', desc: 'Transfer once Coco confirms your total, then upload the screenshot.' }]
+      ? [{ id: 'instapay' as const, title: 'InstaPay', desc: 'After you place the order, we’ll take you to Coco’s Instagram to finish payment.' }]
       : []),
     ...(payment?.wallet
-      ? [{ id: 'wallet' as const, title: payment.walletName || 'Mobile wallet', desc: 'Transfer once Coco confirms your total, then upload the screenshot.' }]
+      ? [{ id: 'wallet' as const, title: payment.walletName || 'Mobile wallet', desc: 'After you place the order, we’ll take you to Coco’s Instagram to finish payment.' }]
       : []),
   ];
   useEffect(() => {
@@ -127,6 +128,10 @@ export function CheckoutPage() {
       website: honeypot,
     };
 
+    // InstaPay / wallet payment finishes on Instagram. Open the tab now, inside the click, so browsers don't block it.
+    const toInstagram = method === 'wallet' || method === 'instapay';
+    const igTab = toInstagram ? window.open('about:blank', '_blank') : null;
+
     setSubmitting(true);
     try {
       const res = await fetch('/api/orders', {
@@ -144,6 +149,7 @@ export function CheckoutPage() {
           setErrors({ form: data.error ?? 'We could not place your order. Please check your connection and try again.' });
         }
         if (res.status === 409) void useLive.getState().load(true);
+        igTab?.close();
         return;
       }
       try {
@@ -154,8 +160,19 @@ export function CheckoutPage() {
         /* storage unavailable */
       }
       clear();
+      if (toInstagram) {
+        if (igTab) {
+          // Instagram opens in the new tab; this tab keeps the order confirmation.
+          igTab.location.href = site.instagramUrl;
+        } else {
+          // Popup blocked: go straight to Instagram in this tab.
+          window.location.assign(site.instagramUrl);
+          return;
+        }
+      }
       navigate(`/order/${data.number}?t=${encodeURIComponent(data.token)}`, { replace: true, state: { placed: true } });
     } catch {
+      igTab?.close();
       setErrors({ form: 'We could not reach the shop. Please check your connection and try again.' });
     } finally {
       setSubmitting(false);
