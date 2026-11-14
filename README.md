@@ -135,6 +135,11 @@ The session secret and push-notification keys are generated on first start and s
 (`/data/secrets.json`); the database is `/data/cocos.db` (back it up by downloading it from the volume).
 Migrations in `migrations/` run automatically on start.
 
+Rate limits use the client IP the platform proxy appended to `X-Forwarded-For` (the right-most entry); anything the visitor
+sends in `X-Forwarded-For` / `CF-Connecting-IP` is ignored. If another proxy is ever put in front of Railway's, set
+`TRUSTED_PROXY_HOPS` to the number of proxies. Failed dashboard sign-ins are also capped globally (30 per 15 minutes,
+whatever the source), so use a long random `ADMIN_PASSWORD`.
+
 Run the same server locally: `npm run build && ADMIN_EMAIL=you@example.com ADMIN_PASSWORD=test npm start` → http://localhost:3000.
 
 ### Cloudflare Pages (alternative)

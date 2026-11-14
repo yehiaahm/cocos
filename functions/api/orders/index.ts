@@ -10,13 +10,13 @@ import { PAYMENT_METHODS, type CreateOrderInput, type PaymentMethod } from '../.
 /** POST /api/orders — the storefront checkout. Prices are always taken from the server, never the client. */
 export const onRequestPost: Fn = handle(async ({ request, env, waitUntil }) => {
   assertSameOrigin(request);
+  // Throttle before reading the body, so oversized/garbage requests cost the sender their allowance.
+  const hash = await ipHash(request, env.SESSION_SECRET ?? 'cocos');
+  await rateLimit(env.DB, `order:${hash}`, 6, 15 * 60);
   const body = await readJson<CreateOrderInput>(request);
 
   // Bots fill every field; people never see this one.
   if (body.website) return json({ error: 'Rejected' }, { status: 400 });
-
-  const hash = await ipHash(request, env.SESSION_SECRET ?? 'cocos');
-  await rateLimit(env.DB, `order:${hash}`, 6, 15 * 60);
 
   const name = str(body.customer?.name, 80);
   const phone = normaliseEgyptPhone(str(body.customer?.phone, 30));

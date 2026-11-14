@@ -1,5 +1,5 @@
 import type { Fn } from '../../../../server/env';
-import { HttpError, assertSameOrigin, handle, ipHash, json, rateLimit, randomToken } from '../../../../server/http';
+import { HttpError, assertSameOrigin, handle, ipHash, json, rateLimit, randomToken, readFormData } from '../../../../server/http';
 import { addEvent, getOrderRow } from '../../../../server/orders';
 import { notifyAdmins } from '../../../../server/push';
 
@@ -17,7 +17,8 @@ export const onRequestPost: Fn<'number'> = handle(async ({ request, env, params,
 
   await rateLimit(env.DB, `proof:${await ipHash(request, env.SESSION_SECRET ?? 'cocos')}`, 10, 3600);
 
-  const form = await request.formData().catch(() => null);
+  // 6 MB image + multipart framing; never buffer more than that.
+  const form = await readFormData(request, MAX_BYTES + 256 * 1024);
   const file = form?.get('file');
   if (!file || typeof file === 'string') throw new HttpError(400, 'Choose a screenshot to upload.', 'no_file');
   const ext = TYPES[file.type];

@@ -15,9 +15,10 @@ import {
 /** POST /api/auth/register { name, email, password } — creates an account and signs in. */
 export const onRequestPost: Fn = handle(async ({ request, env }) => {
   assertSameOrigin(request);
+  // Throttle before reading the body, so oversized/garbage requests cost the sender their allowance.
+  await rateLimit(env.DB, `register:${await ipHash(request, env.SESSION_SECRET ?? 'cocos')}`, 6, 60 * 60);
   const body = await readJson<{ name?: string; email?: string; password?: string; website?: string }>(request, 4000);
   if (body.website) return json({ error: 'Rejected' }, { status: 400 });
-  await rateLimit(env.DB, `register:${await ipHash(request, env.SESSION_SECRET ?? 'cocos')}`, 6, 60 * 60);
 
   const name = str(body.name, 80);
   const email = normaliseEmail(body.email);

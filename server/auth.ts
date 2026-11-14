@@ -1,8 +1,9 @@
 import type { Env } from './env';
-import { HttpError, b64url, fromB64url } from './http';
+import { HttpError, b64url, ipHash, randomToken, sha256, str } from './http';
 
 export const SESSION_COOKIE = 'cocos_admin';
-const SESSION_DAYS = 14;
+/** Absolute session lifetime (was 14 days, and unrevocable). */
+const SESSION_DAYS = 7;
 
 async function hmacKey(secret: string) {
   return crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
@@ -47,14 +48,38 @@ export async function checkPassword(env: Env, candidate: string): Promise<boolea
   return diff === 0;
 }
 
-/** Session token = payload.signature. The fingerprint invalidates sessions when the admin email or password changes. */
-export async function createSession(env: Env): Promise<string> {
+/**
+ * Admin sessions live in the database (table admin_sessions): the cookie is a random token and only its hash is
+ * stored, so signing out deletes the row and a copied cookie stops working at once.
+ *  - absolute lifetime: SESSION_DAYS, idle timeout: IDLE_HOURS (measured from the last request)
+ *  - the fingerprint ties a session to the current ADMIN_EMAIL + ADMIN_PASSWORD, so changing either signs everyone out
+ */
+const IDLE_HOURS = 24;
+/** last_seen_at is only rewritten when it is older than this, to avoid a write on every request. */
+const TOUCH_AFTER_SEC = 300;
+
+const nowSec = () => Math.floor(Date.now() / 1000);
+const tokenHash = (token: string) => sha256(`a:${token}`);
+
+export async function createSession(env: Env, request?: Request): Promise<string> {
   assertConfigured(env);
-  const payload = b64url(
-    new TextEncoder().encode(JSON.stringify({ exp: Date.now() + SESSION_DAYS * 86_400_000, pw: await fingerprint(env) })),
-  );
-  const sig = await crypto.subtle.sign('HMAC', await hmacKey(env.SESSION_SECRET), new TextEncoder().encode(payload));
-  return `${payload}.${b64url(sig)}`;
+  const token = randomToken(32);
+  const now = nowSec();
+  await env.DB.batch([
+    env.DB.prepare(
+      'INSERT INTO admin_sessions (token_hash, fingerprint, created_at, expires_at, last_seen_at, ip_hash, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    ).bind(
+      await tokenHash(token),
+      await fingerprint(env),
+      now,
+      now + SESSION_DAYS * 86_400,
+      now,
+      request ? await ipHash(request, env.SESSION_SECRET) : null,
+      request ? str(request.headers.get('user-agent'), 200) || null : null,
+    ),
+    env.DB.prepare('DELETE FROM admin_sessions WHERE expires_at < ? OR last_seen_at < ?').bind(now, now - IDLE_HOURS * 3600),
+  ]);
+  return token;
 }
 
 async function fingerprint(env: Env) {
@@ -63,17 +88,33 @@ async function fingerprint(env: Env) {
 }
 
 export async function verifySession(env: Env, token: string | null): Promise<boolean> {
-  if (!token || !env.SESSION_SECRET || !env.ADMIN_PASSWORD) return false;
-  const [payload, sig] = token.split('.');
-  if (!payload || !sig) return false;
-  try {
-    const ok = await crypto.subtle.verify('HMAC', await hmacKey(env.SESSION_SECRET), fromB64url(sig), new TextEncoder().encode(payload));
-    if (!ok) return false;
-    const data = JSON.parse(new TextDecoder().decode(fromB64url(payload))) as { exp: number; pw: string };
-    return data.exp > Date.now() && data.pw === (await fingerprint(env));
-  } catch {
+  if (!token || token.length > 100 || !env.SESSION_SECRET || !env.ADMIN_PASSWORD) return false;
+  const hash = await tokenHash(token);
+  const row = await env.DB.prepare('SELECT fingerprint, expires_at, last_seen_at FROM admin_sessions WHERE token_hash = ?')
+    .bind(hash)
+    .first<{ fingerprint: string; expires_at: number; last_seen_at: number }>();
+  if (!row) return false;
+  const now = nowSec();
+  if (row.expires_at <= now || now - row.last_seen_at > IDLE_HOURS * 3600) {
+    await env.DB.prepare('DELETE FROM admin_sessions WHERE token_hash = ?').bind(hash).run();
     return false;
   }
+  if (row.fingerprint !== (await fingerprint(env))) return false;
+  if (now - row.last_seen_at > TOUCH_AFTER_SEC) {
+    await env.DB.prepare('UPDATE admin_sessions SET last_seen_at = ? WHERE token_hash = ?').bind(now, hash).run();
+  }
+  return true;
+}
+
+/** Sign out this one session (the cookie holder's). */
+export async function destroySession(env: Env, token: string | null): Promise<void> {
+  if (!token || token.length > 100) return;
+  await env.DB.prepare('DELETE FROM admin_sessions WHERE token_hash = ?').bind(await tokenHash(token)).run();
+}
+
+/** Sign out every device. */
+export async function destroyAllSessions(env: Env): Promise<void> {
+  await env.DB.prepare('DELETE FROM admin_sessions').run();
 }
 
 export function readCookie(request: Request, name: string): string | null {

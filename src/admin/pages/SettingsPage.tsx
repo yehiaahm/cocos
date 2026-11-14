@@ -165,11 +165,22 @@ export function SettingsPage() {
           <PushCard />
           <Card title="الحساب">
             <p className="mb-3 mt-0 text-sm leading-relaxed text-muted-2">
-              بتدخل من صفحة تسجيل الدخول العادية في الموقع بالإيميل وكلمة المرور. لتغييرهم: غيّر <code dir="ltr">ADMIN_EMAIL</code> أو <code dir="ltr">ADMIN_PASSWORD</code> من إعدادات المشروع (Variables على Railway، أو Secrets على Cloudflare). أي جهاز مسجّل دخول هيخرج تلقائياً.
+              بتدخل من صفحة تسجيل الدخول العادية في الموقع بالإيميل وكلمة المرور. لتغييرهم: غيّر <code dir="ltr">ADMIN_EMAIL</code> أو <code dir="ltr">ADMIN_PASSWORD</code> من إعدادات المشروع (Variables على Railway، أو Secrets على Cloudflare). أي جهاز مسجّل دخول هيخرج تلقائياً. لو حاسس إن حد تاني دخل، استخدم "تسجيل الخروج من كل الأجهزة". الجلسة بتنتهي بعد يوم من عدم الاستخدام أو بعد 7 أيام.
             </p>
-            <Button variant="danger" onClick={() => void signOut()}>
-              {Icon.out(18)} تسجيل الخروج
-            </Button>
+            <div className="flex flex-wrap gap-2.5">
+              <Button variant="danger" onClick={() => void signOut()}>
+                {Icon.out(18)} تسجيل الخروج
+              </Button>
+              <Button
+                variant="danger"
+                onClick={async () => {
+                  await api('/api/admin/login?all=1', { method: 'DELETE' }).catch(() => undefined);
+                  window.location.assign('/login');
+                }}
+              >
+                {Icon.out(18)} تسجيل الخروج من كل الأجهزة
+              </Button>
+            </div>
           </Card>
           <Card title="استخدمها كتطبيق">
             <p className="m-0 text-sm leading-relaxed text-muted-2">

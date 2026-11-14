@@ -37,11 +37,62 @@ export function handle<C>(fn: (ctx: C) => Promise<Response>) {
   };
 }
 
+const tooLarge = () => new HttpError(413, 'Request too large', 'too_large');
+
+/** Rejects up front when the client declares a body bigger than `maxBytes` (nothing is read). */
+export function assertDeclaredSize(request: Request, maxBytes: number): void {
+  const declared = Number(request.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > maxBytes) throw tooLarge();
+}
+
+/** Passes the body through but errors with 413 as soon as more than `maxBytes` have gone by (works for chunked bodies too). */
+function capped(body: ReadableStream<Uint8Array>, maxBytes: number): ReadableStream<Uint8Array> {
+  let seen = 0;
+  return body.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        seen += chunk.byteLength;
+        if (seen > maxBytes) throw tooLarge();
+        controller.enqueue(chunk);
+      },
+    }),
+  );
+}
+
+/** Reads a request body as text without ever holding more than `maxBytes` of it. */
+export async function readBodyText(request: Request, maxBytes: number): Promise<string> {
+  assertDeclaredSize(request, maxBytes);
+  if (!request.body) return '';
+  const reader = capped(request.body as ReadableStream<Uint8Array>, maxBytes).getReader();
+  const decoder = new TextDecoder();
+  let text = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    text += decoder.decode(value, { stream: true });
+  }
+  return text + decoder.decode();
+}
+
+/** Parses a multipart upload without ever holding more than `maxBytes` of it. Returns null when it is not valid form data. */
+export async function readFormData(request: Request, maxBytes: number): Promise<FormData | null> {
+  assertDeclaredSize(request, maxBytes);
+  const type = request.headers.get('content-type');
+  if (!request.body || !type) return null;
+  try {
+    return await new Response(capped(request.body as ReadableStream<Uint8Array>, maxBytes), { headers: { 'content-type': type } }).formData();
+  } catch (e) {
+    if (e instanceof HttpError) throw e;
+    // The cap's error can surface wrapped; if we saw more than the limit it is a 413 either way.
+    if (e instanceof Error && e.cause instanceof HttpError) throw e.cause;
+    return null;
+  }
+}
+
 export async function readJson<T>(request: Request, maxBytes = 64_000): Promise<T> {
   const type = request.headers.get('content-type') ?? '';
   if (!type.includes('application/json')) throw new HttpError(415, 'Expected JSON', 'bad_content_type');
-  const text = await request.text();
-  if (text.length > maxBytes) throw new HttpError(413, 'Request too large', 'too_large');
+  const text = await readBodyText(request, maxBytes);
   try {
     return JSON.parse(text) as T;
   } catch {
@@ -79,11 +130,43 @@ export async function sha256(text: string): Promise<string> {
   return b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)));
 }
 
-/** Hash of the client IP (never stored raw). */
+/**
+ * Hash of the client IP (never stored raw).
+ * Only headers the platform sets itself are trusted: `cf-connecting-ip` (Cloudflare overwrites it) and
+ * `x-client-ip` (set by server/node/server.ts after discarding any client-supplied value). `x-forwarded-for`
+ * is deliberately NOT read here: a client can put anything in it.
+ */
 export async function ipHash(request: Request, secret: string): Promise<string> {
-  const ip = request.headers.get('cf-connecting-ip') ?? request.headers.get('x-forwarded-for') ?? 'local';
+  const ip = request.headers.get('cf-connecting-ip') ?? request.headers.get('x-client-ip') ?? 'local';
   return (await sha256(`${secret}:${ip}`)).slice(0, 22);
 }
+
+/** Throws 429 while `bucket` has `limit` or more recorded failures in the last `windowSec` (does not record anything). */
+export async function assertNotLocked(db: D1Database, bucket: string, limit: number, windowSec: number): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  const row = await db
+    .prepare('SELECT COUNT(*) AS n FROM rate_limits WHERE bucket = ? AND created_at > ?')
+    .bind(bucket, now - windowSec)
+    .first<{ n: number }>();
+  if ((row?.n ?? 0) >= limit) throw new HttpError(429, 'Too many attempts. Please wait a few minutes and try again.', 'rate_limited');
+}
+
+/** Records one failure against `bucket` (pair with assertNotLocked). */
+export async function recordFailure(db: D1Database, bucket: string): Promise<void> {
+  await db
+    .prepare('INSERT INTO rate_limits (bucket, created_at) VALUES (?, ?)')
+    .bind(bucket, Math.floor(Date.now() / 1000))
+    .run();
+}
+
+/**
+ * Admin sign-in is protected by a limit that does not depend on who the client says they are:
+ * at most ADMIN_FAIL_LIMIT failed attempts per window across ALL sources. (Trade-off: someone can lock the
+ * owner out of the sign-in form for the window; an already-signed-in session keeps working.)
+ */
+export const ADMIN_FAIL_BUCKET = 'adminfail:global';
+export const ADMIN_FAIL_LIMIT = 30;
+export const ADMIN_FAIL_WINDOW = 15 * 60;
 
 /** Simple sliding-window limiter backed by D1. Throws 429 when `limit` is exceeded within `windowSec`. */
 export async function rateLimit(db: D1Database, bucket: string, limit: number, windowSec: number): Promise<void> {

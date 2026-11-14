@@ -17,7 +17,19 @@ const GOOGLE_ERRORS: Record<string, string> = {
 };
 
 /** Only same-site paths are accepted as the destination after signing in. */
-const safeNext = (v: string | null) => (v && v.startsWith('/') && !v.startsWith('//') && !v.startsWith('/api/') ? v : '/account');
+/** Keep in sync with safeNext() in server/accounts.ts. */
+function safeNext(v: string | null): string {
+  const FALLBACK = '/account';
+  if (!v || v.length > 300 || /[\u0000-\u001f\u007f\\]/.test(v) || !v.startsWith('/') || v.startsWith('//') || v.startsWith('/api/')) return FALLBACK;
+  try {
+    const u = new URL(v, window.location.origin);
+    if (u.origin !== window.location.origin) return FALLBACK;
+    const out = u.pathname + u.search + u.hash;
+    return out.startsWith('//') || out.startsWith('/api/') ? FALLBACK : out;
+  } catch {
+    return FALLBACK;
+  }
+}
 
 const inputCls = (bad?: string) =>
   `min-h-[52px] w-full rounded-2xl border-[1.5px] bg-white px-4 text-base text-ink outline-none placeholder:text-muted-2 focus:border-teal ${

@@ -29,6 +29,25 @@ describe('account helpers', () => {
     expect(safeNext('/api/auth/login')).toBe('/account');
     expect(safeNext(null)).toBe('/account');
   });
+  it('rejects tab/newline/control-character tricks that browsers turn into //host', () => {
+    for (const bad of ['/\t/evil.example', '/\n/evil.example', '/\r/evil.example', '/\u0000/evil.example', '/\u007f/evil.example', '/a\\b']) {
+      expect(safeNext(bad)).toBe('/account');
+    }
+  });
+  it('keeps legitimate paths, queries and hashes, and caps the length', () => {
+    expect(safeNext('/product/blue-ocean-tray?variant=2#reviews')).toBe('/product/blue-ocean-tray?variant=2#reviews');
+    expect(safeNext('/admin/orders/5')).toBe('/admin/orders/5');
+    expect(safeNext('/' + 'a'.repeat(400))).toBe('/account');
+  });
+  it('never yields anything that resolves to another origin', () => {
+    const base = 'https://shop.example';
+    const inputs = ['/%09/evil.example', '/%5Cevil.example', '/ /evil.example', '/​/evil.example', '/.//evil.example', '/x/../../evil.example', '/..//evil.example', '///evil.example', '/?next=//evil.example'];
+    for (const i of inputs) {
+      const out = safeNext(i);
+      expect(new URL(out, base).origin).toBe(base);
+      expect(out.startsWith('//')).toBe(false);
+    }
+  });
 });
 
 describe('Google account linking', async () => {

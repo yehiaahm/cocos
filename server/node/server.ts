@@ -10,12 +10,13 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
-import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { NodeD1 } from './d1';
 import { FileR2 } from './r2';
 import { StaticSite, SECURITY_HEADERS } from './static';
 import { loadSecrets } from './secrets';
+import { CLIENT_IP_HEADER, trustedClientIp } from './clientip';
+import { limitedBody } from './bodystream';
 
 import * as catalog from '../../functions/api/catalog';
 import * as ordersIndex from '../../functions/api/orders/index';
@@ -151,6 +152,12 @@ async function handle(request: Request): Promise<Response> {
   return site.serve(request, url.pathname);
 }
 
+/** Hard ceiling for any request body (the largest legitimate one is a 6 MB payment screenshot). Routes enforce smaller limits themselves. */
+const MAX_BODY_BYTES = 7 * 1024 * 1024;
+
+/** Number of reverse proxies in front of this server (Railway's edge = 1). */
+const TRUSTED_PROXY_HOPS = Number(process.env.TRUSTED_PROXY_HOPS) || 1;
+
 /** Node req → Web Request (behind Railway's proxy: trust X-Forwarded-Proto/Host). */
 function toRequest(req: IncomingMessage): Request {
   const proto = String(req.headers['x-forwarded-proto'] ?? 'http').split(',')[0].trim();
@@ -161,11 +168,17 @@ function toRequest(req: IncomingMessage): Request {
     if (Array.isArray(v)) v.forEach((x) => headers.append(k, x));
     else headers.set(k, v);
   }
+  // Rate limits key on the client IP. Nothing the client sends may influence it: drop every IP-identity
+  // header they could have supplied, then set our own from what the platform proxy appended.
+  headers.delete('cf-connecting-ip');
+  headers.delete('x-forwarded-for');
+  headers.delete(CLIENT_IP_HEADER);
+  headers.set(CLIENT_IP_HEADER, trustedClientIp(req.headers['x-forwarded-for'], req.socket.remoteAddress, TRUSTED_PROXY_HOPS));
   const hasBody = req.method !== 'GET' && req.method !== 'HEAD';
   return new Request(`${proto}://${host}${req.url ?? '/'}`, {
     method: req.method,
     headers,
-    body: hasBody ? (Readable.toWeb(req) as ReadableStream) : undefined,
+    body: hasBody ? limitedBody(req, MAX_BODY_BYTES) : undefined,
     // @ts-expect-error Node needs duplex for streamed request bodies
     duplex: hasBody ? 'half' : undefined,
   });
@@ -180,6 +193,8 @@ async function send(res: ServerResponse, response: Response) {
   const cookies = response.headers.getSetCookie?.() ?? [];
   if (cookies.length) headers['set-cookie'] = cookies;
   for (const [k, v] of Object.entries(SECURITY_HEADERS)) if (!(k in headers)) headers[k] = v;
+  // Don't keep reading the rest of an oversized upload on this connection.
+  if (response.status === 413) headers['connection'] = 'close';
   res.writeHead(response.status, headers);
   if (!response.body) return void res.end();
   const reader = response.body.getReader();
@@ -194,6 +209,12 @@ async function send(res: ServerResponse, response: Response) {
 const server = createServer(async (req, res) => {
   const started = Date.now();
   try {
+    // A declared body over the ceiling is refused before a single byte of it is read.
+    if (Number(req.headers['content-length']) > MAX_BODY_BYTES) {
+      res.writeHead(413, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', connection: 'close' });
+      res.end(JSON.stringify({ error: 'Request too large', code: 'too_large' }));
+      return;
+    }
     const response = await handle(toRequest(req));
     await send(res, response);
     if (req.url?.startsWith('/api/')) console.log(`${req.method} ${req.url?.split('?')[0]} ${response.status} ${Date.now() - started}ms`);
@@ -203,6 +224,10 @@ const server = createServer(async (req, res) => {
     res.end(JSON.stringify({ error: 'Server error' }));
   }
 });
+
+// Slow-loris style clients: headers must arrive quickly and a whole request must finish in two minutes.
+server.headersTimeout = 30_000;
+server.requestTimeout = 120_000;
 
 const port = Number(process.env.PORT) || 3000;
 server.listen(port, () => console.log(`[server] Coco's site on :${port} · data in ${dataDir}`));

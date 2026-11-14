@@ -127,8 +127,20 @@ export const clearUserCookie = (request: Request) => `${USER_COOKIE}=; Path=/; H
 
 /** Only same-site paths are allowed as a post-login destination (no open redirects). */
 export function safeNext(v: string | null | undefined): string {
-  if (!v || !v.startsWith('/') || v.startsWith('//') || v.startsWith('/\\') || v.startsWith('/api/')) return '/account';
-  return v.slice(0, 300);
+  const FALLBACK = '/account';
+  // Control characters (TAB/CR/LF are stripped by browsers when they resolve a Location header, so "/<TAB>/evil.example"
+  // would become "//evil.example") and backslashes are never legitimate in a destination path.
+  if (!v || v.length > 300 || /[\u0000-\u001f\u007f\\]/.test(v)) return FALLBACK;
+  if (!v.startsWith('/') || v.startsWith('//') || v.startsWith('/api/')) return FALLBACK;
+  // Parse it the way a browser would and insist it stays on this origin.
+  try {
+    const u = new URL(v, 'https://placeholder.invalid');
+    if (u.origin !== 'https://placeholder.invalid') return FALLBACK;
+    const out = u.pathname + u.search + u.hash;
+    return out.startsWith('//') || out.startsWith('/api/') ? FALLBACK : out;
+  } catch {
+    return FALLBACK;
+  }
 }
 
 /* ---------------- Google ---------------- */
