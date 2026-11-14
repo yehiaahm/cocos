@@ -83,7 +83,10 @@ function Shell({ children }: { children: ReactNode }) {
   const { badges, signOut } = useSession();
   const total = badges.newOrders + badges.proofs;
   const { pathname } = useLocation();
-  useEffect(() => window.scrollTo(0, 0), [pathname]);
+  useEffect(() => {
+    // Braces matter: newer browsers return a Promise from scrollTo, and React would treat it as a cleanup function and crash.
+    window.scrollTo(0, 0);
+  }, [pathname]);
   useEffect(() => {
     document.title = `${total ? `(${total}) ` : ''}لوحة التحكم · ${site.name}`;
   }, [total]);
