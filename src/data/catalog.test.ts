@@ -24,6 +24,7 @@ describe('catalog', () => {
       'wood-decoupage': 25,
       macrame: 6,
       candles: 9,
+      concrete: 0,
     });
   });
 

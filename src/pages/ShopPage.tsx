@@ -24,6 +24,7 @@ const CATEGORY_COPY: Record<CategorySlug, string> = {
   'wood-decoupage': 'Ramadan lanterns, trays, crescents and keepsakes in painted wood and decoupage.',
   macrame: 'Hand-knotted cotton macramé mirrors, wall hangings, plant hangers and bags.',
   candles: 'Sculpted candles and rose candles in resin holders for gifting and every season.',
+  concrete: 'Cast planters, trays and sculptural decor in concrete, finished by hand with colour and gold.',
 };
 
 const pillCls = (on: boolean, big: boolean) =>
@@ -216,7 +217,11 @@ export function ShopPage() {
             <h2 className="m-0 font-serif text-[40px] font-medium">
               Nothing here <em>yet.</em>
             </h2>
-            <p className="mb-6 mt-3 text-muted-2">Try another category or occasion — or ask us for a custom piece.</p>
+            <p className="mb-6 mt-3 text-muted-2">
+              {category === 'concrete' && !query && occasion === 'all'
+                ? 'Our concrete pieces are coming soon — ask us for a custom piece in the meantime.'
+                : 'Try another category or occasion — or ask us for a custom piece.'}
+            </p>
             <button type="button" onClick={reset} className="btn btn-primary min-h-[50px] rounded-full border-0 bg-ink px-[26px] text-[15px] font-bold text-white">
               Clear filters
             </button>

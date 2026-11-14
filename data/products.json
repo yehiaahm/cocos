@@ -26,6 +26,11 @@
       "slug": "candles",
       "name": "Candles",
       "count": 9
+    },
+    {
+      "slug": "concrete",
+      "name": "Concrete Works",
+      "count": 0
     }
   ],
   "occasions": [

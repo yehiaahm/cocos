@@ -1,6 +1,6 @@
 import raw from '../../data/products.json';
 
-export type CategorySlug = 'gaming' | 'resin' | 'wood-decoupage' | 'macrame' | 'candles';
+export type CategorySlug = 'gaming' | 'resin' | 'wood-decoupage' | 'macrame' | 'candles' | 'concrete';
 export type OccasionSlug = 'ramadan' | 'halloween' | 'christmas' | 'personalised';
 
 export interface Variant {

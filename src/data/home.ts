@@ -56,6 +56,15 @@ export const categoryPanels: {
     desc: 'Sculpted candles and rose candles in resin holders — for gifting, Ramadan nights and Halloween.',
     subs: ['Rose candle holders', 'Skull candles', 'Seasonal candles', 'Ramadan candles'],
   },
+  {
+    slug: 'concrete',
+    name: 'Concrete Works',
+    ar: 'أعمال الخرسانة',
+    img: '/images/legacy-crops/pyramids.jpg',
+    alt: 'Concrete pyramids made in class',
+    desc: 'Cast planters, trays and sculptural decor in concrete — finished by hand with colour and gold.',
+    subs: ['Planters', 'Trays', 'Sculptural decor'],
+  },
 ];
 
 export const bestSellers: { id: string; meta: string }[] = [

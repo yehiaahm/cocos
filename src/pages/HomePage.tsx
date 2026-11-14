@@ -210,7 +210,7 @@ function Collections() {
         eyebrow="Shop by category"
         title={
           <>
-            Five materials.
+            Six materials.
             <br />
             <em>One steady hand.</em>
           </>
@@ -239,7 +239,7 @@ function Collections() {
               >
                 <span className="flex flex-col items-start gap-0.5">
                   <span className="font-serif text-[30px] font-medium leading-none">{p.name}</span>
-                  <span className="text-[13px] opacity-80">{plural(n, 'product')}</span>
+                  <span className="text-[13px] opacity-80">{n > 0 ? plural(n, 'product') : 'Coming soon'}</span>
                 </span>
                 <ArrowRight size={20} />
               </button>
@@ -260,7 +260,7 @@ function Collections() {
             </span>
           </div>
           <div className="flex flex-col gap-[18px] px-10 py-11 max-[560px]:px-6 max-[560px]:py-8">
-            <span className="text-xs font-bold uppercase tracking-[.22em] text-teal-light">{plural(count, 'product')}</span>
+            <span className="text-xs font-bold uppercase tracking-[.22em] text-teal-light">{count > 0 ? plural(count, 'product') : 'Coming soon'}</span>
             <h3 className="m-0 font-serif text-[56px] font-medium leading-[.95] max-[560px]:text-[44px]">{c.name}</h3>
             <p className="m-0 text-base leading-[1.7] text-mist">{c.desc}</p>
             <ul className="m-0 mt-1.5 flex list-none flex-wrap gap-2.5 p-0" aria-label={`${c.name} includes`}>
