@@ -73,7 +73,12 @@ export function LoginPage({ initialMode = 'signin' }: { initialMode?: Mode }) {
     if (busy) return;
     const errs: Errors = {};
     if (mode === 'register' && form.name.trim().length < 2) errs.name = 'Please enter your name.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) errs.email = 'Please enter a valid email address.';
+    // Strict format only when creating an account. Signing in just needs a value: the server compares it with
+    // the account / ADMIN_EMAIL, and the owner's ADMIN_EMAIL may not look like a public email address.
+    const email = form.email.trim();
+    if (mode === 'register' ? !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) : !email) {
+      errs.email = mode === 'register' ? 'Please enter a valid email address.' : 'Please enter your email.';
+    }
     if (mode === 'register' ? form.password.length < 8 : !form.password) {
       errs.password = mode === 'register' ? 'Use at least 8 characters for your password.' : 'Please enter your password.';
     }
