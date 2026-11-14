@@ -89,12 +89,8 @@ export function CheckoutPage() {
 
   const methods: { id: PaymentMethod; title: string; desc: string }[] = [
     { id: 'cod', title: 'Cash on delivery', desc: 'Pay in cash when your order arrives.' },
-    ...(payment?.instapay
-      ? [{ id: 'instapay' as const, title: 'InstaPay', desc: 'After you place the order, we’ll take you to Coco’s Instagram to finish payment.' }]
-      : []),
-    ...(payment?.wallet
-      ? [{ id: 'wallet' as const, title: payment.walletName || 'Mobile wallet', desc: 'After you place the order, we’ll take you to Coco’s Instagram to finish payment.' }]
-      : []),
+    { id: 'instapay', title: 'InstaPay', desc: 'After you place the order, we’ll take you to Coco’s Instagram to finish payment.' },
+    { id: 'wallet', title: payment?.walletName || 'Vodafone Cash', desc: 'After you place the order, we’ll take you to Coco’s Instagram to finish payment.' },
   ];
   useEffect(() => {
     if (!methods.some((m) => m.id === method)) setMethod('cod');
