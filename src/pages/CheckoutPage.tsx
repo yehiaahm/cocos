@@ -11,7 +11,7 @@ import { formatPrice, plural } from '../lib/format';
 import { normaliseEgyptPhone } from '../lib/phone';
 import type { CreateOrderInput, PaymentMethod } from '../lib/api-types';
 import { ArrowRight } from '../components/Icons';
-import { site } from '../config/site';
+import { openPaymentApp, paymentAppFor } from '../lib/payment-apps';
 
 const GOVERNORATES = [
   'Cairo', 'Giza', 'Alexandria', 'Qalyubia', 'Sharqia', 'Dakahlia', 'Gharbia', 'Monufia', 'Beheira',
@@ -91,8 +91,14 @@ export function CheckoutPage() {
 
   const methods: { id: PaymentMethod; title: string; desc: string }[] = [
     { id: 'cod', title: 'Cash on delivery', desc: 'Pay in cash when your order arrives.' },
-    { id: 'instapay', title: 'InstaPay', desc: 'After you place the order, we’ll take you to Coco’s Instagram to finish payment.' },
-    { id: 'wallet', title: payment?.walletName || 'Vodafone Cash', desc: 'After you place the order, we’ll take you to Coco’s Instagram to finish payment.' },
+    { id: 'instapay', title: 'InstaPay', desc: 'After you place the order, we’ll open the InstaPay app so you can finish payment.' },
+    {
+      id: 'wallet',
+      title: payment?.walletName || 'Vodafone Cash',
+      desc: paymentAppFor('wallet', payment?.walletName)
+        ? 'After you place the order, we’ll open the Ana Vodafone app so you can finish payment.'
+        : 'After you place the order, you’ll see the wallet number to transfer to.',
+    },
   ];
   useEffect(() => {
     if (!methods.some((m) => m.id === method)) setMethod('cod');
@@ -126,10 +132,6 @@ export function CheckoutPage() {
       website: honeypot,
     };
 
-    // InstaPay / wallet payment finishes on Instagram. Open the tab now, inside the click, so browsers don't block it.
-    const toInstagram = method === 'wallet' || method === 'instapay';
-    const igTab = toInstagram ? window.open('about:blank', '_blank') : null;
-
     setSubmitting(true);
     try {
       const res = await fetch('/api/orders', {
@@ -147,7 +149,6 @@ export function CheckoutPage() {
           setErrors({ form: data.error ?? 'We could not place your order. Please check your connection and try again.' });
         }
         if (res.status === 409) void useLive.getState().load(true);
-        igTab?.close();
         return;
       }
       try {
@@ -158,19 +159,11 @@ export function CheckoutPage() {
         /* storage unavailable */
       }
       clear();
-      if (toInstagram) {
-        if (igTab) {
-          // Instagram opens in the new tab; this tab keeps the order confirmation.
-          igTab.location.href = site.instagramUrl;
-        } else {
-          // Popup blocked: go straight to Instagram in this tab.
-          window.location.assign(site.instagramUrl);
-          return;
-        }
-      }
       navigate(`/order/${data.number}?t=${encodeURIComponent(data.token)}`, { replace: true, state: { placed: true } });
+      // InstaPay / Vodafone Cash: open the payment app. We go to the order page first so the customer
+      // lands back on the payment details (amount, address to copy, screenshot upload) after paying.
+      openPaymentApp(method, payment?.walletName);
     } catch {
-      igTab?.close();
       setErrors({ form: 'We could not reach the shop. Please check your connection and try again.' });
     } finally {
       setSubmitting(false);
