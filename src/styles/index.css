@@ -89,6 +89,17 @@
   }
 }
 
+/* iOS Safari zooms the whole page when a text field under 16px gets focus and
+   never zooms back, which leaves the dashboard/checkout shifted sideways.
+   Unlayered on purpose so it wins over the Tailwind text-* utilities. */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='button']):not([type='submit']):not([type='color']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 @utility container-page {
   width: 100%;
   max-width: 1280px;
