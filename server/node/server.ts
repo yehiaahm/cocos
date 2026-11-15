@@ -68,8 +68,15 @@ const distDir = path.join(root, 'dist');
 const dataDir = path.resolve(process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(root, '.data'));
 mkdirSync(path.join(dataDir, 'uploads'), { recursive: true });
 
-if (process.env.RAILWAY_ENVIRONMENT && !process.env.RAILWAY_VOLUME_MOUNT_PATH && !process.env.DATA_DIR) {
-  console.warn('\n[warn] No Railway Volume attached — orders will be LOST on every redeploy. Add a Volume (mount path /data).\n');
+/** On Railway, the container's own disk is wiped on every deploy. Only a mounted Volume (or an explicit DATA_DIR) survives. */
+const storagePersistent = !process.env.RAILWAY_ENVIRONMENT || !!process.env.RAILWAY_VOLUME_MOUNT_PATH || !!process.env.DATA_DIR;
+if (!storagePersistent) {
+  console.warn(
+    '\n[warn] ############################################################\n' +
+      '[warn] No Railway Volume attached: products, prices, orders and customers are LOST on every redeploy.\n' +
+      '[warn] Fix: Railway → this service → Volumes → add one with mount path /data, then redeploy.\n' +
+      '[warn] ############################################################\n',
+  );
 }
 
 const db = new NodeD1(path.join(dataDir, 'cocos.db'));
@@ -133,7 +140,8 @@ async function handle(request: Request): Promise<Response> {
   const url = new URL(request.url);
   if (url.pathname === '/healthz') {
     await db.prepare('SELECT 1').first();
-    return json(200, { ok: true });
+    // `persistent: false` means data is written to the container disk and will vanish on the next deploy.
+    return json(200, { ok: true, persistent: storagePersistent });
   }
 
   for (const r of routes) {
