@@ -2,6 +2,7 @@ import type { Fn } from '../../../server/env';
 import { HttpError, assertSameOrigin, handle, json, readJson, str } from '../../../server/http';
 import {
   checkPasswordStrength,
+  destroyOtherSessions,
   getSessionUser,
   googleConfigured,
   hashPassword,
@@ -38,17 +39,21 @@ export const onRequestPatch: Fn = handle(async ({ request, env }) => {
   const address = body.address === undefined ? user.address : str(body.address, 400) || null;
 
   let passwordHash = user.password_hash;
+  let passwordChanged = false;
   if (typeof body.newPassword === 'string' && body.newPassword) {
     if (user.password_hash && !(await verifyPassword(String(body.currentPassword ?? ''), user.password_hash))) {
       throw new HttpError(400, 'Your current password is not correct.', 'currentPassword');
     }
-    checkPasswordStrength(body.newPassword);
+    checkPasswordStrength(body.newPassword, user.email);
     passwordHash = await hashPassword(body.newPassword);
+    passwordChanged = true;
   }
 
   await env.DB.prepare('UPDATE users SET name = ?, phone = ?, city = ?, address = ?, password_hash = ? WHERE id = ?')
     .bind(name, phone, city, address, passwordHash, user.id)
     .run();
+  // A new password signs out every other device: a stolen session must not survive the owner changing it.
+  if (passwordChanged) await destroyOtherSessions(env, user.id, request);
   const fresh = (await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(user.id).first<UserRow>())!;
   return json({ user: toAccountUser(fresh) });
 });

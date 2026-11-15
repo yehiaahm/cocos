@@ -1,6 +1,7 @@
 // Renders every route to static HTML (fast first paint + full SEO content for crawlers),
 // then writes sitemap.xml, robots.txt and 404.html. Runs after the client and SSR builds.
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -70,6 +71,46 @@ await writeFile(
   path.join(dist, 'robots.txt'),
   `User-agent: *\nAllow: /\nDisallow: /checkout\nDisallow: /login\nDisallow: /account\nDisallow: /admin\nDisallow: /order/\nDisallow: /api/\n\nSitemap: ${site.url}/sitemap.xml\n`,
 );
+
+// Content-Security-Policy. The only inline script is the tiny head snippet in index.html, allowed by its hash
+// (computed here from every built page, so editing the snippet never needs a manual CSP change).
+const htmlFiles = [];
+const walk = async (dir) => {
+  for (const e of await readdir(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) await walk(p);
+    else if (e.name.endsWith('.html')) htmlFiles.push(p);
+  }
+};
+await walk(dist);
+const hashes = new Set();
+for (const f of htmlFiles) {
+  const src = await readFile(f, 'utf8');
+  // Executable inline scripts only: no src, not a data block such as application/ld+json.
+  for (const m of src.matchAll(/<script(?![^>]*\bsrc=)(?![^>]*\btype="application\/ld\+json")[^>]*>([\s\S]*?)<\/script>/g)) {
+    // Browsers normalise CRLF / lone CR to LF before checking a CSP hash, so the hash must be taken on the same text
+    // (index.html may have Windows line endings on a developer machine).
+    const text = m[1].replace(/\r\n?/g, '\n');
+    hashes.add(`'sha256-${createHash('sha256').update(text).digest('base64')}'`);
+  }
+}
+const csp = [
+  "default-src 'self'",
+  `script-src 'self' ${[...hashes].join(' ')}`.trim(),
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https://*.googleusercontent.com",
+  "connect-src 'self'",
+  "manifest-src 'self'",
+  "worker-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
+await writeFile(path.join(dist, 'csp.txt'), csp);
+// Cloudflare Pages / Netlify read dist/_headers; the Node server reads dist/csp.txt.
+await appendFile(path.join(dist, '_headers'), `\n# Added by scripts/prerender.mjs (script hashes change with index.html)\n/*\n  Content-Security-Policy: ${csp}\n`);
 
 await rm(ssrDir, { recursive: true, force: true });
 

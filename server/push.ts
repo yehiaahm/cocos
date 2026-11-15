@@ -7,6 +7,32 @@ import { b64url, fromB64url } from './http';
  * Works on Android, desktop, and iPhone when the dashboard is added to the home screen.
  */
 
+/**
+ * Browsers hand out push endpoints on their vendor's push service. Only those hosts are ever contacted, so a
+ * stolen admin session can't use "register a push device" to make the server call internal or arbitrary URLs.
+ */
+const PUSH_HOSTS = [
+  'fcm.googleapis.com', // Chrome, Edge, Brave, Opera, Samsung (Android)
+  'android.googleapis.com',
+  'updates.push.services.mozilla.com', // Firefox
+  '.push.services.mozilla.com',
+  '.push.apple.com', // Safari / iPhone home-screen web apps (web.push.apple.com)
+  '.notify.windows.com', // legacy Edge
+  '.wns.windows.com',
+];
+
+export function isAllowedPushEndpoint(endpoint: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(endpoint);
+  } catch {
+    return false;
+  }
+  if (u.protocol !== 'https:' || u.username || u.password || (u.port && u.port !== '443')) return false;
+  const host = u.hostname.toLowerCase();
+  return PUSH_HOSTS.some((h) => (h.startsWith('.') ? host.endsWith(h) : host === h));
+}
+
 export const pushConfigured = (env: Env) => !!(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY);
 
 async function signingKey(env: Env): Promise<CryptoKey> {
@@ -47,10 +73,16 @@ export async function notifyAdmins(env: Env, n: { title: string; body: string; u
     await Promise.all(
       results.map(async ({ endpoint }) => {
         try {
+          if (!isAllowedPushEndpoint(endpoint)) {
+            await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').bind(endpoint).run();
+            failed++;
+            return;
+          }
           const aud = new URL(endpoint).origin;
           if (!jwtByAudience.has(aud)) jwtByAudience.set(aud, await vapidJwt(env, aud));
           const res = await fetch(endpoint, {
             method: 'POST',
+            redirect: 'error', // a push service never needs to redirect us somewhere else
             headers: {
               TTL: '86400',
               Urgency: 'high',

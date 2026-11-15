@@ -11,12 +11,13 @@
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Fonts load without blocking first paint (display=swap shows system fonts until ready). -->
+    <!-- Fonts load without blocking first paint (display=swap shows system fonts until ready).
+         The stylesheet is added by the small inline script below instead of an inline onload handler,
+         so the Content-Security-Policy needs no 'unsafe-inline' / 'unsafe-hashes' for scripts. -->
     <link
       rel="preload"
       as="style"
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&family=Pinyon+Script&family=Tajawal:wght@500;700&display=swap"
-      onload="this.onload=null;this.rel='stylesheet'"
     />
     <noscript>
       <link
@@ -24,7 +25,15 @@
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&family=Pinyon+Script&family=Tajawal:wght@500;700&display=swap"
       />
     </noscript>
-    <script>document.documentElement.classList.add('js')</script>
+    <script>
+      document.documentElement.classList.add('js');
+      (function () {
+        var l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&family=Pinyon+Script&family=Tajawal:wght@500;700&display=swap';
+        document.head.appendChild(l);
+      })();
+    </script>
     <!--app-head-->
   </head>
   <body>

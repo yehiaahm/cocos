@@ -1,16 +1,51 @@
 import { describe, expect, it } from 'vitest';
-import { hashPassword, isEmail, normaliseEmail, safeNext, verifyPassword } from './accounts';
+import {
+  PBKDF2_ITERATIONS,
+  checkPasswordStrength,
+  hashPassword,
+  isEmail,
+  needsRehash,
+  normaliseEmail,
+  safeNext,
+  verifyPassword,
+} from './accounts';
+import { b64url } from './http';
 
 describe('customer passwords', () => {
   it('hashes with a random salt and verifies', async () => {
     const a = await hashPassword('resin-and-gold');
     const b = await hashPassword('resin-and-gold');
     expect(a).not.toBe(b);
-    expect(a.startsWith('pbkdf2$100000$')).toBe(true);
+    expect(a.startsWith(`pbkdf2$${PBKDF2_ITERATIONS}$`)).toBe(true);
     expect(await verifyPassword('resin-and-gold', a)).toBe(true);
     expect(await verifyPassword('resin-and-gold!', a)).toBe(false);
     expect(await verifyPassword('anything', null)).toBe(false);
     expect(await verifyPassword('anything', 'garbage')).toBe(false);
+  });
+
+  it('uses at least the OWASP iteration count on Node and flags weaker stored hashes for upgrade', async () => {
+    expect(PBKDF2_ITERATIONS).toBeGreaterThanOrEqual(600_000);
+    expect(needsRehash('pbkdf2$100000$salt$hash')).toBe(true);
+    expect(needsRehash(`pbkdf2$${PBKDF2_ITERATIONS}$salt$hash`)).toBe(false);
+    expect(needsRehash(null)).toBe(false);
+    // An old 100k hash still verifies, so existing customers can sign in before they are upgraded.
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode('old-password-1'), 'PBKDF2', false, ['deriveBits']);
+    const salt = new Uint8Array(16).fill(7);
+    const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 100_000 }, key, 256));
+    const stored = `pbkdf2$100000$${b64url(salt)}$${b64url(bits)}`;
+    expect(await verifyPassword('old-password-1', stored)).toBe(true);
+    expect(await verifyPassword('old-password-2', stored)).toBe(false);
+  });
+
+  it('rejects short, common and email-derived passwords', () => {
+    expect(() => checkPasswordStrength('short1')).toThrow(/at least 10/);
+    expect(() => checkPasswordStrength('1234567890')).toThrow(/easy to guess/);
+    expect(() => checkPasswordStrength('Password123')).toThrow(/easy to guess/);
+    expect(() => checkPasswordStrength('aaaaaaaaaaaa')).toThrow(/easy to guess/);
+    expect(() => checkPasswordStrength('mycoco-secret-9', 'coco.owner@example.com')).not.toThrow();
+    expect(() => checkPasswordStrength('coco.owner-2024', 'coco.owner@example.com')).toThrow(/easy to guess/);
+    expect(() => checkPasswordStrength('violet-lantern-tide-47')).not.toThrow();
+    expect(() => checkPasswordStrength('x'.repeat(201))).toThrow(/too long/);
   });
 });
 

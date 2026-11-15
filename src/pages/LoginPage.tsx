@@ -79,8 +79,8 @@ export function LoginPage({ initialMode = 'signin' }: { initialMode?: Mode }) {
     if (mode === 'register' ? !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) : !email) {
       errs.email = mode === 'register' ? 'Please enter a valid email address.' : 'Please enter your email.';
     }
-    if (mode === 'register' ? form.password.length < 8 : !form.password) {
-      errs.password = mode === 'register' ? 'Use at least 8 characters for your password.' : 'Please enter your password.';
+    if (mode === 'register' ? form.password.length < 10 : !form.password) {
+      errs.password = mode === 'register' ? 'Use at least 10 characters for your password.' : 'Please enter your password.';
     }
     setErrors(errs);
     const first = Object.keys(errs)[0];
@@ -182,7 +182,7 @@ export function LoginPage({ initialMode = 'signin' }: { initialMode?: Mode }) {
             <Field id="email" label="Email" error={errors.email}>
               <input id="auth-email" type="email" inputMode="email" autoComplete="email" value={form.email} onChange={set('email')} aria-invalid={!!errors.email} aria-describedby={errors.email ? 'auth-email-err' : undefined} className={inputCls(errors.email)} />
             </Field>
-            <Field id="password" label="Password" error={errors.password} hint={isRegister ? 'At least 8 characters.' : undefined}>
+            <Field id="password" label="Password" error={errors.password} hint={isRegister ? 'At least 10 characters.' : undefined}>
               <input
                 id="auth-password"
                 type="password"

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { brotliCompressSync, gzipSync, constants as zlib } from 'node:zlib';
@@ -29,10 +30,17 @@ const COMPRESSIBLE = new Set(['.html', '.js', '.mjs', '.css', '.json', '.webmani
 export const SECURITY_HEADERS: Record<string, string> = {
   'x-content-type-options': 'nosniff',
   'referrer-policy': 'strict-origin-when-cross-origin',
-  'x-frame-options': 'SAMEORIGIN',
-  'permissions-policy': 'camera=(), microphone=(), geolocation=()',
-  'strict-transport-security': 'max-age=31536000',
+  'x-frame-options': 'DENY',
+  'permissions-policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+  'strict-transport-security': 'max-age=31536000; includeSubDomains',
+  'cross-origin-opener-policy': 'same-origin',
+  // Baseline for API/JSON responses; HTML pages get the full policy from dist/csp.txt (see respond()).
+  'content-security-policy': "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
 };
+
+/** Used only when dist/csp.txt is missing (it is written by every full build). */
+const FALLBACK_PAGE_CSP =
+  "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleusercontent.com; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 
 function cacheFor(urlPath: string, ext: string): string {
   if (urlPath.startsWith('/assets/')) return 'public, max-age=31536000, immutable';
@@ -44,11 +52,29 @@ function cacheFor(urlPath: string, ext: string): string {
 const compressed = new Map<string, Buffer>();
 
 export class StaticSite {
-  constructor(private root: string) {}
+  /** Page policy written by scripts/prerender.mjs (it contains the hash of the one inline script). */
+  private pageCsp: string;
+
+  constructor(private root: string) {
+    let csp = '';
+    try {
+      csp = readFileSync(path.join(root, 'csp.txt'), 'utf8').trim();
+    } catch {
+      /* fall through to the fallback below */
+    }
+    if (!csp) {
+      console.warn('[warn] dist/csp.txt not found — using a looser fallback Content-Security-Policy. Run a full build (npm run build).');
+      csp = FALLBACK_PAGE_CSP;
+    }
+    this.pageCsp = csp;
+  }
 
   private async tryFile(rel: string) {
-    const full = path.resolve(this.root, `.${rel}`);
-    if (!full.startsWith(path.resolve(this.root))) return null;
+    // Backslashes are path separators on Windows hosts and never part of a legitimate URL here.
+    if (rel.includes('\\') || rel.includes('\0')) return null;
+    const root = path.resolve(this.root);
+    const full = path.resolve(root, `.${rel}`);
+    if (!full.startsWith(root + path.sep)) return null;
     try {
       const s = await stat(full);
       return s.isFile() ? { full, size: s.size, mtime: s.mtimeMs } : null;
@@ -100,6 +126,7 @@ export class StaticSite {
       'cache-control': cacheFor(urlPath, ext),
       etag,
       vary: 'accept-encoding',
+      ...(ext === '.html' ? { 'content-security-policy': this.pageCsp } : {}),
       ...extra,
     });
     if (status === 200 && request.headers.get('if-none-match') === etag) return new Response(null, { status: 304, headers });

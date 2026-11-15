@@ -12,8 +12,10 @@ import type { AccountUser } from '../src/lib/api-types';
 
 export const USER_COOKIE = 'cocos_user';
 const SESSION_DAYS = 30;
-// Cloudflare Workers cap PBKDF2 at 100k iterations.
-const PBKDF2_ITERATIONS = 100_000;
+// Cloudflare Workers cap PBKDF2 at 100k iterations; on Node (Railway) there is no cap, so use the
+// OWASP 2023 recommendation for PBKDF2-HMAC-SHA256 (600k). Older hashes are upgraded on the next sign-in.
+const isNode = !!(globalThis as { process?: { versions?: { node?: string } } }).process?.versions?.node;
+export const PBKDF2_ITERATIONS = isNode ? 600_000 : 100_000;
 
 export interface UserRow {
   id: number;
@@ -61,6 +63,23 @@ export async function hashPassword(password: string): Promise<string> {
   return `pbkdf2$${PBKDF2_ITERATIONS}$${b64url(salt)}$${b64url(hash)}`;
 }
 
+/** True when a stored hash was made with fewer iterations than this runtime now uses (rehash after a successful sign-in). */
+export function needsRehash(stored: string | null): boolean {
+  if (!stored) return false;
+  const [scheme, iter] = stored.split('$');
+  return scheme === 'pbkdf2' && Number(iter) < PBKDF2_ITERATIONS;
+}
+
+let dummyHash: Promise<string> | null = null;
+/**
+ * Runs a full password check against a throw-away hash. Used when the email is unknown (or has no password), so
+ * "no such account" takes as long as "wrong password" and response time doesn't reveal which emails exist.
+ */
+export async function burnPasswordCheck(password: string): Promise<void> {
+  dummyHash ??= hashPassword('dummy-password-for-timing');
+  await verifyPassword(password, await dummyHash);
+}
+
 export async function verifyPassword(password: string, stored: string | null): Promise<boolean> {
   if (!stored) return false;
   const [scheme, iter, salt, hash] = stored.split('$');
@@ -73,9 +92,29 @@ export async function verifyPassword(password: string, stored: string | null): P
   return diff === 0;
 }
 
-export function checkPasswordStrength(password: string): void {
-  if (password.length < 8) throw new HttpError(400, 'Use at least 8 characters for your password.', 'password');
+export const MIN_PASSWORD_LENGTH = 10;
+
+// Passwords that satisfy a 10-character rule but are among the most guessed (compared lower-cased).
+const COMMON_PASSWORDS = new Set([
+  '1234567890', '0123456789', '12345678910', '123456789012', 'qwertyuiop', 'qwerty12345', 'qwertyuiop123', 'password12',
+  'password123', 'password1234', 'passw0rd123', 'iloveyou123', 'iloveyou12', 'welcome123', 'welcome1234', 'abcdefghij',
+  'abc1234567', 'abcd123456', '1q2w3e4r5t', '1qaz2wsx3e', 'admin12345', 'letmein123', 'princess12', 'football12',
+  'baseball12', 'monkey1234', 'dragon1234', 'sunshine12', 'internet12', 'trustno1234', 'zaq12wsxcde', 'coco123456',
+  'cocosresinart', 'resinart123', '0000000000', '1111111111', '1212121212', '0101010101', '9876543210', 'a1b2c3d4e5',
+  '01012345678', '01112345678', '01212345678', '01512345678',
+]);
+
+export function checkPasswordStrength(password: string, email?: string): void {
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    throw new HttpError(400, `Use at least ${MIN_PASSWORD_LENGTH} characters for your password.`, 'password');
+  }
   if (password.length > 200) throw new HttpError(400, 'That password is too long.', 'password');
+  const lower = password.toLowerCase();
+  const local = email ? email.split('@')[0].toLowerCase() : '';
+  const oneRepeatedCharacter = new Set(password).size === 1;
+  if (COMMON_PASSWORDS.has(lower) || oneRepeatedCharacter || (local.length >= 4 && lower.includes(local))) {
+    throw new HttpError(400, 'That password is too easy to guess. Choose something less common.', 'password');
+  }
 }
 
 /* ---------------- sessions ---------------- */
@@ -111,6 +150,13 @@ export async function requireUser(env: Env, request: Request): Promise<UserRow> 
   const user = await getSessionUser(env, request);
   if (!user) throw new HttpError(401, 'Please sign in.', 'unauthorized');
   return user;
+}
+
+/** Signs out every device of this customer except the one making the request (used after a password change). */
+export async function destroyOtherSessions(env: Env, userId: number, request: Request): Promise<void> {
+  const token = readCookieValue(request, USER_COOKIE);
+  const keep = token ? await sha256(`s:${token}`) : '';
+  await env.DB.prepare('DELETE FROM user_sessions WHERE user_id = ? AND token_hash != ?').bind(userId, keep).run();
 }
 
 export async function destroySession(env: Env, request: Request): Promise<void> {

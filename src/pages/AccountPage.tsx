@@ -252,7 +252,7 @@ function Password({ user }: { user: AccountUser }) {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (next.length < 8) return setMsg({ ok: false, text: 'Use at least 8 characters for your password.' });
+    if (next.length < 10) return setMsg({ ok: false, text: 'Use at least 10 characters for your password.' });
     setBusy(true);
     try {
       const data = await authRequest<{ user: AccountUser }>('/api/auth/me', { currentPassword: current, newPassword: next }, 'PATCH');
@@ -273,7 +273,7 @@ function Password({ user }: { user: AccountUser }) {
         {user.hasPassword ? 'Change password' : 'Add a password'}
       </h2>
       <p className="mb-5 mt-1 text-sm text-muted-2">
-        {user.hasPassword ? 'At least 8 characters.' : 'You sign in with Google. Add a password to also sign in with your email.'}
+        {user.hasPassword ? 'At least 10 characters.' : 'You sign in with Google. Add a password to also sign in with your email.'}
       </p>
       {/* Lets password managers attach the new password to the right account. */}
       <input type="email" autoComplete="username" value={user.email} readOnly hidden />

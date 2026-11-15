@@ -121,7 +121,13 @@ export function readCookie(request: Request, name: string): string | null {
   const header = request.headers.get('cookie') ?? '';
   for (const part of header.split(';')) {
     const [k, ...v] = part.trim().split('=');
-    if (k === name) return decodeURIComponent(v.join('='));
+    if (k === name) {
+      try {
+        return decodeURIComponent(v.join('='));
+      } catch {
+        return null; // malformed %-escape: treat as "no cookie" instead of throwing
+      }
+    }
   }
   return null;
 }

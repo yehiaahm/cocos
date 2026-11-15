@@ -25,7 +25,7 @@ export const onRequestPost: Fn = handle(async ({ request, env }) => {
   const password = typeof body.password === 'string' ? body.password : '';
   if (name.length < 2) throw new HttpError(400, 'Please enter your name.', 'name');
   if (!isEmail(email)) throw new HttpError(400, 'Please enter a valid email address.', 'email');
-  checkPasswordStrength(password);
+  checkPasswordStrength(password, email);
   // The owner's email is reserved for the dashboard sign-in.
   if (isAdminEmail(env, email)) throw new HttpError(409, 'This email already has an account. Sign in instead.', 'email_taken');
 
