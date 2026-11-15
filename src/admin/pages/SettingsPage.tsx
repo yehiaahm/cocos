@@ -15,8 +15,8 @@ export function PushCard({ compact = false }: { compact?: boolean }) {
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
-    pushState().then(setState, () => setState('unsupported'));
-  }, []);
+    pushState(vapidPublicKey).then(setState, () => setState('unsupported'));
+  }, [vapidPublicKey]);
 
   if (state === null || (compact && state === 'on')) return null;
 
@@ -67,8 +67,10 @@ export function PushCard({ compact = false }: { compact?: boolean }) {
                   disabled={busy}
                   onClick={() =>
                     void run(async () => {
-                      const r = await api<{ sent: number }>('/api/admin/push', { method: 'PUT' });
-                      setMsg(r.sent ? '' : t('push.noDevices'));
+                      const r = await api<{ total: number; sent: number; statuses: number[] }>('/api/admin/push', { method: 'PUT' });
+                      if (r.sent) setMsg('');
+                      else if (!r.total) setMsg(t('push.noDevices'));
+                      else setMsg(t('push.rejected', { codes: [...new Set(r.statuses)].join(', ') || '?' }));
                       return 'on';
                     })
                   }

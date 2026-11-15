@@ -59,23 +59,42 @@ async function vapidJwt(env: Env, audience: string): Promise<string> {
   return `${unsigned}.${b64url(sig)}`;
 }
 
+/** A push service that doesn't answer must never hang the request (Node's own fetch waits ~5 minutes). */
+const PUSH_TIMEOUT_MS = 10_000;
+
+export interface PushResult {
+  /** Subscriptions stored when the notification went out. */
+  total: number;
+  sent: number;
+  failed: number;
+  /** Dead subscriptions (404/410 or a disallowed endpoint) that were deleted. */
+  removed: number;
+  /** HTTP status the push service answered with for each failure (0 = timeout / network error). */
+  statuses: number[];
+}
+
 /** Store the notification text, then ping every subscribed device. Never throws. */
-export async function notifyAdmins(env: Env, n: { title: string; body: string; url: string }): Promise<{ sent: number; failed: number }> {
+export async function notifyAdmins(env: Env, n: { title: string; body: string; url: string }): Promise<PushResult> {
+  const out: PushResult = { total: 0, sent: 0, failed: 0, removed: 0, statuses: [] };
   try {
     await env.DB.prepare('INSERT INTO notifications (title, body, url) VALUES (?, ?, ?)').bind(n.title, n.body, n.url).run();
     await env.DB.prepare("DELETE FROM notifications WHERE created_at < strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 days')").run();
-    if (!pushConfigured(env)) return { sent: 0, failed: 0 };
+    if (!pushConfigured(env)) return out;
 
     const { results } = await env.DB.prepare('SELECT endpoint FROM push_subscriptions').all<{ endpoint: string }>();
-    let sent = 0;
-    let failed = 0;
+    out.total = results.length;
     const jwtByAudience = new Map<string, string>();
+    const drop = async (endpoint: string) => {
+      await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').bind(endpoint).run();
+      out.removed++;
+    };
     await Promise.all(
       results.map(async ({ endpoint }) => {
         try {
           if (!isAllowedPushEndpoint(endpoint)) {
-            await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').bind(endpoint).run();
-            failed++;
+            await drop(endpoint);
+            out.failed++;
+            out.statuses.push(400);
             return;
           }
           const aud = new URL(endpoint).origin;
@@ -83,6 +102,7 @@ export async function notifyAdmins(env: Env, n: { title: string; body: string; u
           const res = await fetch(endpoint, {
             method: 'POST',
             redirect: 'error', // a push service never needs to redirect us somewhere else
+            signal: AbortSignal.timeout(PUSH_TIMEOUT_MS),
             headers: {
               TTL: '86400',
               Urgency: 'high',
@@ -90,23 +110,24 @@ export async function notifyAdmins(env: Env, n: { title: string; body: string; u
               'Content-Length': '0',
             },
           });
-          if (res.status === 404 || res.status === 410) {
-            await env.DB.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').bind(endpoint).run();
-            failed++;
-          } else if (res.ok) sent++;
-          else {
-            failed++;
-            console.warn('Push failed', res.status, await res.text().catch(() => ''));
+          if (res.ok) {
+            out.sent++;
+            return;
           }
+          out.failed++;
+          out.statuses.push(res.status);
+          if (res.status === 404 || res.status === 410) await drop(endpoint);
+          else console.warn('Push failed', res.status, new URL(endpoint).hostname, (await res.text().catch(() => '')).slice(0, 300));
         } catch (e) {
-          failed++;
-          console.warn('Push error', e);
+          out.failed++;
+          out.statuses.push(0);
+          console.warn('Push error', new URL(endpoint).hostname, e);
         }
       }),
     );
-    return { sent, failed };
+    return out;
   } catch (e) {
     console.error('notifyAdmins failed', e);
-    return { sent: 0, failed: 0 };
+    return out;
   }
 }
