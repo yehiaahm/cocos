@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 import { LogoBadge } from './Logo';
 import { Facebook, Instagram, WhatsApp } from './Icons';
 import { contactLink, site } from '../config/site';
-import { categories } from '../data/catalog';
+import { useCatalog } from '../data/catalog';
 
 const year = new Date().getFullYear();
 
@@ -33,6 +33,7 @@ function SocialButtons() {
 }
 
 function FooterLinks() {
+  const { categories } = useCatalog();
   return (
     <nav aria-label="Footer" className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
       <div className="flex flex-col gap-2">

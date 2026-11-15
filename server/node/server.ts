@@ -17,6 +17,7 @@ import { StaticSite, SECURITY_HEADERS } from './static';
 import { loadSecrets } from './secrets';
 import { CLIENT_IP_HEADER, trustedClientIp } from './clientip';
 import { limitedBody } from './bodystream';
+import { catalogHasPath } from '../catalog';
 
 import * as catalog from '../../functions/api/catalog';
 import * as ordersIndex from '../../functions/api/orders/index';
@@ -35,6 +36,11 @@ import * as adminOrders from '../../functions/api/admin/orders/index';
 import * as adminOrder from '../../functions/api/admin/orders/[id]';
 import * as adminOrderProof from '../../functions/api/admin/orders/[id]/proof';
 import * as adminProducts from '../../functions/api/admin/products';
+import * as adminProduct from '../../functions/api/admin/products/[id]';
+import * as adminCategories from '../../functions/api/admin/categories';
+import * as adminCategory from '../../functions/api/admin/categories/[slug]';
+import * as adminMedia from '../../functions/api/admin/media';
+import * as media from '../../functions/media/[[path]]';
 import * as adminStats from '../../functions/api/admin/stats';
 import * as adminCustomers from '../../functions/api/admin/customers';
 import * as adminSettings from '../../functions/api/admin/settings';
@@ -107,6 +113,10 @@ add('/api/admin/orders', adminOrders, true);
 add('/api/admin/orders/:id', adminOrder, true);
 add('/api/admin/orders/:id/proof', adminOrderProof, true);
 add('/api/admin/products', adminProducts, true);
+add('/api/admin/products/:id', adminProduct, true);
+add('/api/admin/categories', adminCategories, true);
+add('/api/admin/categories/:slug', adminCategory, true);
+add('/api/admin/media', adminMedia, true);
 add('/api/admin/stats', adminStats, true);
 add('/api/admin/customers', adminCustomers, true);
 add('/api/admin/settings', adminSettings, true);
@@ -114,6 +124,7 @@ add('/api/admin/push', adminPush, true);
 add('/api/admin/notifications/latest', adminLatest, true);
 add('/admin/:path*', adminShell);
 add('/order/:path*', orderShell);
+add('/media/:path*', media);
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
@@ -149,7 +160,15 @@ async function handle(request: Request): Promise<Response> {
 
   if (url.pathname.startsWith('/api/')) return json(404, { error: 'Not found' });
   if (request.method !== 'GET' && request.method !== 'HEAD') return json(405, { error: 'Method not allowed' });
-  return site.serve(request, url.pathname);
+  const res = await site.serve(request, url.pathname);
+  // Products and categories added from the dashboard have no prerendered page: serve the client-rendered shell
+  // for them (the browser loads the catalogue and draws the page). Anything that is not in the catalogue stays a 404.
+  const dynamic = /^\/(product|shop)\/([^/]+)\/?$/.exec(url.pathname);
+  if (res.status === 404 && dynamic) {
+    const kind = dynamic[1] === 'product' ? 'product' : 'category';
+    if (await catalogHasPath(db as unknown as D1Database, kind, decodeURIComponent(dynamic[2]))) return site.serve(request, '/app');
+  }
+  return res;
 }
 
 /** Hard ceiling for any request body (the largest legitimate one is a 6 MB payment screenshot). Routes enforce smaller limits themselves. */

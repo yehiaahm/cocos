@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { computeTotals } from './orders';
-import { products, getProduct } from './catalog';
+import { seedProducts as products } from './catalog';
 
 describe('order totals', () => {
   it('needs every line priced before there is a subtotal', () => {
@@ -14,10 +14,10 @@ describe('order totals', () => {
   });
 });
 
-describe('server catalog', () => {
+describe('server catalog seed', () => {
   it('matches the storefront: 80 products, held-back items excluded', () => {
     expect(products).toHaveLength(80);
-    expect(getProduct('coco-021')).toBeUndefined();
-    expect(getProduct('coco-052')?.variants.length).toBe(6);
+    expect(products.find((p) => p.id === 'coco-021')).toBeUndefined();
+    expect(products.find((p) => p.id === 'coco-052')?.variants.length).toBe(6);
   });
 });

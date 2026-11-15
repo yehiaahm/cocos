@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { getProductById } from '../data/catalog';
+import { catalogIsLive, getProductById } from '../data/catalog';
 
 export const CART_STORAGE_KEY = 'coco-cart';
 export const MAX_QTY = 99;
@@ -35,8 +35,12 @@ export const lineKey = (productId: string, variantId: string, personalisation?: 
 
 const clampQty = (n: number) => Math.max(1, Math.min(MAX_QTY, Math.floor(n) || 1));
 
-/** Drop anything malformed or no longer in the catalog (e.g. a product the owner hid). */
-export function sanitiseLines(input: unknown): CartLine[] {
+/**
+ * Drop anything malformed or no longer in the catalog (e.g. a product the owner deleted).
+ * Before the live catalogue has loaded, products added in the dashboard are still unknown, so `keepUnknown` keeps them
+ * until the check can be made for real.
+ */
+export function sanitiseLines(input: unknown, { keepUnknown = false }: { keepUnknown?: boolean } = {}): CartLine[] {
   if (!Array.isArray(input)) return [];
   const out = new Map<string, CartLine>();
   for (const l of input) {
@@ -44,7 +48,7 @@ export function sanitiseLines(input: unknown): CartLine[] {
     const { productId, variantId, qty, personalisation } = l as Partial<CartLine>;
     if (typeof productId !== 'string' || typeof variantId !== 'string') continue;
     const p = getProductById(productId);
-    if (!p || !p.variants.some((v) => v.catalogId === variantId)) continue;
+    if (!keepUnknown && (!p || !p.variants.some((v) => v.catalogId === variantId))) continue;
     const text = typeof personalisation === 'string' ? personalisation.trim().slice(0, 80) : '';
     const key = lineKey(productId, variantId, text);
     const prev = out.get(key);
@@ -95,7 +99,7 @@ export const useCart = create<CartState>()(
       migrate: () => ({ lines: [] }),
       merge: (persisted, current) => ({
         ...current,
-        lines: sanitiseLines((persisted as { lines?: unknown } | undefined)?.lines),
+        lines: sanitiseLines((persisted as { lines?: unknown } | undefined)?.lines, { keepUnknown: !catalogIsLive }),
       }),
       // Rehydrated manually after mount so prerendered HTML and the first client render match.
       skipHydration: true,

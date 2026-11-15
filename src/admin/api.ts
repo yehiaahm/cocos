@@ -12,13 +12,15 @@ export class ApiError extends Error {
 
 /** Fetch helper for /api/admin/*. A 401 anywhere sends the dashboard back to the login screen. */
 export async function api<T>(path: string, opts: { method?: string; body?: unknown } = {}): Promise<T> {
+  // FormData (photo uploads) goes out as multipart: the browser sets the content type and boundary itself.
+  const form = typeof FormData !== 'undefined' && opts.body instanceof FormData;
   let res: Response;
   try {
     res = await fetch(path, {
       method: opts.method ?? 'GET',
       credentials: 'same-origin',
-      headers: { accept: 'application/json', ...(opts.body !== undefined ? { 'content-type': 'application/json' } : {}) },
-      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+      headers: { accept: 'application/json', ...(opts.body !== undefined && !form ? { 'content-type': 'application/json' } : {}) },
+      body: opts.body === undefined ? undefined : form ? (opts.body as FormData) : JSON.stringify(opts.body),
     });
   } catch {
     throw new ApiError(0, t('api.network'));

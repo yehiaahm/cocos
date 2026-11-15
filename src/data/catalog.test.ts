@@ -68,7 +68,7 @@ describe('price', () => {
 describe('categories', () => {
   it('lists Concrete Works with its Arabic name, even while it has no products yet', () => {
     const concrete = (raw as { categories: { slug: string; name: string; nameAr?: string }[] }).categories.find((c) => c.slug === 'concrete');
-    expect(concrete).toEqual({ slug: 'concrete', name: 'Concrete Works', nameAr: 'أعمال كونكريت', count: 0 });
+    expect(concrete).toMatchObject({ slug: 'concrete', name: 'Concrete Works', nameAr: 'أعمال كونكريت', count: 0 });
   });
 
   it('gives every category an Arabic name for the dashboard', () => {

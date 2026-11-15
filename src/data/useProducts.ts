@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { products, type Product } from './catalog';
+import { useCatalog, type Product } from './catalog';
 import { useLive } from '../store/live';
 
 export type ProductsState =
@@ -13,6 +13,7 @@ export type ProductsState =
  */
 export function useProducts(): ProductsState {
   const overrides = useLive((s) => s.overrides);
-  const visible = useMemo(() => products.filter((p) => !overrides[p.id]?.hidden), [overrides]);
+  const { products } = useCatalog();
+  const visible = useMemo(() => products.filter((p) => !overrides[p.id]?.hidden), [products, overrides]);
   return { status: 'ready', products: visible };
 }

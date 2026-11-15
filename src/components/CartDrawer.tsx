@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 import { useCart, selectCount, MAX_QTY, type CartLine } from '../store/cart';
 import { useUi } from '../store/ui';
-import { getProductById, getVariant } from '../data/catalog';
+import { getProductById, getVariant, useCatalog } from '../data/catalog';
 import { imageUrl } from '../lib/images';
 import { formatPrice } from '../lib/format';
 import { liveFor, useLive } from '../store/live';
@@ -76,6 +76,7 @@ export function CartDrawer() {
   const remove = useCart((s) => s.remove);
   const panelRef = useRef<HTMLElement>(null);
   const overrides = useLive((s) => s.overrides);
+  useCatalog();
 
   // Focus trap, Esc to close, body scroll lock, focus returned to the trigger.
   useEffect(() => {

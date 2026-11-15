@@ -5,6 +5,7 @@ import { useCart, selectCount } from '../store/cart';
 import { useLive } from '../store/live';
 import { useAuth } from '../store/auth';
 import { resolveLine } from '../components/CartDrawer';
+import { useCatalog } from '../data/catalog';
 import { imageUrl } from '../lib/images';
 import { formatPrice, plural } from '../lib/format';
 import { normaliseEgyptPhone } from '../lib/phone';
@@ -50,6 +51,7 @@ export function CheckoutPage() {
   const count = useCart(selectCount);
   const clear = useCart((s) => s.clear);
   const overrides = useLive((s) => s.overrides);
+  useCatalog();
   const payment = useLive((s) => s.payment);
   const [form, setForm] = useState<Form>({ name: '', phone: '', city: '', address: '', notes: '' });
   const [method, setMethod] = useState<PaymentMethod>('cod');

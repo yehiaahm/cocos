@@ -164,4 +164,11 @@ export const Icon = {
   print: (s?: number) => I(<><path d="M6 9V3h12v6" /><rect x="6" y="14" width="12" height="7" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /></>, s),
   copy: (s?: number) => I(<><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></>, s),
   check: (s?: number) => I(<path d="M5 12l5 5L20 7" />, s),
+  plus: (s?: number) => I(<path d="M12 5v14M5 12h14" />, s),
+  edit: (s?: number) => I(<><path d="M4 20h4L19 9l-4-4L4 16z" /><path d="M13.5 6.5l4 4" /></>, s),
+  trash: (s?: number) => I(<><path d="M4 7h16M10 11v6M14 11v6" /><path d="M6 7l1 13h10l1-13M9 7V4h6v3" /></>, s),
+  up: (s?: number) => I(<path d="M6 15l6-6 6 6" />, s),
+  down: (s?: number) => I(<path d="M6 9l6 6 6-6" />, s),
+  star: (s?: number) => I(<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" />, s),
+  close: (s?: number) => I(<path d="M6 6l12 12M18 6L6 18" />, s),
 };

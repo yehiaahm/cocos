@@ -51,6 +51,12 @@ await writeFile(
   ).replace('href="/site.webmanifest"', 'href="/admin.webmanifest"'),
 );
 await writeFile(path.join(dist, 'order.html'), shell(`Your order · ${site.name}`));
+// Products and categories created in the dashboard after this build have no prerendered page. The Node server answers
+// those URLs with this shell (indexable, client-rendered) once it has checked that the slug exists in the catalogue.
+await writeFile(
+  path.join(dist, 'app.html'),
+  template.replace('<!--app-head-->', `<title>${site.name}</title>`).replace('<div id="root"><!--app-html--></div>', '<div id="root"></div>'),
+);
 
 const today = new Date().toISOString().slice(0, 10);
 const indexable = routes.filter((r) => !['/checkout', '/login', '/account'].includes(r));

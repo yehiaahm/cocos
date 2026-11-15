@@ -1,6 +1,6 @@
 import type { Fn } from '../../../server/env';
 import { handle, json } from '../../../server/http';
-import { loadOverrides, products } from '../../../server/catalog';
+import { loadCatalog, loadOverrides } from '../../../server/catalog';
 import type { AdminStats, OrderStatus, PaymentMethod } from '../../../src/lib/api-types';
 
 const ACTIVE = "status != 'cancelled'";
@@ -16,7 +16,7 @@ export const onRequestGet: Fn = handle(async ({ request, env }) => {
   const since = `strftime('%Y-%m-%dT%H:%M:%fZ','now','-${range} days')`;
   const prev = `strftime('%Y-%m-%dT%H:%M:%fZ','now','-${range * 2} days')`;
 
-  const [cur, before, open, daily, statuses, payments, top, cities, cust, overrides] = await Promise.all([
+  const [cur, before, open, daily, statuses, payments, top, cities, cust, overrides, catalog] = await Promise.all([
     db.prepare(`SELECT COUNT(*) AS n, COALESCE(SUM(total),0) AS rev, COALESCE(SUM(CASE WHEN payment_status='paid' THEN total END),0) AS paid,
                 AVG(total) AS avg FROM orders WHERE ${ACTIVE} AND created_at >= ${since}`).first<{ n: number; rev: number; paid: number; avg: number | null }>(),
     db.prepare(`SELECT COUNT(*) AS n, COALESCE(SUM(total),0) AS rev FROM orders WHERE ${ACTIVE} AND created_at >= ${prev} AND created_at < ${since}`).first<{ n: number; rev: number }>(),
@@ -30,6 +30,7 @@ export const onRequestGet: Fn = handle(async ({ request, env }) => {
     db.prepare(`SELECT city, COUNT(*) AS n FROM orders WHERE ${ACTIVE} AND created_at >= ${since} GROUP BY lower(city) ORDER BY n DESC LIMIT 6`).all<{ city: string; n: number }>(),
     db.prepare(`SELECT COUNT(*) AS c, SUM(cnt > 1) AS r FROM (SELECT phone, COUNT(*) AS cnt FROM orders WHERE ${ACTIVE} GROUP BY phone)`).first<{ c: number; r: number | null }>(),
     loadOverrides(db),
+    loadCatalog(db),
   ]);
 
   // Fill missing days so the chart has a continuous axis.
@@ -62,8 +63,8 @@ export const onRequestGet: Fn = handle(async ({ request, env }) => {
     payments: payments.results.map((p) => ({ method: p.m, count: p.n })),
     topProducts: top.results.map((t) => ({ productId: t.product_id, name: t.name, image: t.image, qty: t.qty, revenue: t.rev })),
     cities: cities.results.map((c) => ({ city: c.city, count: c.n })),
-    pricedProducts: Object.values(overrides).filter((o) => o.price !== null).length,
-    totalProducts: products.length,
+    pricedProducts: catalog.products.filter((p) => overrides[p.id]?.price != null).length,
+    totalProducts: catalog.products.length,
   };
   return json(stats);
 });

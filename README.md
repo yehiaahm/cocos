@@ -22,7 +22,7 @@ Node 20.19+ is required (22 LTS recommended).
 | WhatsApp number (international digits, e.g. `2010…`) | `src/config/site.ts` → `whatsappNumber` |
 | Facebook page URL | `src/config/site.ts` → `facebookUrl` |
 | Production domain | `src/config/site.ts` → `url` (or a `VITE_SITE_URL` build variable) |
-| Prices, sold out, hidden | Dashboard → **المنتجات** (`/admin/products`) — live on the site within a minute |
+| Products, categories, photos, prices, sold out, hidden | Dashboard → **المنتجات** (`/admin/products`) — live on the site within a minute |
 | InstaPay / wallet number, delivery fee | Dashboard → **الإعدادات** (`/admin/settings`) |
 
 Until the WhatsApp number is set, every WhatsApp button falls back to Instagram and checkout copies the
@@ -40,7 +40,7 @@ On Railway, see *Deploying → Railway* for the two settings it needs; the Cloud
 - **Order page** (`/order/CA-1001?t=…`) — the customer's private link: status tracker, total, payment
   details, and upload of the transfer screenshot. Shared automatically in the dashboard's WhatsApp messages.
 - **Dashboard**: sales stats and charts, orders (status, pricing, payment confirmation, transfer screenshot,
-  ready-made WhatsApp messages, print), products (price / sold out / hidden), customers, settings.
+  ready-made WhatsApp messages, print), products and categories (add / edit / delete, photos, price / sold out / hidden), customers, settings.
 - **Phone notifications**: every new order and transfer screenshot pops up on the phone like a WhatsApp
   message (Web Push). Enable it from the dashboard. On iPhone first open `/admin` in Safari →
   Share → *Add to Home Screen*, then enable it from the home-screen app.
@@ -203,47 +203,30 @@ public/admin-sw.js          service worker that shows new-order notifications
 The choice is remembered per device. To change a label, edit it in both dictionaries. WhatsApp messages to customers and
 push notifications stay in Arabic on purpose.
 
-### Adding or changing products
-Products live in `data/products.json` → `products`. The dashboard only edits **price / sold out / hidden**; the product
-list itself comes from this file.
+### Managing products and categories (dashboard)
+Everything about the catalogue is edited in the dashboard — no code, no deploy:
 
-1. Copy the photo(s) into `public/images/products/` (any file name, `.jpg` or `.png`).
-2. Add an entry at the end of `products` (keep the `id` unique — use the next `coco-NNN` number, and the same number as
-   the variant's `catalogId`):
-   ```json
-   {
-     "id": "coco-111",
-     "slug": "concrete-planter-grey",
-     "name": "Grey Concrete Planter",
-     "category": "concrete",
-     "categoryName": "Concrete Works",
-     "description": "A hand-cast concrete planter finished with a gold rim.",
-     "image": "/images/products/planter.jpg",
-     "tags": [],
-     "price": null,
-     "currency": "EGP",
-     "priceStatus": "pending",
-     "variants": [
-       { "catalogId": "coco-111", "name": "Grey Concrete Planter", "material": "Concrete", "images": ["/images/products/planter.jpg"] }
-     ]
-   }
-   ```
-   `category` must be an existing category slug, `categoryName` must match that category's `name`, `slug` must be unique,
-   and `tags` may contain `ramadan`, `halloween`, `christmas`, `personalised`. One product with several colours = one
-   entry with several `variants`.
-3. Run `npm run dev` (or `npm run build`): it generates the optimised WebP versions of the new photos.
-4. Deploy. Then set the price in the dashboard → Products (until then the shop shows "Price pending").
+| Where | What you can do |
+|---|---|
+| **Products** (`/admin/products`) | quick edit of price / sold out / hidden for many products at once, then **Save** |
+| **Products → Add product** / **Edit** (`/admin/products/new`, `/admin/products/<id>`) | name, description, category, occasions, web address, price, sold out, hidden, colours/options and their photos, cover photo; **Delete product** |
+| **Products → Categories** (`/admin/categories`) | add, rename (English + Arabic name, description), reorder, delete a category — a category that still has products is deleted by moving them to another one |
 
-`npm test` pins the catalogue size and per-category counts (`src/data/catalog.test.ts`); update those numbers when you add products.
-
-### Adding a new category
-1. `data/products.json` → `categories`: add `{ "slug": "my-category", "name": "English name", "nameAr": "الاسم بالعربي", "count": 0 }`
-   (`count` is recalculated automatically). `nameAr` is what the Arabic dashboard shows in the category list.
-2. `src/data/catalog.ts`: add the slug to the `CategorySlug` type.
-3. `src/pages/ShopPage.tsx`: add a one-line description for it to `CATEGORY_COPY` (the compiler tells you if you forget).
-4. Optional — homepage tab: add a panel to `categoryPanels` in `src/data/home.ts` (photo, Arabic label, text).
-5. `src/data/catalog.test.ts`: add the slug to the expected category counts.
-6. Run `npm run build`, deploy. The category shows in the shop, the footer and the dashboard list right away, even while empty.
+How it works
+- The catalogue lives in the database (`catalog_categories`, `catalog_products`; migration `0004_catalog.sql`). `data/products.json` is only the
+  **starting point**: the first request copies it into the tables, once. After that, editing `products.json` changes nothing on a running site.
+- Photos are shrunk in the browser (1400 px + a 480 px copy for phones) and stored with the other uploads
+  (Railway volume, or R2 on Cloudflare) under `catalog/`; they are served from `/media/catalog/…` (public, cached for a year).
+  Payment screenshots live in `proofs/` and are never reachable from `/media`.
+- The shop shows the bundled catalogue instantly (the prerendered pages) and swaps in the live one as soon as `/api/catalog` answers
+  (it only sends the catalogue once something was changed in the dashboard). Changes show up within about a minute.
+- Product ids (`coco-NNN`) are never reused, so past orders and the sales statistics keep pointing at the right product.
+  Deleting a product removes it from the shop; old orders keep their own copy of its name and photo.
+- Products and categories created in the dashboard have no prerendered page: the Node server serves the client-rendered shell for
+  them (only if the address exists in the catalogue, otherwise 404). They are not in `sitemap.xml` (it is built at deploy time) and,
+  on Cloudflare Pages, such URLs are answered by `404.html`, which still renders them in the browser.
+- Cloudflare: run `npm run db:migrate:prod` once to create the new tables. Railway applies migrations on start.
+- Occasions (Ramadan & Eid, Halloween, Christmas, Personalised) are fixed; the "Personalised" tag lets customers type a name when ordering.
 
 ### Checkout
 Checkout validates name, Egyptian mobile, city and address on both the browser and the server, then saves

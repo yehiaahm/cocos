@@ -8,6 +8,8 @@ import { DashboardPage } from './pages/DashboardPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
 import { ProductsPage } from './pages/ProductsPage';
+import { ProductEditPage } from './pages/ProductEditPage';
+import { CategoriesPage } from './pages/CategoriesPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { site } from '../config/site';
@@ -105,13 +107,15 @@ function Shell({ children }: { children: ReactNode }) {
       key={n.to}
       to={n.to}
       end={n.end}
-      className={({ isActive }) =>
-        mobile
+      className={({ isActive: active }) => {
+        // The categories screen belongs to the Products section.
+        const isActive = active || (n.to === '/admin/products' && pathname.startsWith('/admin/categories'));
+        return mobile
           ? `relative flex min-h-[58px] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-bold no-underline ${isActive ? 'text-ink' : 'text-[#7C8A8C]'}`
           : `relative flex min-h-11 items-center gap-3 rounded-xl px-3.5 text-[15px] font-bold no-underline transition-colors ${
               isActive ? 'bg-ink text-cream hover:text-cream' : 'text-ink hover:bg-[#EDE8DE] hover:text-ink'
-            }`
-      }
+            }`;
+      }}
     >
       {n.icon()}
       <span>{t(n.label)}</span>
@@ -243,6 +247,9 @@ export default function AdminApp() {
           <Route path="/admin/orders" element={<OrdersPage />} />
           <Route path="/admin/orders/:id" element={<OrderDetailPage />} />
           <Route path="/admin/products" element={<ProductsPage />} />
+          <Route path="/admin/products/new" element={<ProductEditPage />} />
+          <Route path="/admin/products/:id" element={<ProductEditPage />} />
+          <Route path="/admin/categories" element={<CategoriesPage />} />
           <Route path="/admin/customers" element={<CustomersPage />} />
           <Route path="/admin/settings" element={<SettingsPage />} />
           <Route path="*" element={<DashboardPage />} />

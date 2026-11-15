@@ -133,14 +133,22 @@ export interface AdminOrderUpdate {
   adminNotes?: string;
 }
 
+export interface AdminVariant {
+  catalogId: string;
+  name: string;
+  material: string;
+  images: string[];
+}
+
 export interface AdminProduct {
   id: string;
   slug: string;
   name: string;
+  description: string;
   category: string;
   categoryName: string;
   image: string;
-  variants: number;
+  variants: AdminVariant[];
   tags: string[];
   price: number | null;
   hidden: boolean;
@@ -153,6 +161,9 @@ export interface AdminCategory {
   slug: string;
   name: string;
   nameAr: string;
+  description?: string;
+  /** Number of products inside (only in GET /api/admin/categories). */
+  count?: number;
 }
 
 export interface AdminStats {

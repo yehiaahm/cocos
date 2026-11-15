@@ -3,29 +3,22 @@ import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Seo } from '../lib/seo';
 import {
   baseFilter,
-  categories,
+  catalogIsLive,
   getCategory,
   isCategorySlug,
   isOccasionSlug,
   occasions,
+  useCatalog,
   type CategorySlug,
   type OccasionSlug,
 } from '../data/catalog';
+import { CatalogLoading } from '../components/CatalogLoading';
+import { MissingPage } from '../components/MissingPage';
 import { useProducts } from '../data/useProducts';
 import { ProductCard, ProductCardSkeleton, gridClass } from '../components/ProductCard';
 import { Search, Close } from '../components/Icons';
 import { plural } from '../lib/format';
-import { NotFoundPage } from './NotFoundPage';
 import { site } from '../config/site';
-
-const CATEGORY_COPY: Record<CategorySlug, string> = {
-  gaming: 'Handmade resin board games — chess, domino, backgammon and XO sets in every colourway.',
-  resin: 'Hand-poured resin coasters, trays, wall clocks, notebooks and seasonal decor.',
-  'wood-decoupage': 'Ramadan lanterns, trays, crescents and keepsakes in painted wood and decoupage.',
-  macrame: 'Hand-knotted cotton macramé mirrors, wall hangings, plant hangers and bags.',
-  candles: 'Sculpted candles and rose candles in resin holders for gifting and every season.',
-  concrete: 'Cast planters, trays and sculptural decor in concrete, finished by hand with colour and gold.',
-};
 
 const pillCls = (on: boolean, big: boolean) =>
   `pill inline-flex flex-none items-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] font-bold ${
@@ -37,6 +30,7 @@ export function ShopPage() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const state = useProducts();
+  const { categories } = useCatalog();
 
   const category: CategorySlug | 'all' = isCategorySlug(catParam) ? catParam : 'all';
   const occParam = params.get('occasion');
@@ -51,7 +45,8 @@ export function ShopPage() {
   const base = useMemo(() => baseFilter(state.products, { occasion, query }), [state.products, occasion, query]);
   const shown = useMemo(() => (category === 'all' ? base : base.filter((p) => p.category === category)), [base, category]);
 
-  if (catParam !== undefined && category === 'all') return <NotFoundPage />;
+  // A category created in the dashboard is unknown until the live catalogue has loaded: wait, don't 404.
+  if (catParam !== undefined && category === 'all') return catalogIsLive ? <MissingPage /> : <CatalogLoading />;
 
   const updateParams = (next: { occasion?: string; q?: string }) => {
     const p = new URLSearchParams(params);
@@ -76,8 +71,8 @@ export function ShopPage() {
   const cat = getCategory(category);
   const title = cat ? `${cat.name} — handmade in Egypt` : 'Shop all handmade pieces';
   const description = cat
-    ? `${CATEGORY_COPY[cat.slug]} ${plural(cat.count, 'piece')} by ${site.name}, delivered across Egypt.`
-    : `Browse ${state.products.length} handmade pieces — board games, resin, wood & decoupage, macramé and candles — by ${site.name}. Delivery across Egypt.`;
+    ? `${cat.description ? `${cat.description} ` : ''}${plural(cat.count, 'piece')} by ${site.name}, delivered across Egypt.`
+    : `Browse ${state.products.length} handmade pieces — ${categories.map((c) => c.name.toLowerCase()).join(', ')} — by ${site.name}. Delivery across Egypt.`;
 
   const resultText =
     state.status === 'loading' ? 'Loading products…' : state.status === 'error' ? 'Products could not be loaded.' : plural(shown.length, 'product');
@@ -111,7 +106,7 @@ export function ShopPage() {
           Every piece, <em>made by hand.</em>
         </h1>
         <p className="rise d3 relative mt-[18px] max-w-[560px] text-[17px] leading-[1.65] text-muted max-[560px]:text-base">
-          {cat ? CATEGORY_COPY[cat.slug] : 'Board games, resin, wood & decoupage, macramé and candles — most pieces come in several colourways.'}
+          {cat ? cat.description : `${categories.map((c) => c.name).join(', ')} — most pieces come in several colourways.`}
         </p>
       </section>
 
@@ -218,8 +213,8 @@ export function ShopPage() {
               Nothing here <em>yet.</em>
             </h2>
             <p className="mb-6 mt-3 text-muted-2">
-              {category === 'concrete' && !query && occasion === 'all'
-                ? 'Our concrete pieces are coming soon — ask us for a custom piece in the meantime.'
+              {cat && !query && occasion === 'all'
+                ? `Our ${cat.name.toLowerCase()} pieces are coming soon — ask us for a custom piece in the meantime.`
                 : 'Try another category or occasion — or ask us for a custom piece.'}
             </p>
             <button type="button" onClick={reset} className="btn btn-primary min-h-[50px] rounded-full border-0 bg-ink px-[26px] text-[15px] font-bold text-white">

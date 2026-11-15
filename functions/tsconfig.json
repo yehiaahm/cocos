@@ -21,7 +21,8 @@
     "./**/*.ts",
     "../server/**/*.ts",
     "../src/lib/phone.ts",
-    "../src/lib/api-types.ts"
+    "../src/lib/api-types.ts",
+    "../src/lib/slug.ts"
   ],
   "exclude": [
     "../server/**/*.test.ts",

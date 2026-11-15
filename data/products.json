@@ -6,36 +6,42 @@
       "slug": "gaming",
       "name": "Board Games",
       "nameAr": "ألعاب",
+      "description": "Handmade resin board games — chess, domino, backgammon and XO sets in every colourway.",
       "count": 12
     },
     {
       "slug": "resin",
       "name": "Resin",
       "nameAr": "ريزن",
+      "description": "Hand-poured resin coasters, trays, wall clocks, notebooks and seasonal decor.",
       "count": 28
     },
     {
       "slug": "wood-decoupage",
       "name": "Wood & Decoupage",
       "nameAr": "خشب وديكوباج",
+      "description": "Ramadan lanterns, trays, crescents and keepsakes in painted wood and decoupage.",
       "count": 25
     },
     {
       "slug": "macrame",
       "name": "Macramé",
       "nameAr": "مكرمية",
+      "description": "Hand-knotted cotton macramé mirrors, wall hangings, plant hangers and bags.",
       "count": 6
     },
     {
       "slug": "candles",
       "name": "Candles",
       "nameAr": "شموع",
+      "description": "Sculpted candles and rose candles in resin holders for gifting and every season.",
       "count": 9
     },
     {
       "slug": "concrete",
       "name": "Concrete Works",
       "nameAr": "أعمال كونكريت",
+      "description": "Cast planters, trays and sculptural decor in concrete, finished by hand with colour and gold.",
       "count": 0
     }
   ],

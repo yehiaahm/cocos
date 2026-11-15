@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
+import { CatalogTabs } from '../CatalogTabs';
 import { api } from '../api';
 import type { AdminCategory, AdminProduct } from '../../lib/api-types';
 import { Button, Empty, ErrorBox, Icon, PageHeader, Skeleton, Toggle, inputCls } from '../ui';
@@ -101,7 +102,19 @@ export function ProductsPage() {
 
   return (
     <>
-      <PageHeader title={t('prod.title')} sub={items ? t('prod.sub', { priced, total: items.length }) : ' '} />
+      <CatalogTabs />
+      <PageHeader
+        title={t('prod.title')}
+        sub={items ? t('prod.sub', { priced, total: items.length }) : ' '}
+        actions={
+          <Link
+            to="/admin/products/new"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-teal-btn px-4 text-sm font-bold text-white no-underline hover:bg-teal-dark hover:text-white"
+          >
+            {Icon.plus(18)} {t('prod.add')}
+          </Link>
+        }
+      />
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <label className="relative min-w-[200px] flex-1">
@@ -165,10 +178,17 @@ export function ProductsPage() {
                   </a>
                   <div className="mt-0.5 text-xs text-muted-2">
                     {categoryOf.get(p.category) ? categoryLabel(categoryOf.get(p.category)!) : p.categoryName}
-                    {p.variants > 1 && ` · ${t('prod.colors', { n: p.variants })}`}
+                    {p.variants.length > 1 && ` · ${t('prod.colors', { n: p.variants.length })}`}
                     {p.sold > 0 && ` · ${t('prod.sold', { n: p.sold })}`}
                   </div>
                 </div>
+                <Link
+                  to={`/admin/products/${p.id}`}
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-[#DDD6C8] bg-white px-3 text-[13px] font-bold text-ink no-underline hover:border-ink hover:text-ink"
+                >
+                  {Icon.edit(16)} {t('prod.edit')}
+                  <span className="sr-only"> {p.name}</span>
+                </Link>
                 <label className="flex items-center gap-1.5">
                   <span className="sr-only">{t('prod.priceOf', { name: p.name })}</span>
                   <input

@@ -1,7 +1,9 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 import { Seo } from '../lib/seo';
-import { getProductBySlug, getVariant, isPersonalised, occasions, relatedProducts } from '../data/catalog';
+import { catalogIsLive, getProductBySlug, getVariant, isPersonalised, occasions, relatedProducts, useCatalog } from '../data/catalog';
+import { CatalogLoading } from '../components/CatalogLoading';
+import { MissingPage } from '../components/MissingPage';
 import { formatPrice } from '../lib/format';
 import { useLiveProduct } from '../store/live';
 import { imageUrl } from '../lib/images';
@@ -13,12 +15,13 @@ import { Picture } from '../components/Picture';
 import { ProductCard, gridClass } from '../components/ProductCard';
 import { QtyStepper } from '../components/CartDrawer';
 import { ArrowLeft, Check, WhatsApp, Instagram } from '../components/Icons';
-import { NotFoundPage } from './NotFoundPage';
 
 export function ProductPage() {
   const { slug = '' } = useParams();
+  useCatalog();
   const product = getProductBySlug(slug);
-  if (!product) return <NotFoundPage />;
+  // A product added in the dashboard is unknown until the live catalogue has loaded: wait, don't 404.
+  if (!product) return catalogIsLive ? <MissingPage /> : <CatalogLoading />;
   // Keyed so all local state (gallery index, qty, text) resets between products.
   return <ProductView key={product.id} slug={slug} />;
 }

@@ -1,6 +1,6 @@
 import type { Fn } from '../../../server/env';
 import { HttpError, assertSameOrigin, handle, ipHash, json, rateLimit, randomToken, readJson, str } from '../../../server/http';
-import { getProduct, loadOverrides, overrideFor } from '../../../server/catalog';
+import { loadCatalog, loadOverrides, overrideFor } from '../../../server/catalog';
 import { addEvent, computeTotals, getSettings } from '../../../server/orders';
 import { notifyAdmins } from '../../../server/push';
 import { getSessionUser } from '../../../server/accounts';
@@ -33,9 +33,9 @@ export const onRequestPost: Fn = handle(async ({ request, env, waitUntil }) => {
   if (!Array.isArray(body.items) || body.items.length === 0) throw new HttpError(400, 'Your cart is empty.', 'empty');
   if (body.items.length > 40) throw new HttpError(400, 'Too many items in one order.', 'too_many');
 
-  const overrides = await loadOverrides(env.DB);
+  const [catalog, overrides] = await Promise.all([loadCatalog(env.DB), loadOverrides(env.DB)]);
   const lines = body.items.map((raw) => {
-    const p = getProduct(str(raw.productId, 20));
+    const p = catalog.byId.get(str(raw.productId, 20));
     const v = p?.variants.find((x) => x.catalogId === str(raw.variantId, 20));
     const o = p ? overrideFor(overrides, p.id) : null;
     if (!p || !v || o?.hidden) throw new HttpError(409, 'Something in your cart is no longer available. Please review your cart.', 'unavailable');

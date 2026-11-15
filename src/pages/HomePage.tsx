@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Seo } from '../lib/seo';
 import { absoluteUrl, contactLink, site } from '../config/site';
-import { categories, getProductById, products, type Product } from '../data/catalog';
+import { getProductById, useCatalog, type Product } from '../data/catalog';
 import { bestSellers, categoryPanels, instagramTiles, workshops } from '../data/home';
 import { Picture } from '../components/Picture';
 import { ProductCard } from '../components/ProductCard';
@@ -197,10 +197,33 @@ function SectionHead({ eyebrow, title, aside, id }: { eyebrow: string; title: Re
   );
 }
 
+const NUMBER_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
+
 function Collections() {
+  const { categories, products } = useCatalog();
   const [sel, setSel] = useState(0);
-  const { listProps, tabProps } = useTabs(categoryPanels.length, sel, setSel);
-  const c = categoryPanels[sel];
+  // One tab per category in the catalogue: the hand-written panels for the built-in ones (with the current names), and a
+  // generated panel (cover photo of its newest product) for any category added in the dashboard.
+  const panels = useMemo(
+    () =>
+      categories.map((cat) => {
+        const written = categoryPanels.find((p) => p.slug === cat.slug);
+        const cover = products.find((p) => p.category === cat.slug)?.image ?? '/images/legacy-crops/workshop.jpg';
+        return {
+          slug: cat.slug,
+          name: cat.name,
+          ar: cat.nameAr || cat.name,
+          img: written?.img ?? cover,
+          alt: written?.alt ?? `${cat.name} by Coco's Resin Art`,
+          desc: cat.description || written?.desc || '',
+          subs: written?.subs ?? ([] as string[]),
+        };
+      }),
+    [categories, products],
+  );
+  const { listProps, tabProps } = useTabs(panels.length, sel, setSel);
+  const c = panels[Math.min(sel, panels.length - 1)];
+  if (!c) return null;
   const count = categories.find((x) => x.slug === c.slug)?.count ?? 0;
 
   return (
@@ -210,7 +233,7 @@ function Collections() {
         eyebrow="Shop by category"
         title={
           <>
-            Six materials.
+            {NUMBER_WORDS[panels.length] ?? panels.length} materials.
             <br />
             <em>One steady hand.</em>
           </>
@@ -223,7 +246,7 @@ function Collections() {
       />
       <div className="reveal grid items-stretch gap-7 min-[981px]:grid-cols-[320px_minmax(0,1fr)]">
         <div {...listProps} aria-label="Shop by category" className="no-scrollbar -mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 min-[981px]:mx-0 min-[981px]:flex-col min-[981px]:overflow-visible min-[981px]:px-0">
-          {categoryPanels.map((p, i) => {
+          {panels.map((p, i) => {
             const on = i === sel;
             const n = categories.find((x) => x.slug === p.slug)?.count ?? 0;
             return (
@@ -289,6 +312,7 @@ function Collections() {
 }
 
 function BestSellers() {
+  const { products } = useCatalog();
   const items = bestSellers
     .map((b) => ({ p: getProductById(b.id), meta: b.meta }))
     .filter((x): x is { p: Product; meta: string } => !!x.p);
