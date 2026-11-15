@@ -5,6 +5,7 @@ import type { AdminOrderSummary, OrderStatus } from '../../lib/api-types';
 import { ORDER_STATUSES } from '../../lib/api-types';
 import { Button, Empty, ErrorBox, Icon, PageHeader, PaymentPill, Skeleton, StatusPill, inputCls } from '../ui';
 import { METHOD, STATUS, ago, money } from '../format';
+import { useT } from '../i18n';
 
 interface ListResponse {
   orders: AdminOrderSummary[];
@@ -15,6 +16,7 @@ interface ListResponse {
 }
 
 export function OrdersPage() {
+  const t = useT();
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const status = params.get('status') ?? '';
@@ -85,17 +87,17 @@ export function OrdersPage() {
 
   return (
     <>
-      <PageHeader title="الطلبات" sub={data ? `${data.total} طلب` : ' '} />
+      <PageHeader title={t('orders.title')} sub={data ? t('orders.count', { n: data.total }) : ' '} />
 
       <div className="no-scrollbar -mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 min-[900px]:mx-0 min-[900px]:flex-wrap min-[900px]:px-0">
-        {tab('', 'الكل', all)}
+        {tab('', t('common.all'), all)}
         {ORDER_STATUSES.map((s) => tab(s, STATUS[s].label, data?.counts[s] ?? 0))}
       </div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <label className="relative min-w-[220px] flex-1">
-          <span className="sr-only">بحث</span>
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-2">{Icon.search(18)}</span>
-          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="رقم الطلب، الاسم، التليفون، المدينة" className={`${inputCls} pr-10`} />
+          <span className="sr-only">{t('common.search')}</span>
+          <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-2">{Icon.search(18)}</span>
+          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('orders.search')} className={`${inputCls} ps-10`} />
         </label>
         <button
           type="button"
@@ -105,7 +107,7 @@ export function OrdersPage() {
             payment === 'pending_review' ? 'border-[#D4AF5A] bg-[#FFF3D6] text-[#6E5210]' : 'border-[#DDD6C8] bg-white text-ink'
           }`}
         >
-          إيصالات للمراجعة
+          {t('orders.reviewReceipts')}
         </button>
       </div>
 
@@ -118,13 +120,13 @@ export function OrdersPage() {
           ))}
         </div>
       ) : data.orders.length === 0 ? (
-        <Empty title={query || status || payment ? 'مفيش طلبات بالفلتر ده' : 'لسه مفيش طلبات'}>
+        <Empty title={query || status || payment ? t('orders.noMatch') : t('orders.none')}>
           {query || status || payment ? (
             <Button variant="ghost" size="sm" onClick={() => { setQ(''); setParams({}); }}>
-              مسح الفلاتر
+              {t('orders.clear')}
             </Button>
           ) : (
-            'أول ما عميل يطلب من الموقع هيظهر هنا وهيوصلك إشعار.'
+            t('orders.noneHint')
           )}
         </Empty>
       ) : (
@@ -146,7 +148,7 @@ export function OrdersPage() {
                   </div>
                   <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-2">
                     <span>
-                      {o.city} · {o.itemCount} قطعة · {METHOD[o.paymentMethod]}
+                      {o.city} · {t('orders.items', { n: o.itemCount })} · {METHOD[o.paymentMethod]}
                     </span>
                     <span>{ago(o.createdAt)}</span>
                   </div>
@@ -164,10 +166,10 @@ export function OrdersPage() {
           <div className="hidden overflow-hidden rounded-[20px] border border-[#E7E1D5] bg-white min-[900px]:block">
             <table className="w-full border-collapse text-sm">
               <thead>
-                <tr className="bg-[#FBF9F5] text-right text-xs text-muted-2">
-                  {['الطلب', 'العميل', 'المدينة', 'القطع', 'الدفع', 'الحالة', 'الإجمالي', 'الوقت'].map((h) => (
+                <tr className="bg-[#FBF9F5] text-start text-xs text-muted-2">
+                  {(['orders.col.order', 'orders.col.customer', 'orders.col.city', 'orders.col.items', 'orders.col.payment', 'orders.col.status', 'orders.col.total', 'orders.col.time'] as const).map((h) => (
                     <th key={h} scope="col" className="px-4 py-3 font-bold">
-                      {h}
+                      {t(h)}
                     </th>
                   ))}
                 </tr>
@@ -212,15 +214,15 @@ export function OrdersPage() {
           </div>
 
           {pages > 1 && (
-            <nav aria-label="الصفحات" className="mt-4 flex items-center justify-center gap-2">
+            <nav aria-label={t('orders.pages')} className="mt-4 flex items-center justify-center gap-2">
               <Button variant="ghost" size="sm" disabled={page <= 1} onClick={() => setParams((p) => (p.set('page', String(page - 1)), p))}>
-                السابق
+                {t('orders.prev')}
               </Button>
               <span className="text-sm font-bold">
                 {page} / {pages}
               </span>
               <Button variant="ghost" size="sm" disabled={page >= pages} onClick={() => setParams((p) => (p.set('page', String(page + 1)), p))}>
-                التالي
+                {t('orders.next')}
               </Button>
             </nav>
           )}

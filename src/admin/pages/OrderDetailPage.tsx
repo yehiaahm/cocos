@@ -8,22 +8,24 @@ import { Button, Card, ErrorBox, Icon, PaymentPill, Skeleton, StatusPill, inputC
 import { METHOD, PAYMENT_STATUS, STATUS, ago, longDate, money, waLink } from '../format';
 import { imageUrl } from '../../lib/images';
 import { site } from '../../config/site';
+import { eventText, startAlign, useT, type Key } from '../i18n';
 
 let settingsCache: Promise<PaymentSettings> | null = null;
 const loadSettings = () => (settingsCache ??= api<{ settings: PaymentSettings }>('/api/admin/settings').then((r) => r.settings));
 
-const NEXT: Partial<Record<OrderStatus, { to: OrderStatus; label: string }>> = {
-  new: { to: 'confirmed', label: 'تأكيد الطلب' },
-  confirmed: { to: 'in_progress', label: 'بدء التنفيذ' },
-  in_progress: { to: 'shipped', label: 'تم الشحن' },
-  shipped: { to: 'delivered', label: 'تم التسليم' },
+const NEXT: Partial<Record<OrderStatus, { to: OrderStatus; label: Key }>> = {
+  new: { to: 'confirmed', label: 'od.next.confirmed' },
+  confirmed: { to: 'in_progress', label: 'od.next.in_progress' },
+  in_progress: { to: 'shipped', label: 'od.next.shipped' },
+  shipped: { to: 'delivered', label: 'od.next.delivered' },
 };
 
 function customerLink(o: AdminOrder) {
   return `${window.location.origin}/order/${o.number}?t=${o.token}`;
 }
 
-function messages(o: AdminOrder, s: PaymentSettings | null) {
+/** WhatsApp texts go to Arabic-speaking customers, so the message bodies stay in Arabic whatever the dashboard language is. */
+function messages(o: AdminOrder, s: PaymentSettings | null): { id: string; label: Key; text: string }[] {
   const first = o.customerName.split(/\s+/)[0];
   const link = customerLink(o);
   const payLine =
@@ -36,18 +38,19 @@ function messages(o: AdminOrder, s: PaymentSettings | null) {
   return [
     {
       id: 'confirm',
-      label: 'تأكيد الطلب والإجمالي',
+      label: 'od.msg.confirm',
       text: `أهلاً ${first} 👋\nمعاك ${site.name} بخصوص طلبك ${o.number}:\n${lines}\n\n${
         o.total !== null ? `الإجمالي: ${o.total} ج.م${o.deliveryFee ? ` (شامل التوصيل ${o.deliveryFee} ج.م)` : ''}` : 'هنأكد معاك الإجمالي حالاً.'
       }\n${payLine}\n\nتتابع طلبك من هنا:\n${link}`,
     },
-    { id: 'making', label: 'الطلب قيد التنفيذ', text: `أهلاً ${first} 🌿\nطلبك ${o.number} بدأنا نشتغل عليه بإيدينا، وهنبلغك أول ما يجهز.\n${link}` },
-    { id: 'shipped', label: 'تم الشحن', text: `أهلاً ${first} 🚚\nطلبك ${o.number} اتشحن وفي الطريق ليك!\n${o.paymentMethod === 'cod' && o.total !== null ? `المطلوب عند الاستلام: ${o.total} ج.م\n` : ''}${link}` },
-    { id: 'thanks', label: 'شكر بعد التسليم', text: `شكراً يا ${first} 💛\nنتمنى القطعة تعجبك! لو حابب تشاركنا صورة هنكون مبسوطين جداً.\n${site.instagramUrl}` },
+    { id: 'making', label: 'od.msg.making', text: `أهلاً ${first} 🌿\nطلبك ${o.number} بدأنا نشتغل عليه بإيدينا، وهنبلغك أول ما يجهز.\n${link}` },
+    { id: 'shipped', label: 'od.msg.shipped', text: `أهلاً ${first} 🚚\nطلبك ${o.number} اتشحن وفي الطريق ليك!\n${o.paymentMethod === 'cod' && o.total !== null ? `المطلوب عند الاستلام: ${o.total} ج.م\n` : ''}${link}` },
+    { id: 'thanks', label: 'od.msg.thanks', text: `شكراً يا ${first} 💛\nنتمنى القطعة تعجبك! لو حابب تشاركنا صورة هنكون مبسوطين جداً.\n${site.instagramUrl}` },
   ];
 }
 
 export function OrderDetailPage() {
+  const t = useT();
   const { id } = useParams();
   const { refresh: refreshBadges } = useSession();
   const [order, setOrder] = useState<AdminOrder | null>(null);
@@ -138,7 +141,7 @@ export function OrderDetailPage() {
     <div className="print:text-black">
       <div className="mb-4 flex items-center gap-2 text-sm print:hidden">
         <Link to="/admin/orders" className="inline-flex min-h-10 items-center gap-1.5 font-bold no-underline">
-          {Icon.back(16)} الطلبات
+          {Icon.back(16)} {t('od.back')}
         </Link>
       </div>
 
@@ -158,11 +161,11 @@ export function OrderDetailPage() {
         <div className="flex flex-wrap gap-2 print:hidden">
           {next && order.status !== 'cancelled' && (
             <Button variant="dark" disabled={!!saving} onClick={() => void update({ status: next.to }, 'status')}>
-              {Icon.check(18)} {next.label}
+              {Icon.check(18)} {t(next.label)}
             </Button>
           )}
           <Button variant="ghost" onClick={() => window.print()}>
-            {Icon.print(18)} طباعة
+            {Icon.print(18)} {t('od.print')}
           </Button>
         </div>
       </div>
@@ -175,35 +178,35 @@ export function OrderDetailPage() {
 
       <div className="grid items-start gap-4 min-[1000px]:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-4">
-          <Card title={`المنتجات (${order.items.reduce((t, i) => t + i.qty, 0)} قطعة)`}>
+          <Card title={t('od.items', { n: order.items.reduce((sum, i) => sum + i.qty, 0) })}>
             <ul className="m-0 flex list-none flex-col p-0">
               {order.items.map((i) => (
                 <li key={i.id} className="flex flex-wrap items-center gap-3 border-b border-[#F1EEE7] py-3 first:pt-0 last:border-0">
                   {i.image && <img src={imageUrl(i.image, 320)} alt="" width={56} height={56} className="h-14 w-14 flex-none rounded-xl object-cover" />}
-                  <div className="min-w-[150px] flex-1" dir="ltr" style={{ textAlign: 'right' }}>
+                  <div className="min-w-[150px] flex-1" dir="ltr" style={{ textAlign: startAlign() }}>
                     <div className="font-bold">{i.name}</div>
                     {i.variantName && <div className="text-xs text-muted-2">{i.variantName}</div>}
                     {i.personalisation && (
                       <div className="mt-1 inline-block rounded-md bg-[#FFF3D6] px-2 py-0.5 text-xs font-bold text-[#6E5210]">
-                        الاسم: “{i.personalisation}”
+                        {t('od.personalisation', { v: i.personalisation })}
                       </div>
                     )}
                   </div>
                   <div className="ms-auto flex items-center gap-2">
                     <span className="text-sm font-bold text-muted-2">×{i.qty}</span>
                     <label className="flex items-center gap-1.5">
-                      <span className="sr-only">سعر القطعة لـ {i.name}</span>
+                      <span className="sr-only">{t('od.unitPriceFor', { name: i.name })}</span>
                       <input
                         type="number"
                         inputMode="numeric"
                         min={0}
                         value={prices[i.id] ?? ''}
                         onChange={(e) => setPrices((p) => ({ ...p, [i.id]: e.target.value }))}
-                        placeholder="السعر"
+                        placeholder={t('common.price')}
                         className={`${inputCls} w-[104px] text-center`}
                         dir="ltr"
                       />
-                      <span className="text-xs text-muted-2">ج.م</span>
+                      <span className="text-xs text-muted-2">{t('common.egp')}</span>
                     </label>
                   </div>
                 </li>
@@ -211,20 +214,20 @@ export function OrderDetailPage() {
             </ul>
             <div className="mt-3 grid gap-2 border-t border-[#F1EEE7] pt-4 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-muted-2">المجموع</span>
+                <span className="text-muted-2">{t('od.subtotal')}</span>
                 <strong>{money(draft?.subtotal)}</strong>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <label htmlFor="fee" className="text-muted-2">
-                  التوصيل
+                  {t('od.delivery')}
                 </label>
                 <span className="flex items-center gap-1.5">
                   <input id="fee" type="number" inputMode="numeric" min={0} value={fee} onChange={(e) => setFee(e.target.value)} placeholder="—" className={`${inputCls} w-[104px] text-center`} dir="ltr" />
-                  <span className="text-xs text-muted-2">ج.م</span>
+                  <span className="text-xs text-muted-2">{t('common.egp')}</span>
                 </span>
               </div>
               <div className="flex items-center justify-between border-t border-[#F1EEE7] pt-3 text-base">
-                <strong>الإجمالي</strong>
+                <strong>{t('od.total')}</strong>
                 <strong className="text-[20px]">{money(draft?.total)}</strong>
               </div>
             </div>
@@ -236,16 +239,16 @@ export function OrderDetailPage() {
                     void update({ items: draft!.items.map((i) => ({ id: i.id, unitPrice: i.unitPrice })), deliveryFee: draft!.fee }, 'pricing')
                   }
                 >
-                  {saving === 'pricing' ? 'جارٍ الحفظ…' : 'حفظ الأسعار'}
+                  {saving === 'pricing' ? t('common.saving') : t('od.savePrices')}
                 </Button>
                 <Button variant="soft" onClick={() => hydrateForm(order)}>
-                  إلغاء
+                  {t('common.cancel')}
                 </Button>
               </div>
             )}
           </Card>
 
-          <Card title="الدفع">
+          <Card title={t('od.payment')}>
             <div className="flex flex-wrap items-center gap-3 text-sm">
               <span className="rounded-lg bg-[#F1EEE7] px-2.5 py-1 font-bold">{METHOD[order.paymentMethod]}</span>
               <PaymentPill status={order.paymentStatus} />
@@ -253,24 +256,24 @@ export function OrderDetailPage() {
             {order.hasProof && (
               <div className="mt-4">
                 <button type="button" onClick={() => setProofOpen(true)} className="block overflow-hidden rounded-xl border border-[#E7E1D5] bg-[#FBF9F5] p-0">
-                  <img src={`/api/admin/orders/${order.id}/proof`} alt="صورة التحويل" className="block max-h-[260px] w-auto max-w-full object-contain" />
+                  <img src={`/api/admin/orders/${order.id}/proof`} alt={t('od.proofAlt')} className="block max-h-[260px] w-auto max-w-full object-contain" />
                 </button>
-                <p className="mb-0 mt-1.5 text-xs text-muted-2">اضغط على الصورة لتكبيرها</p>
+                <p className="mb-0 mt-1.5 text-xs text-muted-2">{t('od.proofZoom')}</p>
               </div>
             )}
             <div className="mt-4 flex flex-wrap gap-2 print:hidden">
               {order.paymentStatus !== 'paid' && (
                 <Button disabled={!!saving} onClick={() => void update({ paymentStatus: 'paid' }, 'pay')}>
-                  {Icon.check(18)} تأكيد استلام الدفع
+                  {Icon.check(18)} {t('od.confirmPayment')}
                 </Button>
               )}
               {order.paymentStatus === 'pending_review' && (
                 <Button variant="danger" disabled={!!saving} onClick={() => void update({ paymentStatus: 'unpaid' }, 'pay')}>
-                  رفض الإيصال
+                  {t('od.rejectProof')}
                 </Button>
               )}
               <label className="flex items-center gap-2 text-sm">
-                <span className="text-muted-2">تغيير:</span>
+                <span className="text-muted-2">{t('od.change')}</span>
                 <select
                   value={order.paymentStatus}
                   onChange={(e) => void update({ paymentStatus: e.target.value as PaymentStatus }, 'pay')}
@@ -286,13 +289,13 @@ export function OrderDetailPage() {
             </div>
           </Card>
 
-          <Card title="سجل الطلب">
+          <Card title={t('od.history')}>
             <ol className="m-0 list-none p-0">
               {order.events.map((e) => (
                 <li key={e.id} className="relative flex gap-3 pb-4 last:pb-0">
                   <span aria-hidden="true" className="mt-1.5 h-2.5 w-2.5 flex-none rounded-full bg-teal" />
                   <div>
-                    <div className="text-sm font-semibold">{e.message}</div>
+                    <div className="text-sm font-semibold">{eventText(e)}</div>
                     <div className="text-xs text-muted-2">{ago(e.createdAt)}</div>
                   </div>
                 </li>
@@ -302,26 +305,26 @@ export function OrderDetailPage() {
         </div>
 
         <div className="flex flex-col gap-4">
-          <Card title="العميل">
+          <Card title={t('od.customer')}>
             <div className="text-[17px] font-bold">{order.customerName}</div>
-            <div className="mt-0.5 text-sm text-muted-2" dir="ltr" style={{ textAlign: 'right' }}>
+            <div className="mt-0.5 text-sm text-muted-2" dir="ltr" style={{ textAlign: startAlign() }}>
               {order.phone}
             </div>
             {order.customerOrderCount > 1 && (
               <Link to={`/admin/orders?q=${order.phone}`} className="mt-1 inline-block text-xs font-bold">
-                عميل متكرر · {order.customerOrderCount} طلبات
+                {t('od.repeat', { n: order.customerOrderCount })}
               </Link>
             )}
             <div className="mt-3 grid grid-cols-2 gap-2 print:hidden">
               <a href={`tel:${order.phone}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#DDD6C8] bg-white text-sm font-bold text-ink no-underline hover:border-ink">
-                {Icon.phone(18)} اتصال
+                {Icon.phone(18)} {t('od.call')}
               </a>
               <a href={waLink(order.phone)} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#1FA855] text-sm font-bold text-white no-underline hover:bg-[#178A45] hover:text-white">
-                {Icon.whatsapp(18)} واتساب
+                {Icon.whatsapp(18)} {t('cust.whatsapp')}
               </a>
             </div>
             <dl className="m-0 mt-4 grid gap-2 border-t border-[#F1EEE7] pt-4 text-sm">
-              <dt className="text-xs font-bold text-muted-2">العنوان</dt>
+              <dt className="text-xs font-bold text-muted-2">{t('od.address')}</dt>
               {/* Customers type in English or Arabic: each line picks its own direction. */}
               <dd className="m-0 whitespace-pre-line">
                 <bdi dir="auto">{order.city}</bdi>
@@ -330,18 +333,18 @@ export function OrderDetailPage() {
               </dd>
               {order.notes && (
                 <>
-                  <dt className="mt-2 text-xs font-bold text-muted-2">ملاحظات العميل</dt>
+                  <dt className="mt-2 text-xs font-bold text-muted-2">{t('od.customerNotes')}</dt>
                   <dd className="m-0 whitespace-pre-line rounded-lg bg-[#FFF8E6] p-2.5" dir="auto">{order.notes}</dd>
                 </>
               )}
             </dl>
             <Button variant="soft" size="sm" className="mt-3 w-full print:hidden" onClick={() => void copy(`${order.customerName}\n${order.phone}\n${order.city}\n${order.address}`, 'addr')}>
-              {copied === 'addr' ? Icon.check(16) : Icon.copy(16)} نسخ بيانات الشحن
+              {copied === 'addr' ? Icon.check(16) : Icon.copy(16)} {t('od.copyShipping')}
             </Button>
           </Card>
 
-          <Card title="رسائل جاهزة للعميل" className="print:hidden">
-            <p className="mb-3 mt-0 text-xs text-muted-2">بتفتح واتساب برسالة مكتوبة فيها تفاصيل الطلب ولينك المتابعة.</p>
+          <Card title={t('od.messages')} className="print:hidden">
+            <p className="mb-3 mt-0 text-xs text-muted-2">{t('od.messagesHint')}</p>
             <div className="flex flex-col gap-2">
               {msgs.map((m) => (
                 <a
@@ -351,26 +354,26 @@ export function OrderDetailPage() {
                   rel="noopener noreferrer"
                   className="flex min-h-11 items-center justify-between gap-2 rounded-xl border border-[#DDD6C8] bg-white px-3.5 text-sm font-bold text-ink no-underline hover:border-[#1FA855] hover:text-ink"
                 >
-                  {m.label}
+                  {t(m.label)}
                   <span className="text-[#1FA855]">{Icon.whatsapp(18)}</span>
                 </a>
               ))}
             </div>
             <Button variant="soft" size="sm" className="mt-3 w-full" onClick={() => void copy(customerLink(order), 'link')}>
-              {copied === 'link' ? Icon.check(16) : Icon.copy(16)} نسخ لينك متابعة الطلب
+              {copied === 'link' ? Icon.check(16) : Icon.copy(16)} {t('od.copyLink')}
             </Button>
           </Card>
 
-          <Card title="ملاحظات داخلية" className="print:hidden">
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="مثلاً: العميل عايز اللون أغمق شوية" className={`${inputCls} py-2.5`} />
+          <Card title={t('od.internalNotes')} className="print:hidden">
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder={t('od.notesPlaceholder')} className={`${inputCls} py-2.5`} />
             {notes !== (order.adminNotes ?? '') && (
               <Button size="sm" className="mt-2" disabled={saving === 'notes'} onClick={() => void update({ adminNotes: notes }, 'notes')}>
-                حفظ الملاحظة
+                {t('od.saveNote')}
               </Button>
             )}
           </Card>
 
-          <Card title="الحالة" className="print:hidden">
+          <Card title={t('od.status')} className="print:hidden">
             <div className="grid grid-cols-2 gap-2">
               {(Object.keys(STATUS) as OrderStatus[]).map((s) => (
                 <button
@@ -378,7 +381,7 @@ export function OrderDetailPage() {
                   type="button"
                   disabled={!!saving || s === order.status}
                   onClick={() => {
-                    if (s === 'cancelled' && !window.confirm('إلغاء الطلب؟')) return;
+                    if (s === 'cancelled' && !window.confirm(t('od.confirmCancel'))) return;
                     void update({ status: s }, 'status');
                   }}
                   className={`min-h-10 rounded-xl border text-[13px] font-bold disabled:cursor-default ${
@@ -394,9 +397,9 @@ export function OrderDetailPage() {
       </div>
 
       {proofOpen && (
-        <div role="dialog" aria-modal="true" aria-label="صورة التحويل" className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setProofOpen(false)}>
-          <img src={`/api/admin/orders/${order.id}/proof`} alt="صورة التحويل" className="max-h-full max-w-full rounded-xl" />
-          <button type="button" autoFocus onClick={() => setProofOpen(false)} className="absolute left-4 top-4 h-11 w-11 rounded-full border-0 bg-white text-lg font-bold text-ink" aria-label="إغلاق">
+        <div role="dialog" aria-modal="true" aria-label={t('od.proofAlt')} className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setProofOpen(false)}>
+          <img src={`/api/admin/orders/${order.id}/proof`} alt={t('od.proofAlt')} className="max-h-full max-w-full rounded-xl" />
+          <button type="button" autoFocus onClick={() => setProofOpen(false)} className="absolute left-4 top-4 h-11 w-11 rounded-full border-0 bg-white text-lg font-bold text-ink" aria-label={t('common.close')}>
             ✕
           </button>
         </div>

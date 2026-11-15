@@ -5,31 +5,37 @@
     {
       "slug": "gaming",
       "name": "Board Games",
+      "nameAr": "ألعاب",
       "count": 12
     },
     {
       "slug": "resin",
       "name": "Resin",
+      "nameAr": "ريزن",
       "count": 28
     },
     {
       "slug": "wood-decoupage",
       "name": "Wood & Decoupage",
+      "nameAr": "خشب وديكوباج",
       "count": 25
     },
     {
       "slug": "macrame",
       "name": "Macramé",
+      "nameAr": "مكرمية",
       "count": 6
     },
     {
       "slug": "candles",
       "name": "Candles",
+      "nameAr": "شموع",
       "count": 9
     },
     {
       "slug": "concrete",
       "name": "Concrete Works",
+      "nameAr": "أعمال كونكريت",
       "count": 0
     }
   ],

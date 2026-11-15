@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router';
 import { api } from './api';
-import { Icon } from './ui';
+import { Icon, LangSwitch } from './ui';
+import { dirOf, useLang, useT, type Key } from './i18n';
 import { ensureWorker } from './push';
 import { DashboardPage } from './pages/DashboardPage';
 import { OrdersPage } from './pages/OrdersPage';
@@ -40,13 +41,21 @@ function chime() {
   }
 }
 
-/** Dashboard-specific <head>: RTL, noindex, installable as its own app on phones. */
+/** Dashboard-specific <head>: noindex, installable as its own app on phones; direction follows the language. */
 function useAdminHead() {
+  const lang = useLang();
   useEffect(() => {
     const html = document.documentElement;
-    const prev = { dir: html.dir, lang: html.lang, title: document.title };
-    html.dir = 'rtl';
-    html.lang = 'ar';
+    const prev = { dir: html.dir, lang: html.lang };
+    html.dir = dirOf(lang);
+    html.lang = lang;
+    return () => {
+      html.dir = prev.dir;
+      html.lang = prev.lang;
+    };
+  }, [lang]);
+  useEffect(() => {
+    const prev = { title: document.title };
     const manifest = document.querySelector<HTMLLinkElement>('link[rel=manifest]');
     const prevManifest = manifest?.href;
     if (manifest) manifest.href = '/admin.webmanifest';
@@ -62,8 +71,6 @@ function useAdminHead() {
     add({ name: 'apple-mobile-web-app-title', content: 'Coco Admin' });
     add({ name: 'apple-mobile-web-app-status-bar-style', content: 'default' });
     return () => {
-      html.dir = prev.dir;
-      html.lang = prev.lang;
       document.title = prev.title;
       if (manifest && prevManifest) manifest.href = prevManifest;
       document.head.querySelectorAll('[data-admin]').forEach((n) => n.remove());
@@ -71,16 +78,18 @@ function useAdminHead() {
   }, []);
 }
 
-const NAV = [
-  { to: '/admin', label: 'الرئيسية', icon: Icon.home, end: true },
-  { to: '/admin/orders', label: 'الطلبات', icon: Icon.orders, badge: 'orders' as const },
-  { to: '/admin/products', label: 'المنتجات', icon: Icon.products },
-  { to: '/admin/customers', label: 'العملاء', icon: Icon.customers },
-  { to: '/admin/settings', label: 'الإعدادات', icon: Icon.settings },
+const NAV: { to: string; label: Key; icon: () => ReactNode; end?: boolean; badge?: 'orders' }[] = [
+  { to: '/admin', label: 'nav.home', icon: Icon.home, end: true },
+  { to: '/admin/orders', label: 'nav.orders', icon: Icon.orders, badge: 'orders' },
+  { to: '/admin/products', label: 'nav.products', icon: Icon.products },
+  { to: '/admin/customers', label: 'nav.customers', icon: Icon.customers },
+  { to: '/admin/settings', label: 'nav.settings', icon: Icon.settings },
 ];
 
 function Shell({ children }: { children: ReactNode }) {
   const { badges, signOut } = useSession();
+  const t = useT();
+  const lang = useLang();
   const total = badges.newOrders + badges.proofs;
   const { pathname } = useLocation();
   useEffect(() => {
@@ -88,8 +97,8 @@ function Shell({ children }: { children: ReactNode }) {
     window.scrollTo(0, 0);
   }, [pathname]);
   useEffect(() => {
-    document.title = `${total ? `(${total}) ` : ''}لوحة التحكم · ${site.name}`;
-  }, [total]);
+    document.title = `${total ? `(${total}) ` : ''}${t('app.dashboard')} · ${site.name}`;
+  }, [total, t, lang]);
 
   const navItem = (n: (typeof NAV)[number], mobile: boolean) => (
     <NavLink
@@ -105,7 +114,7 @@ function Shell({ children }: { children: ReactNode }) {
       }
     >
       {n.icon()}
-      <span>{n.label}</span>
+      <span>{t(n.label)}</span>
       {n.badge && total > 0 && (
         <span
           className={`flex h-5 min-w-5 items-center justify-center rounded-full bg-[#D9534F] px-1.5 text-[11px] font-bold text-white ${
@@ -119,24 +128,25 @@ function Shell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-[#F4F1EA] font-ar text-ink" dir="rtl">
-      <aside className="fixed inset-y-0 right-0 z-30 hidden w-[248px] flex-col border-l border-[#E7E1D5] bg-[#FBF9F5] p-4 min-[900px]:flex">
+    <div className={`min-h-screen bg-[#F4F1EA] text-ink ${lang === 'ar' ? 'font-ar' : ''}`} dir={dirOf(lang)}>
+      <aside className="fixed inset-y-0 start-0 z-30 hidden w-[248px] flex-col border-e border-[#E7E1D5] bg-[#FBF9F5] p-4 min-[900px]:flex">
         <Link to="/admin" className="mb-6 flex items-center gap-2.5 px-2 pt-2 no-underline">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink font-script text-[26px] text-gold-light">C</span>
           <span className="leading-tight">
             <strong className="block text-[15px] text-ink">{site.name}</strong>
-            <span className="text-xs text-muted-2">لوحة التحكم</span>
+            <span className="text-xs text-muted-2">{t('app.dashboard')}</span>
           </span>
         </Link>
-        <nav aria-label="القائمة" className="flex flex-col gap-1">
+        <nav aria-label={t('app.menu')} className="flex flex-col gap-1">
           {NAV.map((n) => navItem(n, false))}
         </nav>
         <div className="mt-auto flex flex-col gap-1 border-t border-[#E7E1D5] pt-3">
           <a href="/" target="_blank" rel="noopener" className="flex min-h-10 items-center gap-3 rounded-xl px-3.5 text-sm font-semibold text-muted-2 no-underline hover:bg-[#EDE8DE] hover:text-ink">
-            {Icon.ext(18)} عرض المتجر
+            {Icon.ext(18)} {t('app.viewShop')}
           </a>
+          <LangSwitch className="flex min-h-10 items-center gap-3 rounded-xl border-0 bg-transparent px-3.5 text-sm font-semibold text-muted-2 hover:bg-[#EDE8DE] hover:text-ink" />
           <button type="button" onClick={() => void signOut()} className="flex min-h-10 items-center gap-3 rounded-xl border-0 bg-transparent px-3.5 text-sm font-semibold text-muted-2 hover:bg-[#EDE8DE] hover:text-ink">
-            {Icon.out(18)} تسجيل الخروج
+            {Icon.out(18)} {t('app.signOut')}
           </button>
         </div>
       </aside>
@@ -144,19 +154,22 @@ function Shell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-[#E7E1D5] bg-[#F4F1EA]/90 px-4 py-3 backdrop-blur min-[900px]:hidden">
         <Link to="/admin" className="flex items-center gap-2 no-underline">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink font-script text-[22px] text-gold-light">C</span>
-          <strong className="text-[15px] text-ink">لوحة التحكم</strong>
+          <strong className="text-[15px] text-ink">{t('app.dashboard')}</strong>
         </Link>
-        <a href="/" target="_blank" rel="noopener" className="text-sm font-bold text-teal-dark no-underline">
-          المتجر ↗
-        </a>
+        <div className="flex items-center gap-3">
+          <LangSwitch className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#DDD6C8] bg-white px-2.5 text-[13px] font-bold text-ink" />
+          <a href="/" target="_blank" rel="noopener" className="text-sm font-bold text-teal-dark no-underline">
+            {t('app.shopShort')}
+          </a>
+        </div>
       </header>
 
-      <main className="px-4 pb-28 pt-5 min-[900px]:mr-[248px] min-[900px]:px-8 min-[900px]:pb-12 min-[900px]:pt-8">
+      <main className="px-4 pb-28 pt-5 min-[900px]:ms-[248px] min-[900px]:px-8 min-[900px]:pb-12 min-[900px]:pt-8">
         <div className="mx-auto max-w-[1180px]">{children}</div>
       </main>
 
       <nav
-        aria-label="القائمة"
+        aria-label={t('app.menu')}
         className="fixed inset-x-0 bottom-0 z-30 flex border-t border-[#E7E1D5] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur min-[900px]:hidden"
       >
         {NAV.map((n) => navItem(n, true))}

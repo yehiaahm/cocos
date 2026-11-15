@@ -30,7 +30,7 @@ order for an Instagram DM. The Facebook button stays hidden until its URL is set
 
 ## Orders & admin dashboard
 
-Customers order on the site; orders land in the dashboard at **`/admin`** (Arabic, works on phones).
+Customers order on the site; orders land in the dashboard at **`/admin`** (Arabic by default with a one-tap **English** switch — the language button is in the sidebar, in the phone header and in Settings; works on phones).
 The owner signs in on the shop's normal login page (`/login`) with `ADMIN_EMAIL` + `ADMIN_PASSWORD` and lands in the
 dashboard; that email can't be used for a customer account.
 On Railway, see *Deploying → Railway* for the two settings it needs; the Cloudflare setup below is only for Cloudflare hosting.
@@ -190,7 +190,7 @@ src/lib/useAddToCart.ts     add → fly-to-cart → pill bump → "Added to cart
 src/lib/seo.tsx             per-page title/meta/OG/canonical/JSON-LD (prerendered and client-side)
 src/pages/*                 Home, Shop (/shop, /shop/:category), Product, Checkout, Order, 404
 src/store/live.ts           live prices / stock / payment details from the dashboard (GET /api/catalog)
-src/admin/*                 the dashboard (lazy-loaded chunk, Arabic RTL): pages, charts, push notifications
+src/admin/*                 the dashboard (lazy-loaded chunk, Arabic RTL / English LTR, see i18n.ts): pages, charts, push notifications
 functions/api/*             Cloudflare Pages Functions: /api/orders, /api/catalog, /api/admin/*
 functions/admin, order      serve the client-rendered shells for /admin/* and /order/*
 server/*                    shared API code: auth, D1 queries, catalog, Web Push (VAPID)
@@ -198,9 +198,52 @@ migrations/*.sql            D1 schema
 public/admin-sw.js          service worker that shows new-order notifications
 ```
 
+### Dashboard language
+`src/admin/i18n.ts` holds every dashboard string twice (`en` and `ar`); the compiler fails if a key is missing in one.
+The choice is remembered per device. To change a label, edit it in both dictionaries. WhatsApp messages to customers and
+push notifications stay in Arabic on purpose.
+
 ### Adding or changing products
-Edit `data/products.json` (same shape as today). New photos go in `public/images/products/`; the next
-`npm run dev` / `npm run build` generates their WebP versions automatically.
+Products live in `data/products.json` → `products`. The dashboard only edits **price / sold out / hidden**; the product
+list itself comes from this file.
+
+1. Copy the photo(s) into `public/images/products/` (any file name, `.jpg` or `.png`).
+2. Add an entry at the end of `products` (keep the `id` unique — use the next `coco-NNN` number, and the same number as
+   the variant's `catalogId`):
+   ```json
+   {
+     "id": "coco-111",
+     "slug": "concrete-planter-grey",
+     "name": "Grey Concrete Planter",
+     "category": "concrete",
+     "categoryName": "Concrete Works",
+     "description": "A hand-cast concrete planter finished with a gold rim.",
+     "image": "/images/products/planter.jpg",
+     "tags": [],
+     "price": null,
+     "currency": "EGP",
+     "priceStatus": "pending",
+     "variants": [
+       { "catalogId": "coco-111", "name": "Grey Concrete Planter", "material": "Concrete", "images": ["/images/products/planter.jpg"] }
+     ]
+   }
+   ```
+   `category` must be an existing category slug, `categoryName` must match that category's `name`, `slug` must be unique,
+   and `tags` may contain `ramadan`, `halloween`, `christmas`, `personalised`. One product with several colours = one
+   entry with several `variants`.
+3. Run `npm run dev` (or `npm run build`): it generates the optimised WebP versions of the new photos.
+4. Deploy. Then set the price in the dashboard → Products (until then the shop shows "Price pending").
+
+`npm test` pins the catalogue size and per-category counts (`src/data/catalog.test.ts`); update those numbers when you add products.
+
+### Adding a new category
+1. `data/products.json` → `categories`: add `{ "slug": "my-category", "name": "English name", "nameAr": "الاسم بالعربي", "count": 0 }`
+   (`count` is recalculated automatically). `nameAr` is what the Arabic dashboard shows in the category list.
+2. `src/data/catalog.ts`: add the slug to the `CategorySlug` type.
+3. `src/pages/ShopPage.tsx`: add a one-line description for it to `CATEGORY_COPY` (the compiler tells you if you forget).
+4. Optional — homepage tab: add a panel to `categoryPanels` in `src/data/home.ts` (photo, Arabic label, text).
+5. `src/data/catalog.test.ts`: add the slug to the expected category counts.
+6. Run `npm run build`, deploy. The category shows in the shop, the footer and the dashboard list right away, even while empty.
 
 ### Checkout
 Checkout validates name, Egyptian mobile, city and address on both the browser and the server, then saves

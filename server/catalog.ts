@@ -25,6 +25,11 @@ export const products: Product[] = (raw as unknown as { products: Product[] }).p
   (p) => !HIDDEN_IDS.has(p.id) && !p.variants.some((v) => HIDDEN_IDS.has(v.catalogId)),
 );
 const byId = new Map(products.map((p) => [p.id, p]));
+
+/** Every category in data/products.json (also the empty ones), with its Arabic name for the dashboard. */
+export const categories: { slug: string; name: string; nameAr: string }[] = (
+  raw as unknown as { categories: { slug: string; name: string; nameAr?: string }[] }
+).categories.map((c) => ({ slug: c.slug, name: c.name, nameAr: c.nameAr ?? c.name }));
 export const getProduct = (id: string) => byId.get(id);
 
 export async function loadOverrides(db: D1Database): Promise<CatalogOverrides> {

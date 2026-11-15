@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { dirOf, useLang } from './i18n';
 
 function useWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -32,6 +33,7 @@ export function AreaChart({
   format: (n: number) => string;
   label: string;
 }) {
+  const lang = useLang();
   const [ref, width] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);
   const H = 220;
@@ -84,7 +86,7 @@ export function AreaChart({
             </g>
           ))}
           {points.map((p, i) =>
-            i % every === 0 || i === points.length - 1 ? (
+            (i % every === 0 && points.length - 1 - i >= every) || i === points.length - 1 ? (
               <text key={p.x} x={x(i)} y={H - 6} textAnchor="middle" fontSize="11" fill="#7C8A8C" fontFamily="Tajawal, sans-serif">
                 {p.xLabel}
               </text>
@@ -104,9 +106,9 @@ export function AreaChart({
         <div
           className="pointer-events-none absolute top-0 z-10 rounded-xl bg-ink px-3 py-2 text-center text-xs text-cream shadow-lg"
           style={{ left: Math.min(Math.max(x(hover) - 60, 0), Math.max(0, width - 120)), width: 120 }}
-          dir="rtl"
+          dir={dirOf(lang)}
         >
-          <div className="font-ar opacity-75">{h.xLabel}</div>
+          <div className={`opacity-75 ${lang === 'ar' ? 'font-ar' : ''}`}>{h.xLabel}</div>
           <div className="mt-0.5 text-sm font-bold">{format(h.y)}</div>
         </div>
       )}

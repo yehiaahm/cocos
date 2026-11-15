@@ -1,23 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { api } from '../api';
-import type { AdminProduct } from '../../lib/api-types';
+import type { AdminCategory, AdminProduct } from '../../lib/api-types';
 import { Button, Empty, ErrorBox, Icon, PageHeader, Skeleton, Toggle, inputCls } from '../ui';
 import { imageUrl } from '../../lib/images';
+import { categoryLabel, startAlign, useT, type Key } from '../i18n';
 
 type Edit = Pick<AdminProduct, 'price' | 'hidden' | 'soldOut'>;
 
-const FILTERS = [
-  { id: 'all', label: 'الكل' },
-  { id: 'unpriced', label: 'بدون سعر' },
-  { id: 'soldout', label: 'خلصان' },
-  { id: 'hidden', label: 'مخفي' },
+const FILTERS: { id: string; label: Key }[] = [
+  { id: 'all', label: 'common.all' },
+  { id: 'unpriced', label: 'prod.filter.unpriced' },
+  { id: 'soldout', label: 'prod.filter.soldout' },
+  { id: 'hidden', label: 'prod.filter.hidden' },
 ];
 
 export function ProductsPage() {
+  const t = useT();
   const [params, setParams] = useSearchParams();
   const filter = params.get('filter') ?? 'all';
   const [items, setItems] = useState<AdminProduct[] | null>(null);
+  const [categoryList, setCategoryList] = useState<AdminCategory[]>([]);
   const [edits, setEdits] = useState<Record<string, Edit>>({});
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
@@ -28,7 +31,9 @@ export function ProductsPage() {
   const load = async () => {
     setError('');
     try {
-      setItems((await api<{ products: AdminProduct[] }>('/api/admin/products')).products);
+      const res = await api<{ products: AdminProduct[]; categories?: AdminCategory[] }>('/api/admin/products');
+      setItems(res.products);
+      setCategoryList(res.categories ?? []);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -58,7 +63,13 @@ export function ProductsPage() {
     });
   };
 
-  const categories = useMemo(() => [...new Map((items ?? []).map((p) => [p.category, p.categoryName])).entries()], [items]);
+  // Every category from the catalogue (empty ones too, e.g. Concrete Works) — plus any a product uses that the list lacks.
+  const categories = useMemo<AdminCategory[]>(() => {
+    const known = new Map(categoryList.map((c) => [c.slug, c]));
+    for (const p of items ?? []) if (!known.has(p.category)) known.set(p.category, { slug: p.category, name: p.categoryName, nameAr: p.categoryName });
+    return [...known.values()];
+  }, [categoryList, items]);
+  const categoryOf = useMemo(() => new Map(categories.map((c) => [c.slug, c])), [categories]);
   const shown = useMemo(() => {
     const term = q.trim().toLowerCase();
     return (items ?? []).filter((p) => {
@@ -90,19 +101,19 @@ export function ProductsPage() {
 
   return (
     <>
-      <PageHeader title="المنتجات" sub={items ? `${priced} من ${items.length} منتج ليهم سعر · التغييرات بتظهر في الموقع خلال دقيقة` : ' '} />
+      <PageHeader title={t('prod.title')} sub={items ? t('prod.sub', { priced, total: items.length }) : ' '} />
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <label className="relative min-w-[200px] flex-1">
-          <span className="sr-only">بحث</span>
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-2">{Icon.search(18)}</span>
-          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="اسم المنتج" className={`${inputCls} pr-10`} />
+          <span className="sr-only">{t('common.search')}</span>
+          <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-2">{Icon.search(18)}</span>
+          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('prod.name')} className={`${inputCls} ps-10`} />
         </label>
-        <select value={cat} onChange={(e) => setCat(e.target.value)} className={`${inputCls} w-auto`} aria-label="القسم">
-          <option value="all">كل الأقسام</option>
-          {categories.map(([id, name]) => (
-            <option key={id} value={id}>
-              {name}
+        <select value={cat} onChange={(e) => setCat(e.target.value)} className={`${inputCls} w-auto`} aria-label={t('prod.category')}>
+          <option value="all">{t('prod.allCategories')}</option>
+          {categories.map((c) => (
+            <option key={c.slug} value={c.slug}>
+              {categoryLabel(c)}
             </option>
           ))}
         </select>
@@ -116,7 +127,7 @@ export function ProductsPage() {
             onClick={() => setParams(f.id === 'all' ? {} : { filter: f.id }, { replace: true })}
             className={`min-h-10 flex-none rounded-xl border px-3.5 text-[13px] font-bold ${filter === f.id ? 'border-ink bg-ink text-cream' : 'border-[#DDD6C8] bg-white text-ink'}`}
           >
-            {f.label}
+            {t(f.label)}
           </button>
         ))}
       </div>
@@ -134,7 +145,7 @@ export function ProductsPage() {
           ))}
         </div>
       ) : shown.length === 0 ? (
-        <Empty title="مفيش منتجات بالفلتر ده" />
+        <Empty title={t('prod.empty')} />
       ) : (
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {shown.map((p) => {
@@ -149,37 +160,37 @@ export function ProductsPage() {
               >
                 <img src={imageUrl(p.image, 320)} alt="" width={56} height={56} className="h-14 w-14 flex-none rounded-xl object-cover" loading="lazy" />
                 <div className="min-w-[160px] flex-1">
-                  <a href={`/product/${p.slug}`} target="_blank" rel="noopener" className="block font-bold text-ink no-underline hover:underline" dir="ltr" style={{ textAlign: 'right' }}>
+                  <a href={`/product/${p.slug}`} target="_blank" rel="noopener" className="block font-bold text-ink no-underline hover:underline" dir="ltr" style={{ textAlign: startAlign() }}>
                     {p.name}
                   </a>
                   <div className="mt-0.5 text-xs text-muted-2">
-                    {p.categoryName}
-                    {p.variants > 1 && ` · ${p.variants} ألوان`}
-                    {p.sold > 0 && ` · اتباع ${p.sold}`}
+                    {categoryOf.get(p.category) ? categoryLabel(categoryOf.get(p.category)!) : p.categoryName}
+                    {p.variants > 1 && ` · ${t('prod.colors', { n: p.variants })}`}
+                    {p.sold > 0 && ` · ${t('prod.sold', { n: p.sold })}`}
                   </div>
                 </div>
                 <label className="flex items-center gap-1.5">
-                  <span className="sr-only">سعر {p.name}</span>
+                  <span className="sr-only">{t('prod.priceOf', { name: p.name })}</span>
                   <input
                     type="number"
                     inputMode="numeric"
                     min={0}
                     value={c.price ?? ''}
-                    placeholder="السعر"
+                    placeholder={t('common.price')}
                     onChange={(e) => change(p, { price: e.target.value === '' ? null : Math.max(0, Math.round(Number(e.target.value))) })}
                     className={`${inputCls} w-[110px] text-center`}
                     dir="ltr"
                   />
-                  <span className="text-xs text-muted-2">ج.م</span>
+                  <span className="text-xs text-muted-2">{t('common.egp')}</span>
                 </label>
                 <div className="flex items-center gap-4">
                   <span className="flex items-center gap-2 text-xs font-bold">
-                    <Toggle checked={c.soldOut} onChange={(v) => change(p, { soldOut: v })} label={`${p.name} خلصان`} />
-                    خلصان
+                    <Toggle checked={c.soldOut} onChange={(v) => change(p, { soldOut: v })} label={t('prod.soldOutOf', { name: p.name })} />
+                    {t('prod.filter.soldout')}
                   </span>
                   <span className="flex items-center gap-2 text-xs font-bold">
-                    <Toggle checked={c.hidden} onChange={(v) => change(p, { hidden: v })} label={`إخفاء ${p.name}`} />
-                    مخفي
+                    <Toggle checked={c.hidden} onChange={(v) => change(p, { hidden: v })} label={t('prod.hide', { name: p.name })} />
+                    {t('prod.filter.hidden')}
                   </span>
                 </div>
               </li>
@@ -189,21 +200,21 @@ export function ProductsPage() {
       )}
 
       {(dirty > 0 || saved) && (
-        <div className="fixed inset-x-0 bottom-[70px] z-40 flex justify-center px-4 min-[900px]:bottom-6 min-[900px]:mr-[248px]">
+        <div className="fixed inset-x-0 bottom-[70px] z-40 flex justify-center px-4 min-[900px]:bottom-6 min-[900px]:ms-[248px]">
           <div className="flex w-full max-w-[560px] items-center justify-between gap-3 rounded-2xl bg-ink px-4 py-3 text-cream shadow-[0_20px_40px_-12px_rgba(11,46,51,.6)]">
-            <span className="text-sm font-bold">{dirty ? `${dirty} تغيير مش محفوظ` : 'تم الحفظ ✓ — الموقع هيتحدث خلال دقيقة'}</span>
+            <span className="text-sm font-bold">{dirty ? t('prod.unsaved', { n: dirty }) : t('prod.savedMsg')}</span>
             {dirty > 0 ? (
               <div className="flex gap-2">
                 <Button size="sm" variant="soft" onClick={() => setEdits({})}>
-                  تراجع
+                  {t('prod.undo')}
                 </Button>
                 <Button size="sm" disabled={saving} onClick={() => void save()}>
-                  {saving ? 'جارٍ الحفظ…' : 'حفظ'}
+                  {saving ? t('common.saving') : t('common.save')}
                 </Button>
               </div>
             ) : (
               <Button size="sm" variant="soft" onClick={() => setSaved(false)}>
-                تمام
+                {t('prod.ok')}
               </Button>
             )}
           </div>

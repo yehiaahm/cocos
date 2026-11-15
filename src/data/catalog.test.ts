@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import raw from '../../data/products.json';
 import { HIDDEN_IDS, categories, defaultVariant, filterProducts, products, baseFilter } from './catalog';
 import { formatPrice } from '../lib/format';
 import { imageSources } from '../lib/images';
@@ -61,5 +62,18 @@ describe('price', () => {
     expect(formatPrice(null)).toBe('Price pending');
     expect(formatPrice(undefined)).toBe('Price pending');
     expect(formatPrice(1250)).toBe('EGP 1,250');
+  });
+});
+
+describe('categories', () => {
+  it('lists Concrete Works with its Arabic name, even while it has no products yet', () => {
+    const concrete = (raw as { categories: { slug: string; name: string; nameAr?: string }[] }).categories.find((c) => c.slug === 'concrete');
+    expect(concrete).toEqual({ slug: 'concrete', name: 'Concrete Works', nameAr: 'أعمال كونكريت', count: 0 });
+  });
+
+  it('gives every category an Arabic name for the dashboard', () => {
+    for (const c of (raw as { categories: { slug: string; nameAr?: string }[] }).categories) {
+      expect(c.nameAr, c.slug).toMatch(/[؀-ۿ]/);
+    }
   });
 });

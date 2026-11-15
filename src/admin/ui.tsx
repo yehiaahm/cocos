@@ -1,6 +1,33 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import type { OrderStatus, PaymentStatus } from '../lib/api-types';
 import { PAYMENT_STATUS, STATUS } from './format';
+import { RICH_SPLIT, getLang, setLang, useLang, useT, type Lang } from './i18n';
+
+/** Turns `code` and **bold** markers in a translated string into elements. */
+export function rich(text: string): ReactNode[] {
+  return text.split(RICH_SPLIT).map((part, i) => {
+    if (part.startsWith('`') && part.endsWith('`')) return <code key={i} dir="ltr">{part.slice(1, -1)}</code>;
+    if (part.startsWith('**') && part.endsWith('**')) return <strong key={i} dir="ltr">{part.slice(2, -2)}</strong>;
+    return part;
+  });
+}
+
+const LANG_NAME: Record<Lang, string> = { ar: 'العربية', en: 'English' };
+
+/** One-tap language switch; the label is the language you would switch TO, written in that language. */
+export function LangSwitch({ className = '' }: { className?: string }) {
+  const lang = useLang();
+  const t = useT();
+  const other: Lang = lang === 'ar' ? 'en' : 'ar';
+  return (
+    <button type="button" onClick={() => setLang(other)} aria-label={t('lang.switch')} className={className}>
+      {Icon.globe(18)}
+      <span lang={other} className={other === 'ar' ? 'font-ar' : ''}>
+        {LANG_NAME[other]}
+      </span>
+    </button>
+  );
+}
 
 export function Card({ children, className = '', title, action }: { children: ReactNode; className?: string; title?: ReactNode; action?: ReactNode }) {
   return (
@@ -59,7 +86,7 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
       onClick={() => onChange(!checked)}
       className={`relative h-7 w-12 flex-none rounded-full transition-colors ${checked ? 'bg-teal-btn' : 'bg-[#D9D0C1]'}`}
     >
-      <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${checked ? 'right-6' : 'right-1'}`} />
+      <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${checked ? 'start-6' : 'start-1'}`} />
     </button>
   );
 }
@@ -76,12 +103,13 @@ export function Empty({ title, children }: { title: string; children?: ReactNode
 export const Skeleton = ({ className = '' }: { className?: string }) => <div className={`skel rounded-xl ${className}`} aria-hidden="true" />;
 
 export function ErrorBox({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const t = useT();
   return (
     <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#FBEAEA] px-4 py-3 text-sm font-semibold text-[#7A1F1F]">
       {message}
       {onRetry && (
         <Button size="sm" variant="danger" onClick={onRetry}>
-          إعادة المحاولة
+          {t('common.retry')}
         </Button>
       )}
     </div>
@@ -101,8 +129,19 @@ export function PageHeader({ title, sub, actions }: { title: string; sub?: React
 }
 
 /** Small inline icons for the dashboard. */
-const I = (d: ReactNode, size = 20) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+const I = (d: ReactNode, size = 20, mirror = false) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    style={mirror ? { transform: 'scaleX(-1)' } : undefined}
+  >
     {d}
   </svg>
 );
@@ -116,9 +155,10 @@ export const Icon = {
   whatsapp: (s?: number) => I(<path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z" />, s),
   bell: (s?: number) => I(<><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" /></>, s),
   search: (s?: number) => I(<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>, s),
-  /** In RTL "back" points right and "forward" points left. */
-  back: (s?: number) => I(<path d="M5 12h14M13 6l6 6-6 6" />, s),
-  fwd: (s?: number) => I(<path d="M19 12H5M11 6l-6 6 6 6" />, s),
+  /** Drawn for RTL, where "back" points right and "forward" points left; mirrored in English (LTR). */
+  back: (s?: number) => I(<path d="M5 12h14M13 6l6 6-6 6" />, s, getLang() === 'en'),
+  fwd: (s?: number) => I(<path d="M19 12H5M11 6l-6 6 6 6" />, s, getLang() === 'en'),
+  globe: (s?: number) => I(<><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></>, s),
   out: (s?: number) => I(<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5M21 12H9" /></>, s),
   ext: (s?: number) => I(<><path d="M14 4h6v6M20 4l-9 9" /><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></>, s),
   print: (s?: number) => I(<><path d="M6 9V3h12v6" /><rect x="6" y="14" width="12" height="7" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /></>, s),

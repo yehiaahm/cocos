@@ -1,3 +1,5 @@
+import { localizeServerMessage, t } from './i18n';
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -19,10 +21,10 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
     });
   } catch {
-    throw new ApiError(0, 'تعذّر الاتصال بالسيرفر — تأكد من الإنترنت');
+    throw new ApiError(0, t('api.network'));
   }
   const data = (await res.json().catch(() => ({}))) as T & { error?: string; code?: string };
   if (res.status === 401 && !path.endsWith('/login')) window.dispatchEvent(new Event('admin:unauthorized'));
-  if (!res.ok) throw new ApiError(res.status, data.error ?? 'حدث خطأ، حاول مرة أخرى', data.code);
+  if (!res.ok) throw new ApiError(res.status, data.error ? localizeServerMessage(data.error) : t('api.generic'), data.code);
   return data;
 }

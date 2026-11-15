@@ -1,6 +1,6 @@
 import type { Fn } from '../../../server/env';
 import { HttpError, handle, intOrNull, json, readJson } from '../../../server/http';
-import { getProduct, loadOverrides, overrideFor, products } from '../../../server/catalog';
+import { categories, getProduct, loadOverrides, overrideFor, products } from '../../../server/catalog';
 import type { AdminProduct } from '../../../src/lib/api-types';
 
 /** GET /api/admin/products — catalog merged with dashboard overrides and units sold. */
@@ -30,7 +30,7 @@ export const onRequestGet: Fn = handle(async ({ env }) => {
       sold: soldBy.get(p.id) ?? 0,
     };
   });
-  return json({ products: list });
+  return json({ products: list, categories });
 });
 
 /** PUT /api/admin/products { updates: [{ id, price, hidden, soldOut }] } — bulk save. */

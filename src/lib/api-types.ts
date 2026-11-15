@@ -148,6 +148,13 @@ export interface AdminProduct {
   sold: number;
 }
 
+/** A shop category as listed in data/products.json (empty ones included), with its Arabic name. */
+export interface AdminCategory {
+  slug: string;
+  name: string;
+  nameAr: string;
+}
+
 export interface AdminStats {
   range: number;
   kpis: {

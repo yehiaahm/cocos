@@ -7,9 +7,11 @@ import { Card, ErrorBox, PageHeader, Skeleton, StatusPill, Icon } from '../ui';
 import { METHOD, STATUS, count, dayLabel, money } from '../format';
 import { imageUrl } from '../../lib/images';
 import { PushCard } from './SettingsPage';
+import { useT } from '../i18n';
 
 function Delta({ now, prev }: { now: number; prev: number }) {
-  if (!prev) return now ? <span className="text-xs font-bold text-[#1E6B3A]">جديد</span> : null;
+  const t = useT();
+  if (!prev) return now ? <span className="text-xs font-bold text-[#1E6B3A]">{t('dash.new')}</span> : null;
   const pct = Math.round(((now - prev) / prev) * 100);
   const up = pct >= 0;
   return (
@@ -33,6 +35,7 @@ function Kpi({ label, value, hint, delta }: { label: string; value: string; hint
 }
 
 export function DashboardPage() {
+  const t = useT();
   const [range, setRange] = useState(30);
   const [metric, setMetric] = useState<'orders' | 'revenue'>('orders');
   const [data, setData] = useState<AdminStats | null>(null);
@@ -55,19 +58,19 @@ export function DashboardPage() {
   const k = data?.kpis;
   const actions = k
     ? [
-        { n: k.newOrders, label: 'طلبات جديدة تحتاج تأكيد', to: '/admin/orders?status=new', tone: 'bg-[#E3F2F1] text-[#0B5E5B]' },
-        { n: k.proofsToReview, label: 'إيصالات تحويل للمراجعة', to: '/admin/orders?payment=pending_review', tone: 'bg-[#FFF3D6] text-[#6E5210]' },
-        { n: k.awaitingPrice, label: 'طلبات بدون إجمالي', to: '/admin/orders?status=new', tone: 'bg-[#E8EAF6] text-[#2E3A8C]' },
+        { n: k.newOrders, label: t('dash.act.new'), to: '/admin/orders?status=new', tone: 'bg-[#E3F2F1] text-[#0B5E5B]' },
+        { n: k.proofsToReview, label: t('dash.act.proofs'), to: '/admin/orders?payment=pending_review', tone: 'bg-[#FFF3D6] text-[#6E5210]' },
+        { n: k.awaitingPrice, label: t('dash.act.noTotal'), to: '/admin/orders?status=new', tone: 'bg-[#E8EAF6] text-[#2E3A8C]' },
       ]
     : [];
 
   return (
     <>
       <PageHeader
-        title="أهلاً 👋"
-        sub="ملخص المبيعات والطلبات"
+        title={t('dash.title')}
+        sub={t('dash.sub')}
         actions={
-          <div role="group" aria-label="الفترة" className="flex rounded-xl border border-[#DDD6C8] bg-white p-1">
+          <div role="group" aria-label={t('dash.period')} className="flex rounded-xl border border-[#DDD6C8] bg-white p-1">
             {[7, 30, 90].map((r) => (
               <button
                 key={r}
@@ -76,7 +79,7 @@ export function DashboardPage() {
                 onClick={() => setRange(r)}
                 className={`min-h-9 rounded-lg border-0 px-3 text-[13px] font-bold ${range === r ? 'bg-ink text-cream' : 'bg-transparent text-ink'}`}
               >
-                {r === 7 ? '٧ أيام' : r === 30 ? '٣٠ يوم' : '٩٠ يوم'}
+                {r === 7 ? t('dash.range7') : r === 30 ? t('dash.range30') : t('dash.range90')}
               </button>
             ))}
           </div>
@@ -107,16 +110,16 @@ export function DashboardPage() {
           )}
 
           <div className="grid grid-cols-2 gap-3 min-[900px]:grid-cols-4">
-            <Kpi label="الطلبات" value={count(k!.orders)} delta={<Delta now={k!.orders} prev={k!.ordersPrev} />} hint="عن الفترة السابقة" />
-            <Kpi label="المبيعات" value={money(k!.revenue)} delta={<Delta now={k!.revenue} prev={k!.revenuePrev} />} hint={`مدفوع: ${money(k!.paidRevenue)}`} />
-            <Kpi label="متوسط الطلب" value={money(k!.avgOrder)} hint="للطلبات المسعّرة" />
-            <Kpi label="العملاء" value={count(k!.customers)} hint={`${k!.returningCustomers} عميل رجع تاني`} />
+            <Kpi label={t('dash.kpi.orders')} value={count(k!.orders)} delta={<Delta now={k!.orders} prev={k!.ordersPrev} />} hint={t('dash.kpi.vsPrev')} />
+            <Kpi label={t('dash.kpi.revenue')} value={money(k!.revenue)} delta={<Delta now={k!.revenue} prev={k!.revenuePrev} />} hint={t('dash.kpi.paid', { amount: money(k!.paidRevenue) })} />
+            <Kpi label={t('dash.kpi.avg')} value={money(k!.avgOrder)} hint={t('dash.kpi.avgHint')} />
+            <Kpi label={t('dash.kpi.customers')} value={count(k!.customers)} hint={t('dash.kpi.returning', { n: k!.returningCustomers })} />
           </div>
 
           <Card
-            title={metric === 'orders' ? 'عدد الطلبات يومياً' : 'المبيعات يومياً'}
+            title={metric === 'orders' ? t('dash.chart.orders') : t('dash.chart.revenue')}
             action={
-              <div role="group" aria-label="المقياس" className="flex rounded-lg bg-[#F1EEE7] p-0.5">
+              <div role="group" aria-label={t('dash.metric')} className="flex rounded-lg bg-[#F1EEE7] p-0.5">
                 {(['orders', 'revenue'] as const).map((m) => (
                   <button
                     key={m}
@@ -125,26 +128,26 @@ export function DashboardPage() {
                     onClick={() => setMetric(m)}
                     className={`min-h-8 rounded-md border-0 px-3 text-xs font-bold ${metric === m ? 'bg-white text-ink shadow-sm' : 'bg-transparent text-muted-2'}`}
                   >
-                    {m === 'orders' ? 'الطلبات' : 'المبيعات'}
+                    {m === 'orders' ? t('dash.metric.orders') : t('dash.metric.revenue')}
                   </button>
                 ))}
               </div>
             }
           >
             <AreaChart
-              label={metric === 'orders' ? 'الطلبات يومياً' : 'المبيعات يومياً'}
+              label={metric === 'orders' ? t('dash.chart.orders') : t('dash.chart.revenue')}
               points={data.daily.map((d) => ({ x: d.date, xLabel: dayLabel(d.date), y: metric === 'orders' ? d.orders : d.revenue }))}
               format={metric === 'orders' ? (n) => count(n) : (n) => (n >= 1000 ? `${Math.round(n / 100) / 10}k` : count(n))}
             />
           </Card>
 
           <div className="grid gap-4 min-[900px]:grid-cols-[1.3fr_1fr]">
-            <Card title="الأكثر طلباً" action={<Link to="/admin/products" className="text-xs font-bold">كل المنتجات ←</Link>}>
+            <Card title={t('dash.top')} action={<Link to="/admin/products" className="text-xs font-bold">{t('dash.allProducts')}</Link>}>
               {data.topProducts.length === 0 ? (
-                <p className="m-0 py-6 text-center text-sm text-muted-2">لسه مفيش طلبات في الفترة دي</p>
+                <p className="m-0 py-6 text-center text-sm text-muted-2">{t('dash.noOrders')}</p>
               ) : (
                 <BarList
-                  format={(n) => `${n} قطعة`}
+                  format={(n) => t('dash.pieces', { n })}
                   rows={data.topProducts.map((t) => ({
                     key: t.productId,
                     title: t.name,
@@ -161,17 +164,17 @@ export function DashboardPage() {
                 />
               )}
             </Card>
-            <Card title="أكتر المحافظات طلباً">
+            <Card title={t('dash.cities')}>
               {data.cities.length === 0 ? (
                 <p className="m-0 py-6 text-center text-sm text-muted-2">—</p>
               ) : (
-                <BarList format={(n) => `${n} طلب`} rows={data.cities.map((c) => ({ key: c.city, title: c.city, value: c.count, label: c.city }))} />
+                <BarList format={(n) => t('dash.ordersN', { n })} rows={data.cities.map((c) => ({ key: c.city, title: c.city, value: c.count, label: c.city }))} />
               )}
             </Card>
           </div>
 
           <div className="grid gap-4 min-[900px]:grid-cols-3">
-            <Card title="حالات الطلبات">
+            <Card title={t('dash.statuses')}>
               <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
                 {(Object.keys(STATUS) as (keyof typeof STATUS)[]).map((s) => {
                   const n = data.statuses.find((x) => x.status === s)?.count ?? 0;
@@ -186,23 +189,23 @@ export function DashboardPage() {
                 })}
               </ul>
             </Card>
-            <Card title="طرق الدفع">
+            <Card title={t('dash.methods')}>
               {data.payments.length === 0 ? (
                 <p className="m-0 py-6 text-center text-sm text-muted-2">—</p>
               ) : (
                 <BarList format={(n) => `${n}`} rows={data.payments.map((p) => ({ key: p.method, title: METHOD[p.method], value: p.count, label: METHOD[p.method] }))} />
               )}
             </Card>
-            <Card title="تسعير المنتجات">
+            <Card title={t('dash.pricing')}>
               <p className="m-0 text-[26px] font-bold">
                 {data.pricedProducts} <span className="text-base font-semibold text-muted-2">/ {data.totalProducts}</span>
               </p>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#F1EEE7]">
                 <div className="h-full rounded-full bg-gold" style={{ width: `${(data.pricedProducts / Math.max(1, data.totalProducts)) * 100}%` }} />
               </div>
-              <p className="mb-3 mt-3 text-sm text-muted-2">المنتجات اللي ليها سعر بيظهر سعرها للعملاء ويتحسب تلقائياً في الطلب.</p>
+              <p className="mb-3 mt-3 text-sm text-muted-2">{t('dash.pricingHint')}</p>
               <Link to="/admin/products?filter=unpriced" className="inline-flex items-center gap-1.5 text-sm font-bold">
-                حدد الأسعار {Icon.fwd(16)}
+                {t('dash.setPrices')} {Icon.fwd(16)}
               </Link>
             </Card>
           </div>

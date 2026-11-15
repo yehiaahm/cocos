@@ -59,7 +59,7 @@ export const categoryPanels: {
   {
     slug: 'concrete',
     name: 'Concrete Works',
-    ar: 'أعمال الخرسانة',
+    ar: 'أعمال كونكريت',
     img: '/images/legacy-crops/pyramids.jpg',
     alt: 'Concrete pyramids made in class',
     desc: 'Cast planters, trays and sculptural decor in concrete — finished by hand with colour and gold.',
@@ -111,7 +111,7 @@ export const workshops = [
   {
     id: 'concrete',
     name: 'Concrete art',
-    ar: 'فن الخرسانة',
+    ar: 'فن الكونكريت',
     tag: 'Modern decor',
     img: '/images/legacy-crops/pyramids.jpg',
     alt: 'Concrete pyramids made in class',
