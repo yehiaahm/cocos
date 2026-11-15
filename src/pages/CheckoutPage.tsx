@@ -11,7 +11,7 @@ import { formatPrice, plural } from '../lib/format';
 import { normaliseEgyptPhone } from '../lib/phone';
 import type { CreateOrderInput, PaymentMethod } from '../lib/api-types';
 import { ArrowRight } from '../components/Icons';
-import { openPaymentApp, paymentAppFor } from '../lib/payment-apps';
+import { launchPayment, paymentAppFor } from '../lib/payment-apps';
 
 const GOVERNORATES = [
   'Cairo', 'Giza', 'Alexandria', 'Qalyubia', 'Sharqia', 'Dakahlia', 'Gharbia', 'Monufia', 'Beheira',
@@ -91,12 +91,12 @@ export function CheckoutPage() {
 
   const methods: { id: PaymentMethod; title: string; desc: string }[] = [
     { id: 'cod', title: 'Cash on delivery', desc: 'Pay in cash when your order arrives.' },
-    { id: 'instapay', title: 'InstaPay', desc: 'After you place the order, we’ll open the InstaPay app so you can finish payment.' },
+    { id: 'instapay', title: 'InstaPay', desc: 'After you place the order, we’ll open the InstaPay app (the address is copied for you to paste).' },
     {
       id: 'wallet',
       title: payment?.walletName || 'Vodafone Cash',
       desc: paymentAppFor('wallet', payment?.walletName)
-        ? 'After you place the order, we’ll open the Ana Vodafone app so you can finish payment.'
+        ? 'After you place the order, your phone opens with the transfer ready — just press call and enter your PIN.'
         : 'After you place the order, you’ll see the wallet number to transfer to.',
     },
   ];
@@ -162,7 +162,10 @@ export function CheckoutPage() {
       navigate(`/order/${data.number}?t=${encodeURIComponent(data.token)}`, { replace: true, state: { placed: true } });
       // InstaPay / Vodafone Cash: open the payment app. We go to the order page first so the customer
       // lands back on the payment details (amount, address to copy, screenshot upload) after paying.
-      openPaymentApp(method, payment?.walletName);
+      // Only when the total is known — otherwise the customer waits for Coco to confirm it (see the order page).
+      if (total !== null) {
+        launchPayment({ method, walletName: payment?.walletName, wallet: payment?.wallet, instapay: payment?.instapay, total });
+      }
     } catch {
       setErrors({ form: 'We could not reach the shop. Please check your connection and try again.' });
     } finally {

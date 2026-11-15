@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { androidIntentUrl, paymentAppFor, paymentAppUrl } from './payment-apps';
+import { androidIntentUrl, paymentAppFor, paymentLaunchUrl, vodafoneUssdUrl } from './payment-apps';
 
 const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36';
 const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1';
@@ -18,19 +18,44 @@ describe('paymentAppFor', () => {
   });
 });
 
-describe('paymentAppUrl', () => {
-  it('uses an Android intent with a Play Store fallback', () => {
-    const url = paymentAppUrl('instapay', ANDROID)!;
+describe('vodafoneUssdUrl', () => {
+  it('builds a pre-filled transfer code with the # encoded', () => {
+    expect(vodafoneUssdUrl('010 1234 5678', 450)).toBe('tel:*9*7*01012345678*450%23');
+    expect(vodafoneUssdUrl('+201012345678', 450)).toBe('tel:*9*7*01012345678*450%23');
+  });
+  it('refuses a bad number or a non-whole amount', () => {
+    expect(vodafoneUssdUrl('12345', 450)).toBeNull();
+    expect(vodafoneUssdUrl('01012345678', 450.5)).toBeNull();
+    expect(vodafoneUssdUrl('01012345678', 0)).toBeNull();
+  });
+});
+
+describe('paymentLaunchUrl', () => {
+  const wallet = { method: 'wallet' as const, wallet: '01012345678', total: 450 };
+
+  it('Vodafone Cash opens the dialer with number and amount filled in, on Android and iOS', () => {
+    expect(paymentLaunchUrl(wallet, ANDROID)).toBe('tel:*9*7*01012345678*450%23');
+    expect(paymentLaunchUrl(wallet, IPHONE)).toBe('tel:*9*7*01012345678*450%23');
+  });
+  it('Vodafone Cash falls back to the app when it cannot pre-fill', () => {
+    expect(paymentLaunchUrl({ ...wallet, total: null }, ANDROID)).toBe(androidIntentUrl('com.emeint.android.myservices'));
+    expect(paymentLaunchUrl({ ...wallet, total: 450.5 }, IPHONE)).toBe('https://apps.apple.com/app/id437564823');
+    expect(paymentLaunchUrl({ ...wallet, wallet: '' }, ANDROID)).toBe(androidIntentUrl('com.emeint.android.myservices'));
+  });
+  it('InstaPay uses an Android intent with a Play Store fallback', () => {
+    const url = paymentLaunchUrl({ method: 'instapay', total: 450 }, ANDROID)!;
     expect(url).toBe(androidIntentUrl('com.egyptianbanks.instapay'));
     expect(url).toContain('package=com.egyptianbanks.instapay');
     expect(url).toContain('S.browser_fallback_url=' + encodeURIComponent('https://play.google.com/store/apps/details?id=com.egyptianbanks.instapay'));
   });
-  it('uses the App Store on iOS', () => {
-    expect(paymentAppUrl('vodafone', IPHONE)).toBe('https://apps.apple.com/app/id437564823');
-    expect(paymentAppUrl('vodafone', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 5)).toBe('https://apps.apple.com/app/id437564823');
+  it('InstaPay uses the App Store on iOS, including iPadOS', () => {
+    expect(paymentLaunchUrl({ method: 'instapay', total: 450 }, IPHONE)).toBe('https://apps.apple.com/app/id1592108795');
+    expect(paymentLaunchUrl({ method: 'instapay', total: 450 }, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 5)).toBe('https://apps.apple.com/app/id1592108795');
   });
-  it('returns null on desktop', () => {
-    expect(paymentAppUrl('instapay', DESKTOP)).toBeNull();
-    expect(paymentAppUrl('instapay', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 0)).toBeNull();
+  it('returns null on desktop, for cash, and for other wallets', () => {
+    expect(paymentLaunchUrl({ method: 'instapay', total: 450 }, DESKTOP)).toBeNull();
+    expect(paymentLaunchUrl({ method: 'instapay', total: 450 }, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 0)).toBeNull();
+    expect(paymentLaunchUrl({ method: 'cod', total: 450 }, ANDROID)).toBeNull();
+    expect(paymentLaunchUrl({ ...wallet, walletName: 'Orange Cash' }, ANDROID)).toBeNull();
   });
 });

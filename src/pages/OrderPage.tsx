@@ -5,6 +5,7 @@ import { imageUrl } from '../lib/images';
 import { formatPrice } from '../lib/format';
 import { contactLink, site } from '../config/site';
 import type { OrderStatus, PaymentSettings, PublicOrder } from '../lib/api-types';
+import { launchPayment, paymentLaunchUrl, type PaymentTarget } from '../lib/payment-apps';
 import { ArrowRight, Check, Copy, Instagram, WhatsApp } from '../components/Icons';
 
 const STEPS: { id: OrderStatus; label: string; hint: string }[] = [
@@ -147,6 +148,15 @@ export function OrderPage() {
 
   const o = state.order;
   const pay = state.payment;
+  const payTarget: PaymentTarget & { instapay?: string } = {
+    method: o.paymentMethod,
+    walletName: pay?.walletName,
+    wallet: pay?.wallet,
+    instapay: pay?.instapay,
+    total: o.total,
+  };
+  // The order loads client-side, so reading the device here is safe. On desktop there's no app to open.
+  const canOpenApp = typeof navigator !== 'undefined' && !!paymentLaunchUrl(payTarget, navigator.userAgent, navigator.maxTouchPoints);
   const stepIndex = STEPS.findIndex((s) => s.id === o.status);
   const transfer = o.paymentMethod !== 'cod';
   const ask = contactLink(`Hi Coco! About my order ${o.number}.`);
@@ -272,6 +282,16 @@ export function OrderPage() {
                       </div>
                     )}
                   </div>
+
+                  {o.total !== null && canOpenApp && (
+                    <button
+                      type="button"
+                      onClick={() => launchPayment(payTarget)}
+                      className="btn btn-primary mt-4 inline-flex min-h-[54px] items-center gap-2.5 rounded-full bg-teal-btn px-7 font-bold text-white"
+                    >
+                      {o.paymentMethod === 'instapay' ? 'Open InstaPay' : `Pay ${formatPrice(o.total)} with ${pay?.walletName || 'Vodafone Cash'}`} <ArrowRight />
+                    </button>
+                  )}
 
                   {o.paymentStatus === 'pending_review' || upload.status === 'done' ? (
                     <p role="status" className="mb-0 mt-5 rounded-2xl bg-teal-mist px-4 py-3 text-sm font-bold text-teal-dark">
