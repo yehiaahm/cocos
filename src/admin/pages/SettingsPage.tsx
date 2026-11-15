@@ -152,6 +152,7 @@ export function SettingsPage() {
           ) : (
             <form onSubmit={save} className="grid gap-4">
               {field('instapay', t('set.instapay'), t('set.instapayHint'), { dir: 'ltr', placeholder: 'name@instapay' })}
+              {field('instapayLink', t('set.instapayLink'), t('set.instapayLinkHint'), { dir: 'ltr', placeholder: 'https://ipn.eg/S/…' })}
               <div className="grid gap-4 sm:grid-cols-2">
                 {field('wallet', t('set.wallet'), t('set.walletHint'), { dir: 'ltr', placeholder: '010…' })}
                 {field('walletName', t('set.walletName'), t('set.walletNameHint'), { dir: 'ltr' })}

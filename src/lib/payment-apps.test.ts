@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { androidIntentUrl, paymentAppFor, paymentLaunchUrl, vodafoneUssdUrl } from './payment-apps';
+import { androidIntentUrl, paymentAppFor, paymentLaunchUrl, parseInstapayLink, vodafoneUssdUrl } from './payment-apps';
 
 const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36';
 const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1';
@@ -15,6 +15,35 @@ describe('paymentAppFor', () => {
   it('has no app for cash or other wallets', () => {
     expect(paymentAppFor('cod')).toBeNull();
     expect(paymentAppFor('wallet', 'Orange Cash')).toBeNull();
+  });
+});
+
+describe('parseInstapayLink', () => {
+  it('accepts an ipn.eg link, also inside share text', () => {
+    expect(parseInstapayLink('https://ipn.eg/S/alice/instapay/2DcFGv')).toBe('https://ipn.eg/S/alice/instapay/2DcFGv');
+    expect(parseInstapayLink('Click the link to send money to alice@instapay\nhttps://ipn.eg/S/alice/instapay/2DcFGv')).toBe(
+      'https://ipn.eg/S/alice/instapay/2DcFGv',
+    );
+  });
+  it('rejects other hosts and lookalikes', () => {
+    expect(parseInstapayLink('')).toBeNull();
+    expect(parseInstapayLink(undefined)).toBeNull();
+    expect(parseInstapayLink('http://ipn.eg/S/a/instapay/x')).toBeNull();
+    expect(parseInstapayLink('https://ipn.eg.evil.com/S/a/instapay/x')).toBeNull();
+    expect(parseInstapayLink('https://ipn.eg@evil.com/S/a/instapay/x')).toBeNull();
+    expect(parseInstapayLink('https://evil.com/?u=https://ipn.eg')).toBeNull();
+  });
+});
+
+describe('InstaPay payment link', () => {
+  const link = 'https://ipn.eg/S/alice/instapay/2DcFGv';
+  it('is opened on phones instead of the bare app', () => {
+    expect(paymentLaunchUrl({ method: 'instapay', instapayLink: link, total: 450 }, ANDROID)).toBe(link);
+    expect(paymentLaunchUrl({ method: 'instapay', instapayLink: link, total: 450 }, IPHONE)).toBe(link);
+  });
+  it('is ignored when invalid, and never used on desktop', () => {
+    expect(paymentLaunchUrl({ method: 'instapay', instapayLink: 'https://evil.com/x', total: 450 }, ANDROID)).toBe(androidIntentUrl('com.egyptianbanks.instapay'));
+    expect(paymentLaunchUrl({ method: 'instapay', instapayLink: link, total: 450 }, DESKTOP)).toBeNull();
   });
 });
 

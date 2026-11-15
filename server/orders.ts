@@ -150,6 +150,7 @@ export function computeTotals(items: { qty: number; unitPrice: number | null }[]
 
 export const DEFAULT_SETTINGS: PaymentSettings = {
   instapay: '',
+  instapayLink: '',
   wallet: '',
   walletName: 'Vodafone Cash',
   deliveryFee: null,

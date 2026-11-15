@@ -153,6 +153,7 @@ export function OrderPage() {
     walletName: pay?.walletName,
     wallet: pay?.wallet,
     instapay: pay?.instapay,
+    instapayLink: pay?.instapayLink,
     total: o.total,
   };
   // The order loads client-side, so reading the device here is safe. On desktop there's no app to open.

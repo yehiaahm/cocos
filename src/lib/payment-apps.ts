@@ -1,5 +1,8 @@
 import type { PaymentMethod } from './api-types';
 import { normaliseEgyptPhone } from './phone';
+import { parseInstapayLink } from './instapay-link';
+
+export { parseInstapayLink };
 
 /**
  * Take the customer straight into their payment app, with as much pre-filled as the app allows.
@@ -7,7 +10,9 @@ import { normaliseEgyptPhone } from './phone';
  * - Vodafone Cash: a USSD transfer code (`*9*7*<wallet>*<amount>#`) in a `tel:` link. The dialer opens
  *   with the wallet number and amount already typed; the customer presses call and enters their PIN.
  *   Needs a whole-pound total and a valid wallet number; otherwise we open the Ana Vodafone app instead.
- * - InstaPay: has no public deep link and no way to pre-fill an amount, so we copy the InstaPay address
+ * - InstaPay: if the shop saved its InstaPay payment link (ipn.eg), we open it: InstaPay opens on the send-money
+ *   screen with the shop already chosen (the amount can't be pre-filled). Without a link there's no public deep
+ *   link, so we copy the InstaPay address
  *   to the clipboard and open the app (Android intent → Play Store fallback; iOS → App Store listing,
  *   which has an "Open" button when installed). The amount is shown on the order page.
  * - Desktop / unknown device: nothing to open — the order page already shows the payment details.
@@ -64,6 +69,8 @@ export interface PaymentTarget {
   walletName?: string;
   /** Shop's Vodafone Cash wallet number. */
   wallet?: string;
+  /** Shop's InstaPay payment link (ipn.eg) — opens InstaPay's send-money screen with the shop already chosen. */
+  instapayLink?: string;
   /** What the customer owes; `null` while the total isn't confirmed yet. */
   total: number | null;
 }
@@ -73,6 +80,10 @@ export function paymentLaunchUrl(t: PaymentTarget, userAgent: string, maxTouchPo
   const app = paymentAppFor(t.method, t.walletName);
   const os = platform(userAgent || '', maxTouchPoints);
   if (!app || !os) return null;
+  if (app === 'instapay') {
+    const link = parseInstapayLink(t.instapayLink);
+    if (link) return link;
+  }
   if (app === 'vodafone' && t.total !== null && t.wallet) {
     const ussd = vodafoneUssdUrl(t.wallet, t.total);
     if (ussd) return ussd;
@@ -88,7 +99,8 @@ export function launchPayment(t: PaymentTarget & { instapay?: string }): boolean
   if (typeof window === 'undefined') return false;
   const url = paymentLaunchUrl(t, navigator.userAgent, navigator.maxTouchPoints);
   if (!url) return false;
-  if (t.method === 'instapay' && t.instapay) {
+  // With a payment link the shop is already chosen in InstaPay; without one, copy the address so it can be pasted.
+  if (t.method === 'instapay' && t.instapay && !parseInstapayLink(t.instapayLink)) {
     try {
       void navigator.clipboard?.writeText(t.instapay).catch(() => {});
     } catch {

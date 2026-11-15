@@ -19,6 +19,8 @@ export type CatalogOverrides = Record<string, CatalogOverride>;
 
 export interface PaymentSettings {
   instapay: string;
+  /** Optional ipn.eg payment link from the InstaPay app; opens the send-money screen. */
+  instapayLink: string;
   wallet: string;
   walletName: string;
   deliveryFee: number | null;

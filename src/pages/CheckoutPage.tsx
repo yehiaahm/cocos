@@ -164,7 +164,7 @@ export function CheckoutPage() {
       // lands back on the payment details (amount, address to copy, screenshot upload) after paying.
       // Only when the total is known — otherwise the customer waits for Coco to confirm it (see the order page).
       if (total !== null) {
-        launchPayment({ method, walletName: payment?.walletName, wallet: payment?.wallet, instapay: payment?.instapay, total });
+        launchPayment({ method, walletName: payment?.walletName, wallet: payment?.wallet, instapay: payment?.instapay, instapayLink: payment?.instapayLink, total });
       }
     } catch {
       setErrors({ form: 'We could not reach the shop. Please check your connection and try again.' });
