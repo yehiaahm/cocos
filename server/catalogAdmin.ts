@@ -50,6 +50,7 @@ export function adminProductView(p: Product, categoryName: string, o: CatalogOve
     price: o.price,
     hidden: o.hidden,
     soldOut: o.soldOut,
+    stock: o.stock ?? null,
     sold,
   };
 }
@@ -66,12 +67,13 @@ export interface ProductInput {
   price?: unknown;
   hidden?: unknown;
   soldOut?: unknown;
+  stock?: unknown;
 }
 
 export interface ValidProduct {
   product: Product;
   /** Present only when the request carried them. */
-  overrides: { price?: number | null; hidden?: boolean; soldOut?: boolean };
+  overrides: { price?: number | null; hidden?: boolean; soldOut?: boolean; stock?: number | null };
 }
 
 /** Validates a create/update payload against the current catalogue and returns the clean product. */
@@ -134,6 +136,7 @@ export function validateProduct(input: ProductInput, catalog: Catalog, existing?
   if (input.price !== undefined) overrides.price = intOrNull(input.price, { max: 1_000_000 });
   if (input.hidden !== undefined) overrides.hidden = !!input.hidden;
   if (input.soldOut !== undefined) overrides.soldOut = !!input.soldOut;
+  if (input.stock !== undefined) overrides.stock = intOrNull(input.stock, { max: 1_000_000 });
 
   return {
     product: { id, slug, name, category, description: str(input.description, 1000), image, tags, variants },
@@ -146,20 +149,21 @@ const bumpRev = (db: D1Database) =>
     "INSERT INTO settings (key, value) VALUES ('catalog_rev', '1') ON CONFLICT(key) DO UPDATE SET value = CAST(CAST(value AS INTEGER) + 1 AS TEXT)",
   );
 
-function overrideStatement(db: D1Database, id: string, current: { price: number | null; hidden: boolean; soldOut: boolean }, patch: ValidProduct['overrides']) {
+function overrideStatement(db: D1Database, id: string, current: { price: number | null; hidden: boolean; soldOut: boolean; stock?: number | null }, patch: ValidProduct['overrides']) {
   const next = {
     price: patch.price !== undefined ? patch.price : current.price,
     hidden: patch.hidden !== undefined ? patch.hidden : current.hidden,
     soldOut: patch.soldOut !== undefined ? patch.soldOut : current.soldOut,
+    stock: patch.stock !== undefined ? patch.stock : (current.stock ?? null),
   };
   return db
     .prepare(
-      `INSERT INTO product_overrides (product_id, price, hidden, sold_out, updated_at)
-       VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+      `INSERT INTO product_overrides (product_id, price, hidden, sold_out, stock, updated_at)
+       VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
        ON CONFLICT(product_id) DO UPDATE SET price = excluded.price, hidden = excluded.hidden,
-         sold_out = excluded.sold_out, updated_at = excluded.updated_at`,
+         sold_out = excluded.sold_out, stock = excluded.stock, updated_at = excluded.updated_at`,
     )
-    .bind(id, next.price, next.hidden ? 1 : 0, next.soldOut ? 1 : 0);
+    .bind(id, next.price, next.hidden ? 1 : 0, next.soldOut ? 1 : 0, next.stock);
 }
 
 export async function createProduct(db: D1Database, input: ProductInput): Promise<Product> {
@@ -174,7 +178,7 @@ export async function createProduct(db: D1Database, input: ProductInput): Promis
         'INSERT INTO catalog_products (id, slug, name, description, category, tags, image, variants, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       )
       .bind(product.id, product.slug, product.name, product.description, product.category, JSON.stringify(product.tags), product.image, JSON.stringify(product.variants), (min?.m ?? 0) - 1),
-    ...(Object.keys(overrides).length ? [overrideStatement(db, product.id, { price: null, hidden: false, soldOut: false }, overrides)] : []),
+    ...(Object.keys(overrides).length ? [overrideStatement(db, product.id, { price: null, hidden: false, soldOut: false, stock: null }, overrides)] : []),
     db
       .prepare("INSERT INTO settings (key, value) VALUES ('catalog_max_id', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
       .bind(String(Number(product.id.slice(5)))),

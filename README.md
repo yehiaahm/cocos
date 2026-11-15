@@ -226,6 +226,10 @@ How it works
   them (only if the address exists in the catalogue, otherwise 404). They are not in `sitemap.xml` (it is built at deploy time) and,
   on Cloudflare Pages, such URLs are answered by `404.html`, which still renders them in the browser.
 - Cloudflare: run `npm run db:migrate:prod` once to create the new tables. Railway applies migrations on start.
+- **Stock per product** (migration `0005_stock.sql`, column `product_overrides.stock`): set it in the dashboard, either in the products list or
+  on the product page. Empty = not tracked. With a number, each order subtracts from it (all colours of a product share one pool),
+  an order for more than what is left is refused, cancelling an order gives the units back (reopening takes them out again), and 0 shows
+  the product as sold out. The shop never receives the exact count, only the sold-out flag. Run `npm run db:migrate:prod` on Cloudflare.
 - Occasions (Ramadan & Eid, Halloween, Christmas, Personalised) are fixed; the "Personalised" tag lets customers type a name when ordering.
 
 ### Checkout

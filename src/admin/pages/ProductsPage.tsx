@@ -7,7 +7,7 @@ import { Button, Empty, ErrorBox, Icon, PageHeader, Skeleton, Toggle, inputCls }
 import { imageUrl } from '../../lib/images';
 import { categoryLabel, startAlign, useT, type Key } from '../i18n';
 
-type Edit = Pick<AdminProduct, 'price' | 'hidden' | 'soldOut'>;
+type Edit = Pick<AdminProduct, 'price' | 'hidden' | 'soldOut' | 'stock'>;
 
 const FILTERS: { id: string; label: Key }[] = [
   { id: 'all', label: 'common.all' },
@@ -52,13 +52,13 @@ export function ProductsPage() {
     return () => window.removeEventListener('beforeunload', h);
   }, [dirty]);
 
-  const current = (p: AdminProduct): Edit => edits[p.id] ?? { price: p.price, hidden: p.hidden, soldOut: p.soldOut };
+  const current = (p: AdminProduct): Edit => edits[p.id] ?? { price: p.price, hidden: p.hidden, soldOut: p.soldOut, stock: p.stock };
   const change = (p: AdminProduct, patch: Partial<Edit>) => {
     const next = { ...current(p), ...patch };
     setSaved(false);
     setEdits((e) => {
       const copy = { ...e };
-      if (next.price === p.price && next.hidden === p.hidden && next.soldOut === p.soldOut) delete copy[p.id];
+      if (next.price === p.price && next.hidden === p.hidden && next.soldOut === p.soldOut && next.stock === p.stock) delete copy[p.id];
       else copy[p.id] = next;
       return copy;
     });
@@ -202,6 +202,19 @@ export function ProductsPage() {
                     dir="ltr"
                   />
                   <span className="text-xs text-muted-2">{t('common.egp')}</span>
+                </label>
+                <label className="flex items-center gap-1.5">
+                  <span className="sr-only">{t('prod.stockOf', { name: p.name })}</span>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    value={c.stock ?? ''}
+                    placeholder={t('prod.stock')}
+                    onChange={(e) => change(p, { stock: e.target.value === '' ? null : Math.max(0, Math.round(Number(e.target.value))) })}
+                    className={`${inputCls} w-[90px] text-center ${c.stock === 0 ? 'border-red-400' : ''}`}
+                    dir="ltr"
+                  />
                 </label>
                 <div className="flex items-center gap-4">
                   <span className="flex items-center gap-2 text-xs font-bold">

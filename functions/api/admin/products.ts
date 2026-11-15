@@ -29,19 +29,20 @@ export const onRequestPost: Fn = handle(async ({ request, env }) => {
   return json({ ok: true, id: product.id, slug: product.slug }, { status: 201 });
 });
 
-/** PUT /api/admin/products { updates: [{ id, price, hidden, soldOut }] } — bulk save of the quick-edit rows. */
+/** PUT /api/admin/products { updates: [{ id, price, hidden, soldOut, stock? }] } — bulk save of the quick-edit rows. */
 export const onRequestPut: Fn = handle(async ({ request, env }) => {
-  const { updates } = await readJson<{ updates: { id: string; price: number | null; hidden: boolean; soldOut: boolean }[] }>(request, 200_000);
+  const { updates } = await readJson<{ updates: { id: string; price: number | null; hidden: boolean; soldOut: boolean; stock?: number | null }[] }>(request, 200_000);
   if (!Array.isArray(updates) || updates.length > 500) throw new HttpError(400, 'تحديثات غير صالحة');
   const catalog = await loadCatalog(env.DB);
   const stmts = updates.map((u) => {
     if (!catalog.byId.has(String(u.id))) throw new HttpError(400, `منتج غير معروف: ${u.id}`);
     return env.DB.prepare(
-      `INSERT INTO product_overrides (product_id, price, hidden, sold_out, updated_at)
-       VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+      `INSERT INTO product_overrides (product_id, price, hidden, sold_out, stock, updated_at)
+       VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
        ON CONFLICT(product_id) DO UPDATE SET price = excluded.price, hidden = excluded.hidden,
-         sold_out = excluded.sold_out, updated_at = excluded.updated_at`,
-    ).bind(u.id, intOrNull(u.price, { max: 1_000_000 }), u.hidden ? 1 : 0, u.soldOut ? 1 : 0);
+         sold_out = excluded.sold_out, updated_at = excluded.updated_at,
+         stock = CASE WHEN ? THEN excluded.stock ELSE product_overrides.stock END`,
+    ).bind(u.id, intOrNull(u.price, { max: 1_000_000 }), u.hidden ? 1 : 0, u.soldOut ? 1 : 0, intOrNull(u.stock, { max: 1_000_000 }), u.stock !== undefined ? 1 : 0);
   });
   if (stmts.length) await env.DB.batch(stmts);
   return json({ ok: true, saved: stmts.length });

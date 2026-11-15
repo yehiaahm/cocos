@@ -24,6 +24,8 @@ interface Form {
   category: string;
   tags: string[];
   price: string;
+  /** Units in stock; '' = not tracked. */
+  stock: string;
   hidden: boolean;
   soldOut: boolean;
   /** Cover photo ('' = the first photo). */
@@ -33,7 +35,7 @@ interface Form {
 
 let keyCounter = 0;
 const newVariant = (over: Partial<VariantForm> = {}): VariantForm => ({ key: `v${++keyCounter}`, catalogId: '', name: '', material: '', images: [], ...over });
-const blank = (): Form => ({ name: '', slug: '', description: '', category: '', tags: [], price: '', hidden: false, soldOut: false, image: '', variants: [newVariant()] });
+const blank = (): Form => ({ name: '', slug: '', description: '', category: '', tags: [], price: '', stock: '', hidden: false, soldOut: false, image: '', variants: [newVariant()] });
 
 const fromProduct = (p: AdminProduct): Form => ({
   name: p.name,
@@ -42,6 +44,7 @@ const fromProduct = (p: AdminProduct): Form => ({
   category: p.category,
   tags: p.tags,
   price: p.price === null ? '' : String(p.price),
+  stock: p.stock === null ? '' : String(p.stock),
   hidden: p.hidden,
   soldOut: p.soldOut,
   image: p.image,
@@ -57,6 +60,7 @@ const toPayload = (f: Form) => ({
   tags: f.tags,
   image: f.image,
   price: f.price.trim() === '' ? null : Math.max(0, Math.round(Number(f.price))),
+  stock: f.stock.trim() === '' ? null : Math.max(0, Math.round(Number(f.stock))),
   hidden: f.hidden,
   soldOut: f.soldOut,
   variants: f.variants.map((v) => ({ catalogId: v.catalogId, name: v.name, material: v.material, images: v.images })),
@@ -405,6 +409,13 @@ export function ProductEditPage() {
                 </label>
                 <input id="pe-price" type="number" inputMode="numeric" min={0} value={form.price} onChange={(e) => set({ price: e.target.value })} dir="ltr" placeholder="—" className={`${inputCls} text-center`} />
                 <p className={hint}>{t('pe.priceHint')}</p>
+              </div>
+              <div>
+                <label htmlFor="pe-stock" className={label}>
+                  {t('pe.stock')}
+                </label>
+                <input id="pe-stock" type="number" inputMode="numeric" min={0} value={form.stock} onChange={(e) => set({ stock: e.target.value })} dir="ltr" placeholder="—" className={`${inputCls} text-center`} />
+                <p className={hint}>{t('pe.stockHint')}</p>
               </div>
               <label className="flex items-center justify-between gap-3 text-sm font-bold">
                 {t('pe.soldOut')}

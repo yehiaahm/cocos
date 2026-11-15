@@ -84,7 +84,7 @@ describe('products', () => {
     const c = await loadCatalog(db);
     expect(c.products[0].id).toBe('coco-111');
     expect(c.rev).toBe(1);
-    expect((await loadOverrides(db))['coco-111']).toEqual({ price: 450, hidden: false, soldOut: false });
+    expect((await loadOverrides(db))['coco-111']).toEqual({ price: 450, hidden: false, soldOut: false, stock: null });
   });
 
   it('never reuses an id, even after the newest product is deleted', async () => {
@@ -145,7 +145,7 @@ describe('products', () => {
     const db = fresh();
     const p = await createProduct(db, newProduct({ price: 300, hidden: true }));
     await updateProduct(db, p.id, newProduct({ soldOut: true }));
-    expect((await loadOverrides(db))[p.id]).toEqual({ price: 300, hidden: true, soldOut: true });
+    expect((await loadOverrides(db))[p.id]).toEqual({ price: 300, hidden: true, soldOut: true, stock: null });
   });
 
   it('deletes a product and its price override; orders keep their own copy', async () => {

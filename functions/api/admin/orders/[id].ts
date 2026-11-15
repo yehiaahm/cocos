@@ -31,6 +31,21 @@ export const onRequestPatch: Fn<'id'> = handle(async ({ request, env, params }) 
     set.push('status = ?');
     args.push(body.status);
     stmts.push(addEvent(env.DB, id, 'status', `الحالة: ${STATUS_AR[o.status]} ← ${STATUS_AR[body.status]}`));
+    // Cancelling gives the units back to tracked stock; reopening a cancelled order takes them out again.
+    const cancelling = body.status === 'cancelled';
+    if (cancelling || o.status === 'cancelled') {
+      const perProduct = new Map<string, number>();
+      for (const i of await getItems(env.DB, id)) perProduct.set(i.productId, (perProduct.get(i.productId) ?? 0) + i.qty);
+      for (const [productId, qty] of perProduct) {
+        stmts.push(
+          env.DB.prepare(
+            cancelling
+              ? 'UPDATE product_overrides SET stock = stock + ? WHERE product_id = ? AND stock IS NOT NULL'
+              : 'UPDATE product_overrides SET stock = MAX(stock - ?, 0) WHERE product_id = ? AND stock IS NOT NULL',
+          ).bind(qty, productId),
+        );
+      }
+    }
   }
   if (body.paymentStatus !== undefined && body.paymentStatus !== o.payment_status) {
     if (!PAYMENT_STATUSES.includes(body.paymentStatus)) throw new HttpError(400, 'حالة دفع غير صحيحة');

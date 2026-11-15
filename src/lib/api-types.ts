@@ -12,6 +12,8 @@ export interface CatalogOverride {
   price: number | null;
   hidden: boolean;
   soldOut: boolean;
+  /** Units in stock; null = not tracked. Only the dashboard gets it; the public catalogue folds 0 into soldOut. */
+  stock?: number | null;
 }
 export type CatalogOverrides = Record<string, CatalogOverride>;
 
@@ -153,6 +155,8 @@ export interface AdminProduct {
   price: number | null;
   hidden: boolean;
   soldOut: boolean;
+  /** Units in stock; null = not tracked. */
+  stock: number | null;
   sold: number;
 }
 

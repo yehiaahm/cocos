@@ -150,11 +150,21 @@ export async function catalogHasPath(db: D1Database, kind: 'product' | 'category
 
 export async function loadOverrides(db: D1Database): Promise<CatalogOverrides> {
   const { results } = await db
-    .prepare('SELECT product_id, price, hidden, sold_out FROM product_overrides')
-    .all<{ product_id: string; price: number | null; hidden: number; sold_out: number }>();
+    .prepare('SELECT product_id, price, hidden, sold_out, stock FROM product_overrides')
+    .all<{ product_id: string; price: number | null; hidden: number; sold_out: number; stock: number | null }>();
   const out: CatalogOverrides = {};
-  for (const r of results) out[r.product_id] = { price: r.price, hidden: !!r.hidden, soldOut: !!r.sold_out };
+  for (const r of results) out[r.product_id] = { price: r.price, hidden: !!r.hidden, soldOut: !!r.sold_out, stock: r.stock };
   return out;
 }
 
-export const overrideFor = (o: CatalogOverrides, id: string): CatalogOverride => o[id] ?? { price: null, hidden: false, soldOut: false };
+export const overrideFor = (o: CatalogOverrides, id: string): CatalogOverride => o[id] ?? { price: null, hidden: false, soldOut: false, stock: null };
+
+/** Sold out by the switch, or because a tracked stock has run to 0. */
+export const isSoldOut = (o: CatalogOverride): boolean => o.soldOut || (typeof o.stock === 'number' && o.stock <= 0);
+
+/** What the public storefront gets: stock folded into soldOut, the exact count kept private. */
+export function publicOverrides(all: CatalogOverrides): CatalogOverrides {
+  const out: CatalogOverrides = {};
+  for (const [id, o] of Object.entries(all)) out[id] = { price: o.price, hidden: o.hidden, soldOut: isSoldOut(o) };
+  return out;
+}

@@ -1,6 +1,6 @@
 import type { Fn } from '../../../server/env';
 import { HttpError, assertSameOrigin, handle, ipHash, json, rateLimit, randomToken, readJson, str } from '../../../server/http';
-import { loadCatalog, loadOverrides, overrideFor } from '../../../server/catalog';
+import { isSoldOut, loadCatalog, loadOverrides, overrideFor } from '../../../server/catalog';
 import { addEvent, computeTotals, getSettings } from '../../../server/orders';
 import { notifyAdmins } from '../../../server/push';
 import { getSessionUser } from '../../../server/accounts';
@@ -39,7 +39,7 @@ export const onRequestPost: Fn = handle(async ({ request, env, waitUntil }) => {
     const v = p?.variants.find((x) => x.catalogId === str(raw.variantId, 20));
     const o = p ? overrideFor(overrides, p.id) : null;
     if (!p || !v || o?.hidden) throw new HttpError(409, 'Something in your cart is no longer available. Please review your cart.', 'unavailable');
-    if (o?.soldOut) throw new HttpError(409, `${p.name} is sold out. Please remove it from your cart.`, 'sold_out');
+    if (o && isSoldOut(o)) throw new HttpError(409, `${p.name} is sold out. Please remove it from your cart.`, 'sold_out');
     const qty = Math.floor(Number(raw.qty));
     if (!Number.isFinite(qty) || qty < 1 || qty > 99) throw new HttpError(400, 'Invalid quantity.', 'qty');
     const personalisation = p.tags.includes('personalised') ? str(raw.personalisation, 80) || null : null;
@@ -54,6 +54,20 @@ export const onRequestPost: Fn = handle(async ({ request, env, waitUntil }) => {
       unitPrice: o?.price ?? null,
     };
   });
+
+  // Tracked stock (set in the dashboard): all variants of a product draw from the same pool.
+  const wanted = new Map<string, { name: string; qty: number }>();
+  for (const l of lines) {
+    const w = wanted.get(l.productId) ?? { name: l.name, qty: 0 };
+    w.qty += l.qty;
+    wanted.set(l.productId, w);
+  }
+  for (const [productId, w] of wanted) {
+    const stock = overrideFor(overrides, productId).stock;
+    if (typeof stock === 'number' && w.qty > stock) {
+      throw new HttpError(409, `Only ${stock} of ${w.name} left. Please lower the quantity in your cart.`, 'out_of_stock');
+    }
+  }
 
   const settings = await getSettings(env.DB);
   const { subtotal, total } = computeTotals(lines, settings.deliveryFee);
@@ -74,6 +88,10 @@ export const onRequestPost: Fn = handle(async ({ request, env, waitUntil }) => {
         `INSERT INTO order_items (order_id, product_id, variant_id, name, variant_name, image, qty, personalisation, unit_price)
          VALUES ((SELECT id FROM orders WHERE token = ?), ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).bind(token, l.productId, l.variantId, l.name, l.variantName, l.image, l.qty, l.personalisation, l.unitPrice),
+    ),
+    // Takes the units out of tracked stock (never below 0); products without a stock number are untouched.
+    ...[...wanted].map(([productId, w]) =>
+      env.DB.prepare('UPDATE product_overrides SET stock = MAX(stock - ?, 0) WHERE product_id = ? AND stock IS NOT NULL').bind(w.qty, productId),
     ),
   ];
   await env.DB.batch(stmts);
