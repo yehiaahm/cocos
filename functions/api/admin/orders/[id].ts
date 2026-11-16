@@ -30,7 +30,7 @@ export const onRequestPatch: Fn<'id'> = handle(async ({ request, env, params }) 
     if (!ORDER_STATUSES.includes(body.status)) throw new HttpError(400, 'حالة غير صحيحة');
     set.push('status = ?');
     args.push(body.status);
-    stmts.push(addEvent(env.DB, id, 'status', `الحالة: ${STATUS_AR[o.status]} ← ${STATUS_AR[body.status]}`));
+    stmts.push(addEvent(env.DB, id, 'status', `الحالة: ${STATUS_AR[o.status]} ← ${STATUS_AR[body.status]}`, body.status));
     // Cancelling gives the units back to tracked stock; reopening a cancelled order takes them out again.
     const cancelling = body.status === 'cancelled';
     if (cancelling || o.status === 'cancelled') {
@@ -56,6 +56,17 @@ export const onRequestPatch: Fn<'id'> = handle(async ({ request, env, params }) 
   if (body.adminNotes !== undefined) {
     set.push('admin_notes = ?');
     args.push(str(body.adminNotes, 2000) || null);
+  }
+
+  // Shipment details shown to the customer once the order is on its way.
+  if (body.courier !== undefined || body.trackingNumber !== undefined) {
+    const courier = body.courier !== undefined ? str(body.courier, 60) || null : o.courier;
+    const tracking = body.trackingNumber !== undefined ? str(body.trackingNumber, 80) || null : o.tracking_number;
+    if (courier !== o.courier || tracking !== o.tracking_number) {
+      set.push('courier = ?', 'tracking_number = ?');
+      args.push(courier, tracking);
+      stmts.push(addEvent(env.DB, id, 'tracking', tracking || courier ? `الشحن: ${[courier, tracking].filter(Boolean).join(' · ')}` : 'تم حذف بيانات الشحن'));
+    }
   }
 
   // Pricing: update line prices and/or delivery fee, then recompute totals.

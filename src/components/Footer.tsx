@@ -50,6 +50,7 @@ function FooterLinks() {
         <Link to="/#workshops" className="text-mist-2 no-underline hover:text-cream">Workshops</Link>
         <Link to="/#gifts" className="text-mist-2 no-underline hover:text-cream">Custom gifts</Link>
         <Link to="/#games" className="text-mist-2 no-underline hover:text-cream">Board games</Link>
+        <Link to="/orders" className="text-mist-2 no-underline hover:text-cream">Track your order</Link>
       </div>
       <div className="flex flex-col gap-2">
         <span className="text-xs font-bold uppercase tracking-[.2em] text-gold-light">Follow</span>

@@ -7,6 +7,7 @@ import { ShopPage } from './pages/ShopPage';
 import { ProductPage } from './pages/ProductPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderPage } from './pages/OrderPage';
+import { MyOrdersPage } from './pages/MyOrdersPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { AccountPage } from './pages/AccountPage';
@@ -35,6 +36,7 @@ export function App() {
         <Route path="/product/:slug" element={<ProductPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/order/:number" element={<OrderPage />} />
+        <Route path="/orders" element={<MyOrdersPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
