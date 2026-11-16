@@ -281,3 +281,47 @@ export interface AdminPromoInput {
   bannerText: string;
   note: string;
 }
+
+/** A workshop as the shop shows it (the "Let's get creative" section of the homepage). */
+export interface PublicWorkshop {
+  /** Tab id; never changes after the workshop is created. */
+  id: string;
+  name: string;
+  /** Arabic accent label above the heading ('' = none). */
+  nameAr: string;
+  /** Small badge on the photo ('' = none). */
+  tag: string;
+  image: string;
+  /** Photo description for screen readers ('' = the name). */
+  alt: string;
+  description: string;
+  day1: string;
+  /** '' = a one-session workshop (no second day). */
+  day2: string;
+  /** EGP per seat; null = "ask us". */
+  price: number | null;
+  /** Free text such as "Saturdays · 5 pm" ('' = none). */
+  dates: string;
+}
+
+export interface AdminWorkshop extends PublicWorkshop {
+  /** false = hidden from the shop. */
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Body of POST /api/admin/workshops and PATCH /api/admin/workshops/:id (PATCH may send only some fields). */
+export interface AdminWorkshopInput {
+  name: string;
+  nameAr: string;
+  tag: string;
+  image: string;
+  alt: string;
+  description: string;
+  day1: string;
+  day2: string;
+  price: number | null;
+  dates: string;
+  active: boolean;
+}

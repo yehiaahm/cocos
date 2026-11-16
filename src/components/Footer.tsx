@@ -3,6 +3,7 @@ import { LogoBadge } from './Logo';
 import { Facebook, Instagram, WhatsApp } from './Icons';
 import { contactLink, site } from '../config/site';
 import { useCatalog } from '../data/catalog';
+import { useWorkshops } from '../data/workshops';
 
 const year = new Date().getFullYear();
 
@@ -34,6 +35,7 @@ function SocialButtons() {
 
 function FooterLinks() {
   const { categories } = useCatalog();
+  const hasWorkshops = useWorkshops().length > 0;
   return (
     <nav aria-label="Footer" className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
       <div className="flex flex-col gap-2">
@@ -47,7 +49,9 @@ function FooterLinks() {
       </div>
       <div className="flex flex-col gap-2">
         <span className="text-xs font-bold uppercase tracking-[.2em] text-gold-light">Studio</span>
-        <Link to="/#workshops" className="text-mist-2 no-underline hover:text-cream">Workshops</Link>
+        {hasWorkshops && (
+          <Link to="/#workshops" className="text-mist-2 no-underline hover:text-cream">Workshops</Link>
+        )}
         <Link to="/#gifts" className="text-mist-2 no-underline hover:text-cream">Custom gifts</Link>
         <Link to="/#games" className="text-mist-2 no-underline hover:text-cream">Board games</Link>
         <Link to="/orders" className="text-mist-2 no-underline hover:text-cream">Track your order</Link>

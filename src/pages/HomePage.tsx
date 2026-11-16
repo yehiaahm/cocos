@@ -3,12 +3,13 @@ import { Link } from 'react-router';
 import { Seo } from '../lib/seo';
 import { absoluteUrl, contactLink, site } from '../config/site';
 import { getProductById, useCatalog, type Product } from '../data/catalog';
-import { bestSellers, categoryPanels, instagramTiles, workshops } from '../data/home';
+import { bestSellers, categoryPanels, instagramTiles } from '../data/home';
+import { useWorkshops } from '../data/workshops';
 import { Picture } from '../components/Picture';
 import { ProductCard } from '../components/ProductCard';
 import { ArrowRight } from '../components/Icons';
 import { useTabs } from '../lib/useTabs';
-import { plural } from '../lib/format';
+import { formatPrice, plural } from '../lib/format';
 
 const btnBase = 'btn inline-flex items-center gap-2.5 rounded-full font-bold no-underline';
 
@@ -50,6 +51,7 @@ export function HomePage() {
 /* ------------------------------------------------------------------ */
 
 function Hero() {
+  const workshopCount = useWorkshops().length;
   return (
     <section className="container-page relative pb-24 pt-10 max-[560px]:pb-16 max-[560px]:pt-4" aria-labelledby="hero-title">
       <div
@@ -74,24 +76,28 @@ function Hero() {
             <Link to="/shop" className={`${btnBase} btn-primary min-h-14 bg-teal-btn px-[30px] text-base text-white hover:text-white`}>
               Shop now <ArrowRight />
             </Link>
-            <Link to="/#workshops" className={`${btnBase} btn-ghost min-h-14 border-[1.5px] border-ink bg-transparent px-[30px] text-base text-ink`}>
-              Book a workshop
-            </Link>
+            {workshopCount > 0 && (
+              <Link to="/#workshops" className={`${btnBase} btn-ghost min-h-14 border-[1.5px] border-ink bg-transparent px-[30px] text-base text-ink`}>
+                Book a workshop
+              </Link>
+            )}
           </div>
           <div className="rise d5 m-0 mt-14 flex flex-wrap gap-11 max-[560px]:mt-10 max-[560px]:grid max-[560px]:grid-cols-3 max-[560px]:gap-3">
             {[
               ['600+', 'pieces shared'],
               ['5', 'crafts, one studio'],
-              ['4', 'hands-on workshops'],
-            ].map(([n, l], i) => (
-              <div key={l} className="flex gap-11 max-[560px]:min-w-0 max-[560px]:gap-3">
-                {i > 0 && <span aria-hidden="true" className="w-px flex-none bg-line" />}
-                <div className="flex min-w-0 flex-col-reverse">
-                  <span className="mt-1.5 text-[13px] text-muted-2 max-[560px]:text-xs">{l}</span>
-                  <span className="font-serif text-[44px] font-semibold leading-none max-[560px]:text-[34px]">{n}</span>
+              [String(workshopCount), workshopCount === 1 ? 'hands-on workshop' : 'hands-on workshops'],
+            ]
+              .filter(([n]) => n !== '0')
+              .map(([n, l], i) => (
+                <div key={l} className="flex gap-11 max-[560px]:min-w-0 max-[560px]:gap-3">
+                  {i > 0 && <span aria-hidden="true" className="w-px flex-none bg-line" />}
+                  <div className="flex min-w-0 flex-col-reverse">
+                    <span className="mt-1.5 text-[13px] text-muted-2 max-[560px]:text-xs">{l}</span>
+                    <span className="font-serif text-[44px] font-semibold leading-none max-[560px]:text-[34px]">{n}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
         <ResinPour />
@@ -405,10 +411,18 @@ function BoardGames() {
 }
 
 function Workshops() {
+  const list = useWorkshops();
   const [sel, setSel] = useState(0);
-  const { listProps, tabProps } = useTabs(workshops.length, sel, setSel);
-  const w = workshops[sel];
-  const book = contactLink(`Hi Coco! I'd like to book the ${w.name} workshop. Which dates are available?`);
+  const { listProps, tabProps } = useTabs(list.length, sel, setSel);
+  // The owner can hide or delete workshops while a visitor has one selected, so the index is clamped.
+  const w = list[Math.min(sel, list.length - 1)];
+  // No workshops at all (all hidden or deleted in the dashboard): the whole section, and its links, disappear.
+  if (!w) return null;
+  const twoDays = !!w.day2;
+  const allTwoDays = list.every((x) => x.day2);
+  const book = contactLink(
+    `Hi Coco! I'd like to book the ${w.name} workshop.${w.dates ? ` (${w.dates})` : ''} Which dates are available?`,
+  );
 
   return (
     <section id="workshops" className="container-page scroll-mt-4 pb-[110px] pt-[130px] max-[560px]:pb-20 max-[560px]:pt-24" aria-labelledby="workshops-title">
@@ -420,66 +434,89 @@ function Workshops() {
           Let's get <em>creative.</em>
         </h2>
         <p className="mx-auto mt-[22px] max-w-[560px] text-[17px] leading-[1.7] text-muted">
-          Two creative days, one week apart — you learn and pour on day one, let it cure, then come back to finish your piece.
+          {allTwoDays
+            ? 'Two creative days, one week apart — you learn and pour on day one, let it cure, then come back to finish your piece.'
+            : 'Hands-on classes at the studio — pick a workshop, bring your curiosity and leave with something you made yourself.'}
         </p>
       </div>
 
-      <div {...listProps} aria-label="Workshops" className="mb-10 flex flex-wrap justify-center gap-2.5">
-        {workshops.map((x, i) => (
-          <button
-            key={x.id}
-            type="button"
-            id={`ws-tab-${x.id}`}
-            aria-controls="ws-panel"
-            {...tabProps(i)}
-            className={`pill min-h-12 rounded-full border-[1.5px] px-6 text-[15px] font-bold max-[560px]:px-4 max-[560px]:text-sm ${
-              i === sel ? 'border-ink bg-ink text-cream' : 'border-line bg-transparent text-ink'
-            }`}
-          >
-            {x.name}
-          </button>
-        ))}
-      </div>
+      {list.length > 1 && (
+        <div {...listProps} aria-label="Workshops" className="mb-10 flex flex-wrap justify-center gap-2.5">
+          {list.map((x, i) => (
+            <button
+              key={x.id}
+              type="button"
+              id={`ws-tab-${x.id}`}
+              aria-controls="ws-panel"
+              {...tabProps(i)}
+              className={`pill min-h-12 rounded-full border-[1.5px] px-6 text-[15px] font-bold max-[560px]:px-4 max-[560px]:text-sm ${
+                x.id === w.id ? 'border-ink bg-ink text-cream' : 'border-line bg-transparent text-ink'
+              }`}
+            >
+              {x.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div
         id="ws-panel"
-        role="tabpanel"
-        aria-labelledby={`ws-tab-${w.id}`}
+        role={list.length > 1 ? 'tabpanel' : undefined}
+        aria-labelledby={list.length > 1 ? `ws-tab-${w.id}` : 'workshops-title'}
         className="reveal grid items-center gap-12 rounded-[36px] bg-white p-7 shadow-[0_40px_80px_-50px_rgba(11,46,51,.45)] min-[981px]:grid-cols-2 max-[560px]:gap-6 max-[560px]:rounded-[26px] max-[560px]:p-3"
       >
         <div className="zoom relative h-[440px] overflow-hidden rounded-[24px] max-[560px]:h-[280px] max-[560px]:rounded-[18px]">
-          <Picture key={w.img} src={w.img} alt={w.alt} sizes="(min-width: 981px) 560px, 100vw" className="h-full w-full" />
-          <span className="absolute left-[18px] top-[18px] rounded-full bg-cream/95 px-3.5 py-2 text-[13px] font-bold">{w.tag}</span>
+          <Picture key={w.image} src={w.image} alt={w.alt || w.name} sizes="(min-width: 981px) 560px, 100vw" className="h-full w-full" />
+          {w.tag && <span className="absolute left-[18px] top-[18px] rounded-full bg-cream/95 px-3.5 py-2 text-[13px] font-bold">{w.tag}</span>}
         </div>
         <div className="py-3 pr-5 max-[980px]:px-2 max-[560px]:pb-4 max-[560px]:pt-0">
-          <p dir="rtl" lang="ar" className="m-0 text-left font-ar text-xl font-bold text-gold-dark">
-            {w.ar}
-          </p>
+          {w.nameAr && (
+            <p dir="rtl" lang="ar" className="m-0 text-left font-ar text-xl font-bold text-gold-dark">
+              {w.nameAr}
+            </p>
+          )}
           <h3 className="mb-0 mt-1 font-serif text-[52px] font-medium leading-none max-[560px]:text-[40px]">{w.name}</h3>
-          <p className="mt-[18px] text-base leading-[1.7] text-muted">{w.desc}</p>
+          {w.description && <p className="mt-[18px] text-base leading-[1.7] text-muted">{w.description}</p>}
 
-          <ol className="m-0 mt-[34px] grid list-none grid-cols-[auto_minmax(0,1fr)] gap-x-[18px] p-0">
-            <li className="contents">
-              <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-btn font-bold text-white">1</span>
-              <div className="pb-[18px]">
-                <strong className="text-base">Day 1 — Learn &amp; create</strong>
-                <p className="mb-0 mt-1 text-sm text-muted-2">{w.day1}</p>
-              </div>
-            </li>
-            <li className="contents">
-              <span aria-hidden="true" className="-mt-3.5 h-[46px] w-0.5 justify-self-center [background:repeating-linear-gradient(#B8913A_0_5px,transparent_5px_10px)]" />
-              <div className="-mt-2.5 pb-3.5">
-                <span className="text-[13px] font-bold uppercase tracking-[.08em] text-price">One week break — your piece cures</span>
-              </div>
-            </li>
-            <li className="contents">
-              <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-full bg-ink font-bold text-white">2</span>
-              <div>
-                <strong className="text-base">Day 2 — Finish your project</strong>
-                <p className="mb-0 mt-1 text-sm text-muted-2">{w.day2}</p>
-              </div>
-            </li>
-          </ol>
+          {(w.price !== null || w.dates) && (
+            <ul className="m-0 mt-5 flex list-none flex-wrap gap-2.5 p-0">
+              {w.price !== null && (
+                <li className="rounded-full bg-teal-mist px-4 py-2 text-sm font-bold text-ink">
+                  {formatPrice(w.price)} <span className="font-semibold text-muted-2">per seat</span>
+                </li>
+              )}
+              {w.dates && <li className="rounded-full bg-sand-2 px-4 py-2 text-sm font-bold text-ink">{w.dates}</li>}
+            </ul>
+          )}
+
+          {w.day1 && (
+            <ol className="m-0 mt-[34px] grid list-none grid-cols-[auto_minmax(0,1fr)] gap-x-[18px] p-0">
+              <li className="contents">
+                <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-btn font-bold text-white">1</span>
+                <div className={twoDays ? 'pb-[18px]' : ''}>
+                  <strong className="text-base">{twoDays ? 'Day 1 — Learn & create' : 'Your session'}</strong>
+                  <p className="mb-0 mt-1 text-sm text-muted-2">{w.day1}</p>
+                </div>
+              </li>
+              {twoDays && (
+                <>
+                  <li className="contents">
+                    <span aria-hidden="true" className="-mt-3.5 h-[46px] w-0.5 justify-self-center [background:repeating-linear-gradient(#B8913A_0_5px,transparent_5px_10px)]" />
+                    <div className="-mt-2.5 pb-3.5">
+                      <span className="text-[13px] font-bold uppercase tracking-[.08em] text-price">One week break — your piece cures</span>
+                    </div>
+                  </li>
+                  <li className="contents">
+                    <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-full bg-ink font-bold text-white">2</span>
+                    <div>
+                      <strong className="text-base">Day 2 — Finish your project</strong>
+                      <p className="mb-0 mt-1 text-sm text-muted-2">{w.day2}</p>
+                    </div>
+                  </li>
+                </>
+              )}
+            </ol>
+          )}
 
           <div className="mt-[34px] flex flex-wrap items-center gap-3">
             <a href={book.href} target="_blank" rel="noopener noreferrer" className={`${btnBase} btn-primary min-h-[52px] bg-ink px-[26px] text-white hover:text-white`}>

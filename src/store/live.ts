@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
-import type { CatalogOverride, CatalogOverrides, PaymentSettings, PublicPromo } from '../lib/api-types';
+import type { CatalogOverride, CatalogOverrides, PaymentSettings, PublicPromo, PublicWorkshop } from '../lib/api-types';
 import { markCatalogLive, setCatalog, type CatalogData, type Product } from '../data/catalog';
 import { sanitiseLines, useCart } from './cart';
 
@@ -14,6 +14,8 @@ interface LiveState {
   payment: PaymentSettings | null;
   /** The offer announced in the top bar (a promo code the owner chose in the dashboard), or null. */
   promo: PublicPromo | null;
+  /** The workshops the owner manages in the dashboard (may be empty); null until they have changed any — the built-in list is shown then. */
+  workshops: PublicWorkshop[] | null;
   load: (force?: boolean) => Promise<void>;
 }
 
@@ -24,6 +26,7 @@ export const useLive = create<LiveState>()((set, get) => ({
   overrides: {},
   payment: null,
   promo: null,
+  workshops: null,
   load: async (force) => {
     if (!force && (get().status === 'loading' || get().status === 'ready')) return;
     set({ status: 'loading' });
@@ -35,6 +38,7 @@ export const useLive = create<LiveState>()((set, get) => ({
         overrides: CatalogOverrides;
         payment: PaymentSettings;
         promo?: PublicPromo | null;
+        workshops?: PublicWorkshop[];
         rev?: number;
         catalog?: CatalogData;
       };
@@ -46,7 +50,13 @@ export const useLive = create<LiveState>()((set, get) => ({
       markCatalogLive();
       // Cart lines for products that were deleted in the meantime are dropped now that we know the real catalogue.
       useCart.setState((s) => ({ lines: sanitiseLines(s.lines) }));
-      set({ status: 'ready', overrides: data.overrides ?? {}, payment: data.payment ?? null, promo: data.promo ?? null });
+      set({
+        status: 'ready',
+        overrides: data.overrides ?? {},
+        payment: data.payment ?? null,
+        promo: data.promo ?? null,
+        workshops: Array.isArray(data.workshops) ? data.workshops : null,
+      });
     } catch {
       // Offline or API not deployed: the site keeps working with "Price pending".
       set({ status: 'error' });

@@ -264,4 +264,5 @@ Everything must be disabled under `prefers-reduced-motion: reduce`.
    - AI-looking backgrounds: #109, #110.
    - The low-res `legacy-crops`.
 5. Six hidden products waiting on confirmation (see §9).
-6. Workshop dates, prices and booking flow. The "Book & pay online" button is a placeholder.
+6. Workshop dates, prices and booking flow. The owner now manages the workshops themselves (add / edit / price / dates / photo / order / hide / delete)
+   from Dashboard → **الورش**; booking is still a WhatsApp message, not an online payment.

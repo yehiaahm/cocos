@@ -8,6 +8,7 @@ import { useAuth } from '../store/auth';
 import { useMyOrders } from '../store/myOrders';
 import { isOpenOrder } from '../lib/order-status';
 import { Avatar } from '../pages/AccountPage';
+import { useWorkshops } from '../data/workshops';
 
 export const NAV_LINKS = [
   { to: '/shop', label: 'Shop' },
@@ -76,6 +77,9 @@ export function AccountButton() {
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  // The Workshops link goes away when the owner has hidden or deleted every workshop.
+  const hasWorkshops = useWorkshops().length > 0;
+  const links = hasWorkshops ? NAV_LINKS : NAV_LINKS.filter((l) => l.to !== '/#workshops');
   const { pathname, hash } = useLocation();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -114,7 +118,7 @@ export function Header() {
       <div className="container-page flex items-center justify-between gap-4 py-[22px] max-[560px]:py-4">
         <Logo />
         <nav aria-label="Main" className="hidden items-center gap-9 text-[15px] font-semibold min-[981px]:flex">
-          {NAV_LINKS.map((l) =>
+          {links.map((l) =>
             l.to.includes('#') ? (
               <Link key={l.to} to={l.to} className="nav-link relative text-ink no-underline hover:text-ink">
                 {l.label}
@@ -157,7 +161,7 @@ export function Header() {
         >
           <nav aria-label="Mobile">
             <ul className="m-0 flex list-none flex-col p-0">
-              {NAV_LINKS.map((l) => (
+              {links.map((l) => (
                 <li key={l.to}>
                   <Link
                     to={l.to}

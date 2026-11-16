@@ -25,6 +25,7 @@ Node 20.19+ is required (22 LTS recommended).
 | Products, categories, photos, prices, sold out, hidden | Dashboard → **المنتجات** (`/admin/products`) — live on the site within a minute |
 | InstaPay / wallet number, delivery fee | Dashboard → **الإعدادات** (`/admin/settings`) |
 | Promo codes and the offer bar at the top of the shop | Dashboard → **العروض** (`/admin/promos`) |
+| Workshops (add, edit, photo, price, dates, order, hide, delete) | Dashboard → **الورش** (`/admin/workshops`) |
 
 Until the WhatsApp number is set, every WhatsApp button falls back to Instagram and checkout copies the
 order for an Instagram DM. The Facebook button stays hidden until its URL is set. No link is ever dead.
@@ -258,6 +259,26 @@ How it works
 - Wrong codes are limited to 10 tries per visitor every 15 minutes, so codes can't be found by guessing.
 - `GET /api/catalog` carries the top-bar offer; `POST /api/promo` checks a code; `/api/admin/promos` manages them.
   Schema: `migrations/0006_promos.sql` (Railway applies it on start; on Cloudflare run `npm run db:migrate:prod`).
+
+### Workshops (dashboard → **الورش** / Workshops, `/admin/workshops`)
+The owner has full control of the "Let's get creative" section of the homepage: **add**, **edit**, **reorder** (arrows), **hide / show**
+(switch) and **delete** workshops. Each workshop has:
+
+| Field | Notes |
+|---|---|
+| **Name** (English, required) · **Name (Arabic)** | The tab label and heading · small Arabic label above it. |
+| **Description**, **Day 1**, **Day 2** | Leave Day 2 empty for a one-session workshop: the shop then shows a single "Your session" step instead of the two-day timeline. |
+| **Price per seat** · **Dates / times** | Both optional free-form chips shown under the description; the dates are also added to the "Book your seat" WhatsApp message. |
+| **Badge**, **Photo**, **Photo description** | Photos are shrunk in the browser and uploaded like product photos (`/api/admin/media`). Without one, the standard workshop photo is used. |
+| **Shown on the shop** | Hide a workshop without deleting it. When none is visible the whole section, its header / footer links, the hero "Book a workshop" button and the hero counter disappear. |
+
+How it works
+- The four workshops built into the site (`src/lib/workshops.ts`) are only the starting point: the first time the screen is opened they are
+  copied into the `workshops` table, once. Until the owner changes something the shop keeps using the built-in list (and the prerendered homepage
+  matches it); after the first change `GET /api/catalog` sends the table's visible workshops (possibly none). Changes show within a minute, like products.
+- Photos may only be ones shipped with the site or uploaded from the dashboard (`/images/products`, `/images/legacy-crops`, `/media/catalog`); text fields are length-limited on the server.
+- `/api/admin/workshops` (GET, POST, PUT `{ order }`) and `/api/admin/workshops/:id` (GET, PATCH, DELETE) manage them.
+  Schema: `migrations/0008_workshops.sql` (Railway applies it on start; on Cloudflare run `npm run db:migrate:prod`).
 
 ### Checkout
 Checkout validates name, Egyptian mobile, city and address on both the browser and the server, then saves
