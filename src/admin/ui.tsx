@@ -171,4 +171,5 @@ export const Icon = {
   down: (s?: number) => I(<path d="M6 9l6 6 6-6" />, s),
   star: (s?: number) => I(<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" />, s),
   close: (s?: number) => I(<path d="M6 6l12 12M18 6L6 18" />, s),
+  tag: (s?: number) => I(<><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z" /><circle cx="7.5" cy="7.5" r="1.5" /></>, s),
 };

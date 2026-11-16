@@ -9,7 +9,10 @@ import { useCatalog } from '../data/catalog';
 import { imageUrl } from '../lib/images';
 import { formatPrice, plural } from '../lib/format';
 import { normaliseEgyptPhone } from '../lib/phone';
-import type { CreateOrderInput, PaymentMethod } from '../lib/api-types';
+import type { CreateOrderInput, PaymentMethod, PublicPromo } from '../lib/api-types';
+import { orderTotals } from '../lib/promo';
+import { forgetPromoCode } from '../lib/promo-pick';
+import { PromoField } from '../components/PromoField';
 import { ArrowRight } from '../components/Icons';
 import { launchPayment, paymentAppFor } from '../lib/payment-apps';
 
@@ -57,6 +60,9 @@ export function CheckoutPage() {
   const [method, setMethod] = useState<PaymentMethod>('cod');
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
+  const [promo, setPromo] = useState<PublicPromo | null>(null);
+  const [promoError, setPromoError] = useState('');
+  const bannerPromo = useLive((s) => s.promo);
 
   // Prefill details from this browser's last order (stays on this device only).
   useEffect(() => {
@@ -83,10 +89,15 @@ export function CheckoutPage() {
   }, [user]);
 
   const items = lines.map((l) => resolveLine(l, overrides)).filter((x): x is NonNullable<ReturnType<typeof resolveLine>> => !!x);
-  const allPriced = items.length > 0 && items.every((i) => i.unitPrice !== null);
-  const subtotal = allPriced ? items.reduce((t, i) => t + (i.unitPrice ?? 0) * i.line.qty, 0) : null;
   const deliveryFee = payment?.deliveryFee ?? null;
-  const total = subtotal !== null && deliveryFee !== null ? subtotal + deliveryFee : null;
+  // Same maths as the server (src/lib/promo.ts); the server works it out again when the order is placed.
+  // A code the server just refused stays visible (so it can be removed) but no longer counts.
+  const countedPromo = promoError ? null : promo;
+  const { subtotal, discount, total } = orderTotals(
+    items.map((i) => ({ qty: i.line.qty, unitPrice: i.unitPrice })),
+    deliveryFee,
+    countedPromo,
+  );
   const blocked = items.some((i) => i.unavailable);
 
   const methods: { id: PaymentMethod; title: string; desc: string }[] = [
@@ -129,6 +140,7 @@ export function CheckoutPage() {
       })),
       customer: { name: form.name, phone: form.phone, city: form.city, address: form.address, notes: form.notes },
       paymentMethod: method,
+      ...(promo ? { promoCode: promo.code } : {}),
       website: honeypot,
     };
 
@@ -145,6 +157,11 @@ export function CheckoutPage() {
         if (code && ['name', 'phone', 'city', 'address'].includes(code)) {
           setErrors({ [code]: data.error });
           document.getElementById(`co-${code}`)?.focus();
+        } else if (data.code === 'promo') {
+          // Shown next to the code in the summary, with a short pointer above the button.
+          setPromoError(data.error ?? 'This promo code can’t be used.');
+          setErrors({ form: 'There’s a problem with your promo code — see your order summary. You can remove it and place the order without it.' });
+          document.getElementById('summary-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else {
           setErrors({ form: data.error ?? 'We could not place your order. Please check your connection and try again.' });
         }
@@ -159,6 +176,7 @@ export function CheckoutPage() {
         /* storage unavailable */
       }
       clear();
+      forgetPromoCode();
       navigate(`/order/${data.number}?t=${encodeURIComponent(data.token)}`, { replace: true, state: { placed: true } });
       // InstaPay / Vodafone Cash: open the payment app. We go to the order page first so the customer
       // lands back on the payment details (amount, address to copy, screenshot upload) after paying.
@@ -334,11 +352,31 @@ export function CheckoutPage() {
           <dl className="m-0 mt-4 grid grid-cols-[1fr_auto] gap-y-2 border-t border-line pt-4 text-sm">
             <dt className="font-bold">Subtotal</dt>
             <dd className="m-0 text-right font-bold text-price">{formatPrice(subtotal)}</dd>
+            {countedPromo && (
+              <>
+                <dt className="font-semibold text-teal-dark">
+                  Discount <span className="font-mono text-[12px] tracking-[.08em]">({countedPromo.code})</span>
+                </dt>
+                <dd className="m-0 text-right font-bold text-teal-dark">{discount === null ? 'At confirmation' : discount > 0 ? `− ${formatPrice(discount)}` : formatPrice(0)}</dd>
+              </>
+            )}
             <dt className="text-muted-2">Delivery</dt>
             <dd className="m-0 text-right text-muted-2">{deliveryFee !== null ? formatPrice(deliveryFee) : 'Confirmed by Coco'}</dd>
             <dt className="mt-2 border-t border-line pt-3 text-base font-bold">Total</dt>
             <dd className="m-0 mt-2 border-t border-line pt-3 text-right text-base font-bold">{total !== null ? formatPrice(total) : 'Confirmed by Coco'}</dd>
           </dl>
+          <PromoField
+            applied={promo}
+            onApply={setPromo}
+            serverError={promoError}
+            onClearServerError={() => {
+              setPromoError('');
+              setErrors((x) => ({ ...x, form: undefined }));
+            }}
+            subtotal={subtotal}
+            discount={discount}
+            suggestion={bannerPromo && bannerPromo.code !== promo?.code ? bannerPromo : null}
+          />
           {payment?.deliveryNote && <p className="mb-0 mt-3 text-[13px] text-muted-2">{payment.deliveryNote}</p>}
         </aside>
       </div>

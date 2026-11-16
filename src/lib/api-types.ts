@@ -1,5 +1,7 @@
 /** Types shared by the storefront, the admin dashboard and the Cloudflare API. */
 
+import type { PromoRules, PromoType } from './promo';
+
 export type OrderStatus = 'new' | 'confirmed' | 'in_progress' | 'shipped' | 'delivered' | 'cancelled';
 export type PaymentMethod = 'cod' | 'instapay' | 'wallet';
 export type PaymentStatus = 'unpaid' | 'pending_review' | 'paid' | 'refunded';
@@ -62,6 +64,8 @@ export interface CreateOrderInput {
   items: { productId: string; variantId: string; qty: number; personalisation?: string }[];
   customer: { name: string; phone: string; city: string; address: string; notes?: string };
   paymentMethod: PaymentMethod;
+  /** Optional promo code; the server checks it again and works out the discount itself. */
+  promoCode?: string;
   /** Honeypot — must stay empty. */
   website?: string;
 }
@@ -97,6 +101,10 @@ export interface PublicOrder {
   items: OrderItemView[];
   subtotal: number | null;
   deliveryFee: number | null;
+  /** Promo code used on the order, if any. */
+  promoCode: string | null;
+  /** EGP taken off; null while it can't be worked out yet (unpriced items), 0 without a code. */
+  discount: number | null;
   total: number | null;
   createdAt: string;
 }
@@ -112,6 +120,7 @@ export interface AdminOrderSummary {
   city: string;
   itemCount: number;
   total: number | null;
+  promoCode: string | null;
   createdAt: string;
 }
 
@@ -122,6 +131,9 @@ export interface AdminOrder extends AdminOrderSummary {
   adminNotes: string | null;
   subtotal: number | null;
   deliveryFee: number | null;
+  discount: number | null;
+  /** The rules the order was placed with (a copy: later edits to the code don't change it). */
+  promo: PromoRules | null;
   hasProof: boolean;
   items: OrderItemView[];
   events: OrderEventView[];
@@ -135,6 +147,8 @@ export interface AdminOrderUpdate {
   deliveryFee?: number | null;
   items?: { id: number; unitPrice: number | null }[];
   adminNotes?: string;
+  /** Takes the promo code off the order (its use goes back to the code) and recomputes the total. */
+  removePromo?: boolean;
 }
 
 export interface AdminVariant {
@@ -205,4 +219,51 @@ export interface AdminCustomer {
   firstOrder: string;
   lastOrder: string;
   lastOrderNumber: string;
+}
+
+/** A promo code as the shop sees it: enough to show it and work out the discount, nothing internal. */
+export interface PublicPromo extends PromoRules {
+  code: string;
+  /** ISO; null = no end date. */
+  endsAt: string | null;
+  /** The owner's own announcement for the top bar ('' = generated from the rules). */
+  bannerText: string;
+}
+
+export type PromoState = 'active' | 'scheduled' | 'expired' | 'used_up' | 'paused';
+
+export interface AdminPromo extends PromoRules {
+  id: number;
+  code: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  usageLimit: number | null;
+  perCustomerLimit: number | null;
+  usedCount: number;
+  active: boolean;
+  banner: boolean;
+  bannerText: string;
+  note: string;
+  state: PromoState;
+  /** Results from non-cancelled orders that used the code. */
+  stats: { orders: number; discount: number; revenue: number };
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Body of POST /api/admin/promos and PATCH /api/admin/promos/:id (PATCH may send only some fields). */
+export interface AdminPromoInput {
+  code: string;
+  type: PromoType;
+  value: number | null;
+  minSubtotal: number | null;
+  maxDiscount: number | null;
+  startsAt: string | null;
+  endsAt: string | null;
+  usageLimit: number | null;
+  perCustomerLimit: number | null;
+  active: boolean;
+  banner: boolean;
+  bannerText: string;
+  note: string;
 }

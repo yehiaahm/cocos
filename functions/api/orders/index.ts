@@ -1,7 +1,19 @@
 import type { Fn } from '../../../server/env';
-import { HttpError, assertSameOrigin, handle, ipHash, json, rateLimit, randomToken, readJson, str } from '../../../server/http';
+import { HttpError, assertNotLocked, assertSameOrigin, handle, ipHash, json, rateLimit, randomToken, readJson, recordFailure, str } from '../../../server/http';
 import { isSoldOut, loadCatalog, loadOverrides, overrideFor } from '../../../server/catalog';
 import { addEvent, computeTotals, getSettings } from '../../../server/orders';
+import {
+  PROMO_FAIL_LIMIT,
+  PROMO_FAIL_WINDOW,
+  assertUsable,
+  findPromoByCode,
+  releasePromoUse,
+  reservePromoUse,
+  rulesOf,
+  usesByPhone,
+  type PromoRow,
+} from '../../../server/promos';
+import { normalisePromoCode } from '../../../src/lib/promo';
 import { notifyAdmins } from '../../../server/push';
 import { getSessionUser } from '../../../server/accounts';
 import { normaliseEgyptPhone } from '../../../src/lib/phone';
@@ -70,7 +82,29 @@ export const onRequestPost: Fn = handle(async ({ request, env, waitUntil }) => {
   }
 
   const settings = await getSettings(env.DB);
-  const { subtotal, total } = computeTotals(lines, settings.deliveryFee);
+
+  // Promo code: checked again here whatever the browser said; the discount is always worked out on the server.
+  let promo: PromoRow | null = null;
+  const promoCode = normalisePromoCode(body.promoCode);
+  if (promoCode) {
+    const failBucket = `promofail:${hash}`;
+    await assertNotLocked(env.DB, failBucket, PROMO_FAIL_LIMIT, PROMO_FAIL_WINDOW);
+    const found = await findPromoByCode(env.DB, promoCode);
+    if (!found) await recordFailure(env.DB, failBucket);
+    assertUsable(found);
+    promo = found;
+  }
+  const rules = promo ? rulesOf(promo) : null;
+  const { subtotal, discount, total } = computeTotals(lines, settings.deliveryFee, rules);
+  if (promo && rules && subtotal !== null && rules.minSubtotal !== null && subtotal < rules.minSubtotal) {
+    throw new HttpError(400, `This code needs an order of at least EGP ${rules.minSubtotal}. Add EGP ${rules.minSubtotal - subtotal} more to use it.`, 'promo');
+  }
+  if (promo && promo.per_customer_limit !== null && (await usesByPhone(env.DB, promo.id, phone)) >= promo.per_customer_limit) {
+    throw new HttpError(400, 'You’ve already used this promo code.', 'promo');
+  }
+  // Take one use now (atomic): if the last use of a limited code just went to someone else, say so.
+  if (promo && !(await reservePromoUse(env.DB, promo.id))) throw new HttpError(409, 'This promo code has just been fully redeemed.', 'promo');
+
   const token = randomToken();
   // Signed-in customers: the order joins their account and their delivery details are remembered.
   const user = await getSessionUser(env, request);
@@ -78,9 +112,13 @@ export const onRequestPost: Fn = handle(async ({ request, env, waitUntil }) => {
   // One transaction: order, its number (CA-1001…), items, first timeline event.
   const stmts = [
     env.DB.prepare(
-      `INSERT INTO orders (token, payment_method, customer_name, phone, city, address, notes, subtotal, delivery_fee, total, ip_hash, user_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(token, method, name, phone, city, address, notes, subtotal, settings.deliveryFee, total, hash, user?.id ?? null),
+      `INSERT INTO orders (token, payment_method, customer_name, phone, city, address, notes, subtotal, delivery_fee, total, ip_hash, user_id,
+                           promo_id, promo_code, promo, discount)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(
+      token, method, name, phone, city, address, notes, subtotal, settings.deliveryFee, total, hash, user?.id ?? null,
+      promo?.id ?? null, promo?.code ?? null, rules ? JSON.stringify(rules) : null, promo ? discount : null,
+    ),
     ...(user ? [env.DB.prepare('UPDATE users SET phone = ?, city = ?, address = ? WHERE id = ?').bind(phone, city, address, user.id)] : []),
     env.DB.prepare("UPDATE orders SET number = 'CA-' || (1000 + id) WHERE token = ?").bind(token),
     ...lines.map((l) =>
@@ -94,17 +132,24 @@ export const onRequestPost: Fn = handle(async ({ request, env, waitUntil }) => {
       env.DB.prepare('UPDATE product_overrides SET stock = MAX(stock - ?, 0) WHERE product_id = ? AND stock IS NOT NULL').bind(w.qty, productId),
     ),
   ];
-  await env.DB.batch(stmts);
+  try {
+    await env.DB.batch(stmts);
+  } catch (e) {
+    // The order wasn't saved: give the reserved use back.
+    if (promo) await releasePromoUse(env.DB, promo.id).run().catch(() => undefined);
+    throw e;
+  }
   const row = await env.DB.prepare('SELECT id, number FROM orders WHERE token = ?').bind(token).first<{ id: number; number: string }>();
   if (!row) throw new HttpError(500, 'Order could not be saved. Please try again.');
   await addEvent(env.DB, row.id, 'created', 'تم استلام الطلب من الموقع').run();
+  if (promo) await addEvent(env.DB, row.id, 'promo', `كود خصم: ${promo.code}${discount ? ` (−${discount} ج.م)` : ''}`).run();
 
   const pieces = lines.reduce((t, l) => t + l.qty, 0);
   const methodAr = { cod: 'كاش عند الاستلام', instapay: 'إنستاباي', wallet: 'محفظة' }[method];
   waitUntil(
     notifyAdmins(env, {
       title: `🛍️ طلب جديد ${row.number}`,
-      body: `${name} · ${city}\n${pieces} قطعة · ${methodAr}${total !== null ? ` · ${total} ج.م` : ''}`,
+      body: `${name} · ${city}\n${pieces} قطعة · ${methodAr}${total !== null ? ` · ${total} ج.م` : ''}${promo ? ` · 🏷️ ${promo.code}` : ''}`,
       url: `/admin/orders/${row.id}`,
     }),
   );

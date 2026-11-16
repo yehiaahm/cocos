@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
-import type { CatalogOverride, CatalogOverrides, PaymentSettings } from '../lib/api-types';
+import type { CatalogOverride, CatalogOverrides, PaymentSettings, PublicPromo } from '../lib/api-types';
 import { markCatalogLive, setCatalog, type CatalogData, type Product } from '../data/catalog';
 import { sanitiseLines, useCart } from './cart';
 
@@ -12,6 +12,8 @@ interface LiveState {
   status: 'idle' | 'loading' | 'ready' | 'error';
   overrides: CatalogOverrides;
   payment: PaymentSettings | null;
+  /** The offer announced in the top bar (a promo code the owner chose in the dashboard), or null. */
+  promo: PublicPromo | null;
   load: (force?: boolean) => Promise<void>;
 }
 
@@ -21,6 +23,7 @@ export const useLive = create<LiveState>()((set, get) => ({
   status: 'idle',
   overrides: {},
   payment: null,
+  promo: null,
   load: async (force) => {
     if (!force && (get().status === 'loading' || get().status === 'ready')) return;
     set({ status: 'loading' });
@@ -28,7 +31,13 @@ export const useLive = create<LiveState>()((set, get) => ({
       // A forced reload skips the browser's 30-second cache, so a page that was just published is found.
       const res = await fetch('/api/catalog', { headers: { accept: 'application/json' }, cache: force ? 'no-store' : 'default' });
       if (!res.ok) throw new Error(String(res.status));
-      const data = (await res.json()) as { overrides: CatalogOverrides; payment: PaymentSettings; rev?: number; catalog?: CatalogData };
+      const data = (await res.json()) as {
+        overrides: CatalogOverrides;
+        payment: PaymentSettings;
+        promo?: PublicPromo | null;
+        rev?: number;
+        catalog?: CatalogData;
+      };
       // Once the dashboard has changed the catalogue the server sends all of it; until then the bundled one is exact.
       if (data.catalog && data.rev !== appliedRev) {
         appliedRev = data.rev;
@@ -37,7 +46,7 @@ export const useLive = create<LiveState>()((set, get) => ({
       markCatalogLive();
       // Cart lines for products that were deleted in the meantime are dropped now that we know the real catalogue.
       useCart.setState((s) => ({ lines: sanitiseLines(s.lines) }));
-      set({ status: 'ready', overrides: data.overrides ?? {}, payment: data.payment ?? null });
+      set({ status: 'ready', overrides: data.overrides ?? {}, payment: data.payment ?? null, promo: data.promo ?? null });
     } catch {
       // Offline or API not deployed: the site keeps working with "Price pending".
       set({ status: 'error' });

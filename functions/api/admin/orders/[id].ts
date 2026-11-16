@@ -1,6 +1,7 @@
 import type { Fn } from '../../../../server/env';
 import { HttpError, handle, intOrNull, json, readJson, str } from '../../../../server/http';
-import { PAYMENT_STATUS_AR, STATUS_AR, addEvent, computeTotals, getItems, getOrderRow, toAdmin } from '../../../../server/orders';
+import { PAYMENT_STATUS_AR, STATUS_AR, addEvent, computeTotals, getItems, getOrderRow, promoOf, toAdmin } from '../../../../server/orders';
+import { releasePromoUse, retakePromoUse } from '../../../../server/promos';
 import { ORDER_STATUSES, PAYMENT_STATUSES, type AdminOrderUpdate } from '../../../../src/lib/api-types';
 
 const idOf = (p: string | string[]) => {
@@ -16,7 +17,7 @@ export const onRequestGet: Fn<'id'> = handle(async ({ env, params }) => {
   return json({ order: await toAdmin(env.DB, o) });
 });
 
-/** PATCH /api/admin/orders/:id — status, payment status, item prices, delivery fee, internal notes. */
+/** PATCH /api/admin/orders/:id — status, payment status, item prices, delivery fee, internal notes, removing the promo code. */
 export const onRequestPatch: Fn<'id'> = handle(async ({ request, env, params }) => {
   const id = idOf(params.id);
   const o = await getOrderRow(env.DB, { id });
@@ -25,6 +26,7 @@ export const onRequestPatch: Fn<'id'> = handle(async ({ request, env, params }) 
   const stmts: D1PreparedStatement[] = [];
   const set: string[] = [];
   const args: (string | number | null)[] = [];
+  const removingPromo = body.removePromo === true && !!o.promo_code;
 
   if (body.status !== undefined && body.status !== o.status) {
     if (!ORDER_STATUSES.includes(body.status)) throw new HttpError(400, 'حالة غير صحيحة');
@@ -45,6 +47,8 @@ export const onRequestPatch: Fn<'id'> = handle(async ({ request, env, params }) 
           ).bind(qty, productId),
         );
       }
+      // The promo code's use follows the order: back to the code on cancel, taken again on reopen.
+      if (o.promo_id !== null && !removingPromo) stmts.push(cancelling ? releasePromoUse(env.DB, o.promo_id) : retakePromoUse(env.DB, o.promo_id));
     }
   }
   if (body.paymentStatus !== undefined && body.paymentStatus !== o.payment_status) {
@@ -58,8 +62,15 @@ export const onRequestPatch: Fn<'id'> = handle(async ({ request, env, params }) 
     args.push(str(body.adminNotes, 2000) || null);
   }
 
-  // Pricing: update line prices and/or delivery fee, then recompute totals.
-  if (body.items !== undefined || body.deliveryFee !== undefined) {
+  // Removing the promo code: its use goes back to the code (a cancelled order already gave it back).
+  if (removingPromo) {
+    set.push('promo_id = NULL', 'promo_code = NULL', 'promo = NULL', 'discount = NULL');
+    if (o.promo_id !== null && o.status !== 'cancelled') stmts.push(releasePromoUse(env.DB, o.promo_id));
+    stmts.push(addEvent(env.DB, id, 'promo', `تم إلغاء كود الخصم ${o.promo_code}`));
+  }
+
+  // Pricing: update line prices and/or delivery fee (or the promo code went), then recompute totals.
+  if (body.items !== undefined || body.deliveryFee !== undefined || removingPromo) {
     const items = await getItems(env.DB, id);
     const byId = new Map(items.map((i) => [i.id, i]));
     for (const u of body.items ?? []) {
@@ -72,9 +83,14 @@ export const onRequestPatch: Fn<'id'> = handle(async ({ request, env, params }) 
       }
     }
     const fee = body.deliveryFee !== undefined ? intOrNull(body.deliveryFee, { max: 100_000 }) : o.delivery_fee;
-    const { subtotal, total } = computeTotals(items, fee);
+    const rules = removingPromo ? null : promoOf(o);
+    const { subtotal, discount, total } = computeTotals(items, fee, rules);
     set.push('subtotal = ?', 'delivery_fee = ?', 'total = ?');
     args.push(subtotal, fee, total);
+    if (rules) {
+      set.push('discount = ?');
+      args.push(discount);
+    }
     if (total !== o.total) stmts.push(addEvent(env.DB, id, 'pricing', total !== null ? `الإجمالي: ${total} ج.م` : 'تم تحديث الأسعار'));
   }
 

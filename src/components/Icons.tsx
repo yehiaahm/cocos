@@ -95,3 +95,9 @@ export const Copy = ({ size = 18, ...p }: P) => (
     <path d="M5 15V5a2 2 0 0 1 2-2h10" />
   </svg>
 );
+export const Tag = ({ size = 18, ...p }: P) => (
+  <svg {...base(size)} {...p}>
+    <path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z" />
+    <circle cx="7.5" cy="7.5" r="1.5" />
+  </svg>
+);

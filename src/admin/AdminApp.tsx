@@ -12,6 +12,7 @@ import { ProductEditPage } from './pages/ProductEditPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { PromosPage } from './pages/PromosPage';
 import { site } from '../config/site';
 
 interface Session {
@@ -84,6 +85,7 @@ const NAV: { to: string; label: Key; icon: () => ReactNode; end?: boolean; badge
   { to: '/admin', label: 'nav.home', icon: Icon.home, end: true },
   { to: '/admin/orders', label: 'nav.orders', icon: Icon.orders, badge: 'orders' },
   { to: '/admin/products', label: 'nav.products', icon: Icon.products },
+  { to: '/admin/promos', label: 'nav.promos', icon: () => Icon.tag() },
   { to: '/admin/customers', label: 'nav.customers', icon: Icon.customers },
   { to: '/admin/settings', label: 'nav.settings', icon: Icon.settings },
 ];
@@ -250,6 +252,7 @@ export default function AdminApp() {
           <Route path="/admin/products/new" element={<ProductEditPage />} />
           <Route path="/admin/products/:id" element={<ProductEditPage />} />
           <Route path="/admin/categories" element={<CategoriesPage />} />
+          <Route path="/admin/promos" element={<PromosPage />} />
           <Route path="/admin/customers" element={<CustomersPage />} />
           <Route path="/admin/settings" element={<SettingsPage />} />
           <Route path="*" element={<DashboardPage />} />

@@ -24,6 +24,7 @@ Node 20.19+ is required (22 LTS recommended).
 | Production domain | `src/config/site.ts` → `url` (or a `VITE_SITE_URL` build variable) |
 | Products, categories, photos, prices, sold out, hidden | Dashboard → **المنتجات** (`/admin/products`) — live on the site within a minute |
 | InstaPay / wallet number, delivery fee | Dashboard → **الإعدادات** (`/admin/settings`) |
+| Promo codes and the offer bar at the top of the shop | Dashboard → **العروض** (`/admin/promos`) |
 
 Until the WhatsApp number is set, every WhatsApp button falls back to Instagram and checkout copies the
 order for an Instagram DM. The Facebook button stays hidden until its URL is set. No link is ever dead.
@@ -231,6 +232,32 @@ How it works
   an order for more than what is left is refused, cancelling an order gives the units back (reopening takes them out again), and 0 shows
   the product as sold out. The shop never receives the exact count, only the sold-out flag. Run `npm run db:migrate:prod` on Cloudflare.
 - Occasions (Ramadan & Eid, Halloween, Christmas, Personalised) are fixed; the "Personalised" tag lets customers type a name when ordering.
+
+### Offers & promo codes (dashboard → **العروض** / Offers, `/admin/promos`)
+The owner creates discount codes; customers type them at checkout and the discount is taken off automatically.
+
+| Setting | What it does |
+|---|---|
+| **Code** | What the customer types (3–24 letters/numbers, not case-sensitive). "Generate" makes a random one. |
+| **Type** | Percentage (with an optional maximum discount), fixed amount in EGP, or free delivery. |
+| **Minimum order** | Products total needed (delivery not counted). Below it the code gives nothing and checkout says how much more to add. |
+| **Starts / Ends** | Optional schedule; the code works only in between. |
+| **Total uses / uses per customer** | Optional limits. Per customer is counted by phone number. Cancelling an order gives its use back; reopening takes it again. |
+| **Active** | Pause a code without deleting it. |
+| **Top bar** | Announces the code in a bar at the top of every page of the shop, with a Copy button and a countdown in the last week. One code at a time. Optional custom message; the form shows a live preview. A code the shopper copies from the bar is applied at checkout for them. |
+
+How it works
+- The server always re-checks the code and works out the discount itself (`server/promos.ts`); the shop and the dashboard use the same
+  maths (`src/lib/promo.ts`) so the numbers they show always match. The discount never exceeds the products total.
+- A use is reserved with one atomic database update before the order is saved, so a code limited to 50 uses can't be used 51 times
+  by two customers ordering at the same moment.
+- Each order keeps its own copy of the code's rules: editing or deleting a code never changes orders already placed.
+  When an order has items that are still "Price pending", its discount is worked out as soon as the owner prices the order.
+- The order page in the dashboard shows the code and the discount (and can remove the code from an order); the orders list
+  tags orders that used a code, and searching the orders list for a code finds them. Each code shows its orders, discount given and sales.
+- Wrong codes are limited to 10 tries per visitor every 15 minutes, so codes can't be found by guessing.
+- `GET /api/catalog` carries the top-bar offer; `POST /api/promo` checks a code; `/api/admin/promos` manages them.
+  Schema: `migrations/0006_promos.sql` (Railway applies it on start; on Cloudflare run `npm run db:migrate:prod`).
 
 ### Checkout
 Checkout validates name, Egyptian mobile, city and address on both the browser and the server, then saves
