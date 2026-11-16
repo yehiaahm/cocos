@@ -20,6 +20,9 @@ const NEXT: Partial<Record<OrderStatus, { to: OrderStatus; label: Key }>> = {
   shipped: { to: 'delivered', label: 'od.next.delivered' },
 };
 
+/** The ready-made WhatsApp message that fits each status change. */
+const MESSAGE_FOR: Partial<Record<OrderStatus, string>> = { confirmed: 'confirm', in_progress: 'making', shipped: 'shipped', delivered: 'thanks' };
+
 function customerLink(o: AdminOrder) {
   return `${window.location.origin}/order/${o.number}?t=${o.token}`;
 }
@@ -44,7 +47,13 @@ function messages(o: AdminOrder, s: PaymentSettings | null): { id: string; label
       }\n${payLine}\n\nتتابع طلبك من هنا:\n${link}`,
     },
     { id: 'making', label: 'od.msg.making', text: `أهلاً ${first} 🌿\nطلبك ${o.number} بدأنا نشتغل عليه بإيدينا، وهنبلغك أول ما يجهز.\n${link}` },
-    { id: 'shipped', label: 'od.msg.shipped', text: `أهلاً ${first} 🚚\nطلبك ${o.number} اتشحن وفي الطريق ليك!\n${o.paymentMethod === 'cod' && o.total !== null ? `المطلوب عند الاستلام: ${o.total} ج.م\n` : ''}${link}` },
+    {
+      id: 'shipped',
+      label: 'od.msg.shipped',
+      text: `أهلاً ${first} 🚚\nطلبك ${o.number} اتشحن وفي الطريق ليك!\n${
+        o.courier || o.trackingNumber ? `الشحن: ${[o.courier, o.trackingNumber ? `رقم الشحنة ${o.trackingNumber}` : ''].filter(Boolean).join(' - ')}\n` : ''
+      }${o.paymentMethod === 'cod' && o.total !== null ? `المطلوب عند الاستلام: ${o.total} ج.م\n` : ''}${link}`,
+    },
     { id: 'thanks', label: 'od.msg.thanks', text: `شكراً يا ${first} 💛\nنتمنى القطعة تعجبك! لو حابب تشاركنا صورة هنكون مبسوطين جداً.\n${site.instagramUrl}` },
   ];
 }
@@ -62,11 +71,17 @@ export function OrderDetailPage() {
   const [notes, setNotes] = useState('');
   const [proofOpen, setProofOpen] = useState(false);
   const [copied, setCopied] = useState('');
+  const [courier, setCourier] = useState('');
+  const [tracking, setTracking] = useState('');
+  /** Set after a status change: offers the matching WhatsApp message. */
+  const [offer, setOffer] = useState<OrderStatus | null>(null);
 
   const hydrateForm = (o: AdminOrder) => {
     setPrices(Object.fromEntries(o.items.map((i) => [i.id, i.unitPrice?.toString() ?? ''])));
     setFee(o.deliveryFee?.toString() ?? '');
     setNotes(o.adminNotes ?? '');
+    setCourier(o.courier ?? '');
+    setTracking(o.trackingNumber ?? '');
   };
 
   const load = useCallback(async () => {
@@ -92,6 +107,7 @@ export function OrderDetailPage() {
       const { order } = await api<{ order: AdminOrder }>(`/api/admin/orders/${id}`, { method: 'PATCH', body });
       setOrder(order);
       hydrateForm(order);
+      if (body.status && MESSAGE_FOR[body.status]) setOffer(body.status);
       void refreshBadges();
     } catch (e) {
       setError((e as Error).message);
@@ -173,6 +189,26 @@ export function OrderDetailPage() {
       {error && (
         <div className="mb-4">
           <ErrorBox message={error} />
+        </div>
+      )}
+
+      {offer && order.status === offer && (
+        <div role="status" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#BFE3C9] bg-[#EAF7EE] p-3.5 print:hidden">
+          <span className="text-sm font-bold text-[#1E5B30]">{t('od.tellCustomer', { status: STATUS[offer].label })}</span>
+          <span className="flex gap-2">
+            <a
+              href={waLink(order.phone, msgs.find((m) => m.id === MESSAGE_FOR[offer])?.text)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOffer(null)}
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#1FA855] px-4 text-sm font-bold text-white no-underline hover:bg-[#178A45] hover:text-white"
+            >
+              {Icon.whatsapp(18)} {t('od.tellCustomerBtn')}
+            </a>
+            <Button variant="ghost" size="sm" onClick={() => setOffer(null)}>
+              {t('od.dismiss')}
+            </Button>
+          </span>
         </div>
       )}
 
@@ -362,6 +398,25 @@ export function OrderDetailPage() {
             <Button variant="soft" size="sm" className="mt-3 w-full" onClick={() => void copy(customerLink(order), 'link')}>
               {copied === 'link' ? Icon.check(16) : Icon.copy(16)} {t('od.copyLink')}
             </Button>
+          </Card>
+
+          <Card title={t('od.shipping')} className="print:hidden">
+            <p className="mb-3 mt-0 text-xs text-muted-2">{t('od.shippingHint')}</p>
+            <div className="grid gap-3">
+              <label className="block text-xs font-bold text-muted-2">
+                {t('od.courier')}
+                <input value={courier} onChange={(e) => setCourier(e.target.value)} placeholder={t('od.courierPlaceholder')} maxLength={60} className={`${inputCls} mt-1`} />
+              </label>
+              <label className="block text-xs font-bold text-muted-2">
+                {t('od.trackingNumber')}
+                <input value={tracking} onChange={(e) => setTracking(e.target.value)} maxLength={80} dir="ltr" className={`${inputCls} mt-1`} />
+              </label>
+            </div>
+            {(courier.trim() !== (order.courier ?? '') || tracking.trim() !== (order.trackingNumber ?? '')) && (
+              <Button size="sm" className="mt-3" disabled={saving === 'ship'} onClick={() => void update({ courier, trackingNumber: tracking }, 'ship')}>
+                {t('od.saveShipping')}
+              </Button>
+            )}
           </Card>
 
           <Card title={t('od.internalNotes')} className="print:hidden">

@@ -29,6 +29,7 @@ export const routes: string[] = [
   '/checkout',
   '/login',
   '/account',
+  '/orders',
   '/privacy',
 ];
 

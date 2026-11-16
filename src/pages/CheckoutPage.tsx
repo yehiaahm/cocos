@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Seo } from '../lib/seo';
 import { useCart, selectCount } from '../store/cart';
+import { useMyOrders } from '../store/myOrders';
 import { useLive } from '../store/live';
 import { useAuth } from '../store/auth';
 import { resolveLine } from '../components/CartDrawer';
@@ -159,6 +160,8 @@ export function CheckoutPage() {
         /* storage unavailable */
       }
       clear();
+      // Remembered on this device, so the customer finds the order (and its status) again from any page.
+      useMyOrders.getState().save(data.number, data.token);
       navigate(`/order/${data.number}?t=${encodeURIComponent(data.token)}`, { replace: true, state: { placed: true } });
       // InstaPay / Vodafone Cash: open the payment app. We go to the order page first so the customer
       // lands back on the payment details (amount, address to copy, screenshot upload) after paying.

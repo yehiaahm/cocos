@@ -2,19 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router';
 import { Seo } from '../lib/seo';
 import { imageUrl } from '../lib/images';
-import { formatPrice } from '../lib/format';
+import { dayTime, formatPrice, timeAgo } from '../lib/format';
+import { ORDER_STEPS as STEPS } from '../lib/order-status';
+import { useMyOrders } from '../store/myOrders';
 import { contactLink, site } from '../config/site';
-import type { OrderStatus, PaymentSettings, PublicOrder } from '../lib/api-types';
+import type { PaymentSettings, PublicOrder } from '../lib/api-types';
 import { launchPayment, paymentLaunchUrl, type PaymentTarget } from '../lib/payment-apps';
-import { ArrowRight, Check, Copy, Instagram, WhatsApp } from '../components/Icons';
-
-const STEPS: { id: OrderStatus; label: string; hint: string }[] = [
-  { id: 'new', label: 'Received', hint: 'Coco has your order' },
-  { id: 'confirmed', label: 'Confirmed', hint: 'Total and delivery agreed' },
-  { id: 'in_progress', label: 'Being made', hint: 'Poured and finished by hand' },
-  { id: 'shipped', label: 'On its way', hint: 'Out for delivery' },
-  { id: 'delivered', label: 'Delivered', hint: 'Enjoy it!' },
-];
+import { ArrowRight, Check, Copy, Instagram, Package, Truck, WhatsApp } from '../components/Icons';
 
 /** Shrinks phone screenshots before upload (max 1600px JPEG) — faster on mobile data. */
 async function compress(file: File): Promise<Blob> {
@@ -84,6 +78,19 @@ export function OrderPage() {
     document.addEventListener('visibilitychange', onFocus);
     return () => document.removeEventListener('visibilitychange', onFocus);
   }, [load]);
+
+  // A valid link is remembered on this device (so it shows under "My orders" and in the header), and
+  // an order that is still going refreshes itself while the page is open.
+  const loaded = state.status === 'ready';
+  const finished = state.order?.status === 'delivered' || state.order?.status === 'cancelled';
+  useEffect(() => {
+    if (loaded && token) useMyOrders.getState().save(number, token);
+  }, [loaded, number, token]);
+  useEffect(() => {
+    if (!loaded || finished) return;
+    const id = window.setInterval(() => document.visibilityState === 'visible' && void load(), 45_000);
+    return () => window.clearInterval(id);
+  }, [loaded, finished, load]);
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
@@ -190,10 +197,22 @@ export function OrderPage() {
             : o.status === 'cancelled'
               ? 'If this is unexpected, please message Coco.'
               : 'Here is where your handmade order stands.'}{' '}
-          Bookmark this page to check on your order any time.
+          This order is saved on this device. Open <Link to="/orders">My orders</Link> any time to see where it is.
         </p>
         <div className="mt-5 flex flex-wrap gap-2.5">
           <CopyButton text={pageUrl} label="order link" cta="Copy order link" />
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(`My Coco's Resin Art order ${o.number} — track it here:
+${pageUrl}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border-[1.5px] border-line bg-white px-4 text-sm font-bold text-ink no-underline hover:border-ink hover:text-ink"
+          >
+            <WhatsApp size={16} /> Save link on WhatsApp
+          </a>
+          <Link to="/orders" className="inline-flex min-h-11 items-center gap-2 rounded-full border-[1.5px] border-line bg-white px-4 text-sm font-bold text-ink no-underline hover:border-ink hover:text-ink">
+            <Package size={16} /> All my orders
+          </Link>
           <a href={ask.href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-full border-[1.5px] border-line bg-white px-4 text-sm font-bold text-ink no-underline hover:border-ink hover:text-ink">
             {ask.channel === 'whatsapp' ? <WhatsApp size={16} /> : <Instagram size={16} />} Message Coco
           </a>
@@ -227,11 +246,30 @@ export function OrderPage() {
                       <span className="pt-1">
                         <strong className={`block text-[15px] ${!done && !current ? 'text-muted-2' : ''}`}>{s.label}</strong>
                         <span className="text-[13px] text-muted-2">{s.hint}</span>
+                        {(done || current) && o.statusDates?.[s.id] && (
+                          <span className="mt-0.5 block text-[12px] font-semibold text-teal-dark">{dayTime(o.statusDates[s.id]!)}</span>
+                        )}
+                        {s.id === 'shipped' && (done || current) && (o.trackingNumber || o.courier) && (
+                          <span className="mt-2 flex flex-wrap items-center gap-2 rounded-2xl bg-cream px-3.5 py-2.5 text-[13px]">
+                            <Truck size={16} />
+                            <span>
+                              {o.courier && <strong>{o.courier}</strong>}
+                              {o.courier && o.trackingNumber ? ' · ' : ''}
+                              {o.trackingNumber && (
+                                <span dir="ltr" className="font-semibold">
+                                  {o.trackingNumber}
+                                </span>
+                              )}
+                            </span>
+                            {o.trackingNumber && <CopyButton text={o.trackingNumber} label="tracking number" />}
+                          </span>
+                        )}
                       </span>
                     </li>
                   );
                 })}
               </ol>
+              <p className="mb-0 mt-5 text-[12px] text-muted-2">Last updated {timeAgo(o.updatedAt)}. This page refreshes by itself.</p>
             </section>
           )}
 

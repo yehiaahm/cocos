@@ -1,4 +1,5 @@
 import type {
+  AccountOrderSummary,
   AdminOrder,
   AdminOrderSummary,
   OrderEventView,
@@ -27,6 +28,8 @@ export interface OrderRow {
   delivery_fee: number | null;
   total: number | null;
   admin_notes: string | null;
+  courier: string | null;
+  tracking_number: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -81,7 +84,40 @@ export async function getItems(db: D1Database, orderId: number): Promise<OrderIt
   return results.map(mapItem);
 }
 
-export function toPublic(o: OrderRow, items: OrderItemView[]): PublicOrder {
+const STATUS_BY_AR = Object.fromEntries(Object.entries(STATUS_AR).map(([k, v]) => [v, k])) as Record<string, OrderStatus>;
+
+/**
+ * When the order first reached each status, from its timeline. Events written before the `status` column existed
+ * are read from their Arabic text ("الحالة: جديد ← مؤكد"), so old orders keep their dates.
+ */
+export function statusDates(
+  createdAt: string,
+  events: { type: string; message: string; status?: string | null; created_at: string }[],
+): Partial<Record<OrderStatus, string>> {
+  const out: Partial<Record<OrderStatus, string>> = { new: createdAt };
+  for (const e of [...events].sort((a, b) => (a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : 0))) {
+    if (e.type !== 'status') continue;
+    const to = (e.status as OrderStatus | null | undefined) ?? STATUS_BY_AR[/←\s*(.+)$/.exec(e.message)?.[1]?.trim() ?? ''];
+    if (to && !out[to]) out[to] = e.created_at;
+  }
+  return out;
+}
+
+/** "ca-1001", "1001" and " CA-1001 " all mean CA-1001. */
+export function normaliseOrderNumber(input: string): string | null {
+  const m = /^(?:CA)?[\s-]*(\d{4,8})$/i.exec(input.trim());
+  return m ? `CA-${m[1]}` : null;
+}
+
+export async function getStatusDates(db: D1Database, o: Pick<OrderRow, 'id' | 'created_at'>) {
+  const { results } = await db
+    .prepare("SELECT type, message, status, created_at FROM order_events WHERE order_id = ? AND type = 'status'")
+    .bind(o.id)
+    .all<{ type: string; message: string; status: string | null; created_at: string }>();
+  return statusDates(o.created_at, results);
+}
+
+export function toPublic(o: OrderRow, items: OrderItemView[], dates: Partial<Record<OrderStatus, string>> = { new: o.created_at }): PublicOrder {
   return {
     number: o.number,
     status: o.status,
@@ -95,8 +131,46 @@ export function toPublic(o: OrderRow, items: OrderItemView[]): PublicOrder {
     deliveryFee: o.delivery_fee,
     total: o.total,
     createdAt: o.created_at,
+    updatedAt: o.updated_at,
+    courier: o.courier,
+    trackingNumber: o.tracking_number,
+    statusDates: dates,
   };
 }
+
+/** What "My orders" shows for one order: status, total, first photo, shipment. Also used by the signed-in account list. */
+export const TRACKED_SELECT = `SELECT o.number, o.token, o.status, o.payment_status, o.total, o.created_at, o.updated_at, o.courier, o.tracking_number,
+            (SELECT COALESCE(SUM(qty), 0) FROM order_items WHERE order_id = o.id) AS item_count,
+            (SELECT image FROM order_items WHERE order_id = o.id ORDER BY id LIMIT 1) AS image
+     FROM orders o`;
+
+export interface TrackedRow {
+  number: string;
+  token: string;
+  status: OrderStatus;
+  payment_status: PaymentStatus;
+  total: number | null;
+  created_at: string;
+  updated_at: string;
+  courier: string | null;
+  tracking_number: string | null;
+  item_count: number;
+  image: string | null;
+}
+
+export const toTracked = (r: TrackedRow): AccountOrderSummary => ({
+  number: r.number,
+  token: r.token,
+  status: r.status,
+  paymentStatus: r.payment_status,
+  total: r.total,
+  itemCount: r.item_count,
+  image: r.image,
+  createdAt: r.created_at,
+  updatedAt: r.updated_at,
+  courier: r.courier,
+  trackingNumber: r.tracking_number,
+});
 
 export function toSummary(o: OrderRow & { item_count?: number }): AdminOrderSummary {
   return {
@@ -133,6 +207,8 @@ export async function toAdmin(db: D1Database, o: OrderRow): Promise<AdminOrder> 
     subtotal: o.subtotal,
     deliveryFee: o.delivery_fee,
     hasProof: !!o.proof_key,
+    courier: o.courier,
+    trackingNumber: o.tracking_number,
     items,
     events: ev,
     updatedAt: o.updated_at,
@@ -167,5 +243,6 @@ export async function getSettings(db: D1Database): Promise<PaymentSettings> {
   return s;
 }
 
-export const addEvent = (db: D1Database, orderId: number, type: string, message: string) =>
-  db.prepare('INSERT INTO order_events (order_id, type, message) VALUES (?, ?, ?)').bind(orderId, type, message);
+/** `status` is only for type 'status' events: the status the order moved to. */
+export const addEvent = (db: D1Database, orderId: number, type: string, message: string, status: OrderStatus | null = null) =>
+  db.prepare('INSERT INTO order_events (order_id, type, message, status) VALUES (?, ?, ?, ?)').bind(orderId, type, message, status);

@@ -95,3 +95,16 @@ export const Copy = ({ size = 18, ...p }: P) => (
     <path d="M5 15V5a2 2 0 0 1 2-2h10" />
   </svg>
 );
+export const Package = ({ size = 18, ...p }: P) => (
+  <svg {...base(size)} {...p}>
+    <path d="M21 8 12 3 3 8v8l9 5 9-5z" />
+    <path d="m3 8 9 5 9-5M12 13v8" />
+  </svg>
+);
+export const Truck = ({ size = 18, ...p }: P) => (
+  <svg {...base(size)} {...p}>
+    <path d="M2 6h11v10H2zM13 10h4l4 3v3h-8" />
+    <circle cx="7" cy="18" r="2" />
+    <circle cx="17" cy="18" r="2" />
+  </svg>
+);

@@ -7,6 +7,7 @@ import { useCart } from '../store/cart';
 import { CART_STORAGE_KEY } from '../store/cart';
 import { useLive } from '../store/live';
 import { useAuth } from '../store/auth';
+import { OrderBar, OrdersSync } from './OrderBar';
 
 /** Scroll to top on new pages, to the anchor for hash links, and leave back/forward alone. */
 function ScrollManager() {
@@ -85,6 +86,8 @@ export function Layout({ children, footer }: { children: ReactNode; footer: Reac
       <CartSync />
       <ScrollManager />
       <RevealObserver />
+      <OrdersSync />
+      <OrderBar />
       <Header />
       <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
         {children}

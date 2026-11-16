@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { Logo } from './Logo';
-import { Bag, Close, Menu, User } from './Icons';
+import { Bag, Close, Menu, Package, User } from './Icons';
 import { selectCount, useCart } from '../store/cart';
 import { useUi } from '../store/ui';
 import { useAuth } from '../store/auth';
+import { useMyOrders } from '../store/myOrders';
+import { isOpenOrder } from '../lib/order-status';
 import { Avatar } from '../pages/AccountPage';
 
 export const NAV_LINKS = [
@@ -32,6 +34,26 @@ export function CartButton({ className = '' }: { className?: string }) {
       </span>
       <span className="sr-only">{count === 1 ? 'item' : 'items'}</span>
     </button>
+  );
+}
+
+/** "My orders": shown once this device (or the signed-in account) has an order, with a dot while one is still on its way. */
+export function OrdersButton() {
+  const user = useAuth((s) => s.user);
+  const saved = useMyOrders((s) => s.saved.length);
+  const open = useMyOrders((s) => s.orders.filter((o) => isOpenOrder(o.status)).length);
+  const { pathname } = useLocation();
+  if (!user && saved === 0) return null;
+  return (
+    <Link
+      to="/orders"
+      aria-label={open > 0 ? `Track your orders (${open} in progress)` : 'Your orders'}
+      aria-current={pathname === '/orders' ? 'page' : undefined}
+      className="btn relative inline-flex h-[46px] min-w-[46px] items-center justify-center rounded-full border-[1.5px] border-line bg-transparent px-1 text-ink no-underline hover:border-ink hover:text-ink aria-[current=page]:border-ink"
+    >
+      <Package size={22} />
+      {open > 0 && <span aria-hidden="true" className="absolute right-1 top-1 h-3 w-3 rounded-full border-2 border-cream bg-gold" />}
+    </Link>
   );
 }
 
@@ -110,6 +132,7 @@ export function Header() {
           )}
         </nav>
         <div className="flex items-center gap-2.5">
+          <OrdersButton />
           <AccountButton />
           <CartButton />
           <button
@@ -147,6 +170,16 @@ export function Header() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  to="/orders"
+                  onClick={() => setOpen(false)}
+                  className="flex min-h-[52px] items-center justify-between rounded-2xl px-4 font-serif text-[26px] font-medium text-ink no-underline hover:bg-white"
+                >
+                  Track your order
+                  <span aria-hidden="true" className="text-teal">→</span>
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>

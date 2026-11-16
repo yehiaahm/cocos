@@ -21,6 +21,8 @@ import { catalogHasPath } from '../catalog';
 
 import * as catalog from '../../functions/api/catalog';
 import * as ordersIndex from '../../functions/api/orders/index';
+import * as orderStatus from '../../functions/api/orders/status';
+import * as orderLookup from '../../functions/api/orders/lookup';
 import * as orderView from '../../functions/api/orders/[number]';
 import * as orderProof from '../../functions/api/orders/[number]/proof';
 import * as authRegister from '../../functions/api/auth/register';
@@ -106,6 +108,8 @@ const add = (p: string, m: unknown, admin = false) => {
 };
 add('/api/catalog', catalog);
 add('/api/orders', ordersIndex);
+add('/api/orders/status', orderStatus);
+add('/api/orders/lookup', orderLookup);
 add('/api/orders/:number', orderView);
 add('/api/orders/:number/proof', orderProof);
 add('/api/auth/register', authRegister);

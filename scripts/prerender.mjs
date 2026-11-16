@@ -59,7 +59,7 @@ await writeFile(
 );
 
 const today = new Date().toISOString().slice(0, 10);
-const indexable = routes.filter((r) => !['/checkout', '/login', '/account'].includes(r));
+const indexable = routes.filter((r) => !['/checkout', '/login', '/account', '/orders'].includes(r));
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${indexable
@@ -75,7 +75,7 @@ ${indexable
 await writeFile(path.join(dist, 'sitemap.xml'), sitemap);
 await writeFile(
   path.join(dist, 'robots.txt'),
-  `User-agent: *\nAllow: /\nDisallow: /checkout\nDisallow: /login\nDisallow: /account\nDisallow: /admin\nDisallow: /order/\nDisallow: /api/\n\nSitemap: ${site.url}/sitemap.xml\n`,
+  `User-agent: *\nAllow: /\nDisallow: /checkout\nDisallow: /login\nDisallow: /account\nDisallow: /orders\nDisallow: /admin\nDisallow: /order/\nDisallow: /api/\n\nSitemap: ${site.url}/sitemap.xml\n`,
 );
 
 // Content-Security-Policy. The only inline script is the tiny head snippet in index.html, allowed by its hash

@@ -219,12 +219,23 @@ const en = {
   'od.saveNote': 'Save note',
   'od.status': 'Status',
   'od.confirmCancel': 'Cancel this order?',
+  'od.shipping': 'Shipping & tracking',
+  'od.shippingHint': 'Shown to the customer on their order page once the order is on its way.',
+  'od.courier': 'Courier',
+  'od.courierPlaceholder': 'e.g. Bosta, Aramex, own delivery',
+  'od.trackingNumber': 'Tracking number',
+  'od.saveShipping': 'Save shipping details',
+  'od.tellCustomer': 'Order is now "{status}" — tell the customer on WhatsApp?',
+  'od.tellCustomerBtn': 'Send WhatsApp message',
+  'od.dismiss': 'Not now',
   'event.created': 'Order received from the website',
   'event.proof': 'Customer uploaded the transfer screenshot',
   'event.status': 'Status: {from} → {to}',
   'event.payment': 'Payment: {from} → {to}',
   'event.total': 'Total: {n} EGP',
   'event.pricesUpdated': 'Prices updated',
+  'event.tracking': 'Shipping: {v}',
+  'event.trackingCleared': 'Shipping details removed',
 
   // Customers
   'cust.title': 'Customers',
@@ -562,12 +573,23 @@ const ar: Record<Plain, string> & Partial<Record<Key, string>> = {
   'od.saveNote': 'حفظ الملاحظة',
   'od.status': 'الحالة',
   'od.confirmCancel': 'إلغاء الطلب؟',
+  'od.shipping': 'الشحن والتتبع',
+  'od.shippingHint': 'بتظهر للعميل في صفحة طلبه أول ما الطلب يتشحن.',
+  'od.courier': 'شركة الشحن',
+  'od.courierPlaceholder': 'مثلاً: بوسطة، أرامكس، توصيل خاص',
+  'od.trackingNumber': 'رقم الشحنة',
+  'od.saveShipping': 'حفظ بيانات الشحن',
+  'od.tellCustomer': 'الطلب بقى "{status}" — تبعت للعميل رسالة على واتساب؟',
+  'od.tellCustomerBtn': 'ابعت رسالة واتساب',
+  'od.dismiss': 'مش دلوقتي',
   'event.created': 'تم استلام الطلب من الموقع',
   'event.proof': 'العميل رفع صورة التحويل',
   'event.status': 'الحالة: {from} ← {to}',
   'event.payment': 'الدفع: {from} ← {to}',
   'event.total': 'الإجمالي: {n} ج.م',
   'event.pricesUpdated': 'تم تحديث الأسعار',
+  'event.tracking': 'الشحن: {v}',
+  'event.trackingCleared': 'تم حذف بيانات الشحن',
 
   'cust.title': 'العملاء',
   'cust.count': '{n} عميل',
@@ -803,6 +825,10 @@ export function eventText(e: { type: string; message: string }): string {
     case 'payment': {
       const m = /^الدفع: (.+) ← (.+)$/.exec(e.message);
       return m ? t('event.payment', { from: label('pay', m[1]), to: label('pay', m[2]) }) : e.message;
+    }
+    case 'tracking': {
+      const m = /^الشحن: (.+)$/.exec(e.message);
+      return m ? t('event.tracking', { v: m[1] }) : e.message === 'تم حذف بيانات الشحن' ? en['event.trackingCleared'] : e.message;
     }
     case 'pricing': {
       const m = /^الإجمالي: (\d+) ج\.م$/.exec(e.message);

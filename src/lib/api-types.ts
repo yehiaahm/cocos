@@ -56,6 +56,10 @@ export interface AccountOrderSummary {
   itemCount: number;
   image: string | null;
   createdAt: string;
+  /** Last change (status, payment, price or shipment details) — "updated 2 h ago" on the My orders page. */
+  updatedAt: string;
+  courier: string | null;
+  trackingNumber: string | null;
 }
 
 export interface CreateOrderInput {
@@ -99,6 +103,12 @@ export interface PublicOrder {
   deliveryFee: number | null;
   total: number | null;
   createdAt: string;
+  updatedAt: string;
+  /** Shipment details, set by Coco when the order ships. */
+  courier: string | null;
+  trackingNumber: string | null;
+  /** When the order first reached each status (the customer's timeline dates). */
+  statusDates: Partial<Record<OrderStatus, string>>;
 }
 
 export interface AdminOrderSummary {
@@ -123,6 +133,8 @@ export interface AdminOrder extends AdminOrderSummary {
   subtotal: number | null;
   deliveryFee: number | null;
   hasProof: boolean;
+  courier: string | null;
+  trackingNumber: string | null;
   items: OrderItemView[];
   events: OrderEventView[];
   updatedAt: string;
@@ -135,6 +147,8 @@ export interface AdminOrderUpdate {
   deliveryFee?: number | null;
   items?: { id: number; unitPrice: number | null }[];
   adminNotes?: string;
+  courier?: string | null;
+  trackingNumber?: string | null;
 }
 
 export interface AdminVariant {
