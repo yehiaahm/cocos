@@ -606,6 +606,27 @@
   animation: flyY 0.8s cubic-bezier(0.6, -0.55, 0.9, 0.5) forwards;
 }
 
+/* Offer bar: slides down when the offer arrives, with a slow gold sheen across it. */
+.promo-bar {
+  background-image: linear-gradient(100deg, #072b33 0%, #0b2e33 45%, #0e3a40 100%);
+  animation: promoBarIn 0.5s var(--ease-out-soft) both;
+}
+@keyframes promoBarIn {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 160px;
+    opacity: 1;
+  }
+}
+.promo-bar-sheen {
+  background: linear-gradient(100deg, transparent 30%, rgba(243, 222, 158, 0.12) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 7s linear infinite;
+}
+
 /* Everything off for reduced motion — content stays fully visible. */
 @media (prefers-reduced-motion: reduce) {
   html {

@@ -9,6 +9,7 @@ import { METHOD, PAYMENT_STATUS, STATUS, ago, longDate, money, waLink } from '..
 import { imageUrl } from '../../lib/images';
 import { site } from '../../config/site';
 import { eventText, startAlign, useT, type Key } from '../i18n';
+import { orderTotals } from '../../lib/promo';
 
 let settingsCache: Promise<PaymentSettings> | null = null;
 const loadSettings = () => (settingsCache ??= api<{ settings: PaymentSettings }>('/api/admin/settings').then((r) => r.settings));
@@ -43,7 +44,9 @@ function messages(o: AdminOrder, s: PaymentSettings | null): { id: string; label
       id: 'confirm',
       label: 'od.msg.confirm',
       text: `أهلاً ${first} 👋\nمعاك ${site.name} بخصوص طلبك ${o.number}:\n${lines}\n\n${
-        o.total !== null ? `الإجمالي: ${o.total} ج.م${o.deliveryFee ? ` (شامل التوصيل ${o.deliveryFee} ج.م)` : ''}` : 'هنأكد معاك الإجمالي حالاً.'
+        o.total !== null
+          ? `${o.promoCode && o.discount ? `خصم كود ${o.promoCode}: −${o.discount} ج.م\n` : ''}الإجمالي: ${o.total} ج.م${o.deliveryFee ? ` (شامل التوصيل ${o.deliveryFee} ج.م)` : ''}`
+          : 'هنأكد معاك الإجمالي حالاً.'
       }\n${payLine}\n\nتتابع طلبك من هنا:\n${link}`,
     },
     { id: 'making', label: 'od.msg.making', text: `أهلاً ${first} 🌿\nطلبك ${o.number} بدأنا نشتغل عليه بإيدينا، وهنبلغك أول ما يجهز.\n${link}` },
@@ -119,11 +122,14 @@ export function OrderDetailPage() {
   const toNum = (s: string) => (s.trim() === '' ? null : Math.max(0, Math.round(Number(s))));
   const draft = useMemo(() => {
     if (!order) return null;
-    const items = order.items.map((i) => ({ ...i, unitPrice: toNum(prices[i.id] ?? '') }));
-    const priced = items.every((i) => i.unitPrice !== null && Number.isFinite(i.unitPrice));
-    const subtotal = priced ? items.reduce((t, i) => t + (i.unitPrice ?? 0) * i.qty, 0) : null;
+    const items = order.items.map((i) => {
+      const p = toNum(prices[i.id] ?? '');
+      return { ...i, unitPrice: p !== null && Number.isFinite(p) ? p : null };
+    });
     const f = toNum(fee);
-    return { items, subtotal, fee: f, total: subtotal !== null && f !== null ? subtotal + f : null };
+    // Same maths as the server and the shop (src/lib/promo.ts), with the rules copied onto the order.
+    const { subtotal, discount, total } = orderTotals(items, f !== null && Number.isFinite(f) ? f : null, order.promo);
+    return { items, subtotal, discount, fee: f, total };
   }, [order, prices, fee]);
   const pricingDirty =
     !!order && !!draft && (draft.fee !== order.deliveryFee || draft.items.some((i, k) => i.unitPrice !== order.items[k].unitPrice));
@@ -253,6 +259,31 @@ export function OrderDetailPage() {
                 <span className="text-muted-2">{t('od.subtotal')}</span>
                 <strong>{money(draft?.subtotal)}</strong>
               </div>
+              {order.promoCode && (
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 font-bold text-teal-dark">
+                      {Icon.tag(15)} {t('od.discount', { code: order.promoCode })}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={!!saving}
+                      onClick={() => {
+                        if (window.confirm(t('od.removePromoConfirm', { code: order.promoCode ?? '' }))) void update({ removePromo: true }, 'pricing');
+                      }}
+                      className="border-0 bg-transparent p-0 text-xs font-bold text-[#9B1C1C] underline-offset-2 hover:underline print:hidden"
+                    >
+                      {t('od.removePromo')}
+                    </button>
+                  </span>
+                  <strong className="text-teal-dark">
+                    {draft?.discount === null || draft?.discount === undefined ? t('od.discountPending') : money(draft.discount > 0 ? -draft.discount : 0)}
+                  </strong>
+                  {order.promo?.minSubtotal != null && draft?.subtotal != null && draft.subtotal < order.promo.minSubtotal && (
+                    <p className="m-0 w-full text-xs font-semibold text-[#6E5210]">{t('od.promoBelowMin', { v: order.promo.minSubtotal })}</p>
+                  )}
+                </div>
+              )}
               <div className="flex items-center justify-between gap-3">
                 <label htmlFor="fee" className="text-muted-2">
                   {t('od.delivery')}

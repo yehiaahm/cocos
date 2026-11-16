@@ -108,3 +108,9 @@ export const Truck = ({ size = 18, ...p }: P) => (
     <circle cx="17" cy="18" r="2" />
   </svg>
 );
+export const Tag = ({ size = 18, ...p }: P) => (
+  <svg {...base(size)} {...p}>
+    <path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z" />
+    <circle cx="7.5" cy="7.5" r="1.5" />
+  </svg>
+);

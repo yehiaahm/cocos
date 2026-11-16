@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { useLocation, useNavigationType } from 'react-router';
 import { Header } from './Header';
+import { PromoBar } from './PromoBar';
 import { CartDrawer } from './CartDrawer';
 import { FloatingCart, FlyToCart } from './FloatingCart';
 import { useCart } from '../store/cart';
@@ -88,6 +89,7 @@ export function Layout({ children, footer }: { children: ReactNode; footer: Reac
       <RevealObserver />
       <OrdersSync />
       <OrderBar />
+      <PromoBar />
       <Header />
       <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
         {children}

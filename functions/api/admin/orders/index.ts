@@ -24,8 +24,9 @@ export const onRequestGet: Fn = handle(async ({ request, env }) => {
   }
   if (q) {
     const digits = q.replace(/\D/g, '');
-    where.push(`(o.number LIKE ? OR o.customer_name LIKE ? OR o.city LIKE ?${digits.length >= 3 ? ' OR o.phone LIKE ?' : ''})`);
-    args.push(`%${q}%`, `%${q}%`, `%${q}%`);
+    // A promo code matches exactly (case-insensitive), so "EID" doesn't pull in every order with "eid" in the address.
+    where.push(`(o.number LIKE ? OR o.customer_name LIKE ? OR o.city LIKE ? OR o.promo_code = ?${digits.length >= 3 ? ' OR o.phone LIKE ?' : ''})`);
+    args.push(`%${q}%`, `%${q}%`, `%${q}%`, q.toUpperCase());
     if (digits.length >= 3) args.push(`%${digits.replace(/^20/, '0')}%`);
   }
   const w = where.length ? `WHERE ${where.join(' AND ')}` : '';

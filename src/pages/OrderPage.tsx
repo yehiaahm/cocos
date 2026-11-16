@@ -382,6 +382,16 @@ ${pageUrl}`)}`}
           <dl className="m-0 mt-4 grid grid-cols-[1fr_auto] gap-y-2 border-t border-line pt-4 text-sm">
             <dt className="font-bold">Subtotal</dt>
             <dd className="m-0 text-right font-bold text-price">{formatPrice(o.subtotal)}</dd>
+            {o.promoCode && (
+              <>
+                <dt className="font-semibold text-teal-dark">
+                  Discount <span className="font-mono text-[12px] tracking-[.08em]">({o.promoCode})</span>
+                </dt>
+                <dd className="m-0 text-right font-bold text-teal-dark">
+                  {o.discount === null ? 'At confirmation' : o.discount > 0 ? `− ${formatPrice(o.discount)}` : formatPrice(0)}
+                </dd>
+              </>
+            )}
             <dt className="text-muted-2">Delivery</dt>
             <dd className="m-0 text-right text-muted-2">{o.deliveryFee !== null ? formatPrice(o.deliveryFee) : 'Confirmed by Coco'}</dd>
             <dt className="mt-2 border-t border-line pt-3 text-base font-bold">Total</dt>

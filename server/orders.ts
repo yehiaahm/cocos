@@ -10,6 +10,7 @@ import type {
   PaymentStatus,
   PublicOrder,
 } from '../src/lib/api-types';
+import { orderTotals, type PromoRules } from '../src/lib/promo';
 
 export interface OrderRow {
   id: number;
@@ -28,10 +29,26 @@ export interface OrderRow {
   delivery_fee: number | null;
   total: number | null;
   admin_notes: string | null;
+  promo_id: number | null;
+  promo_code: string | null;
+  /** JSON copy of the code's rules when the order was placed. */
+  promo: string | null;
+  discount: number | null;
   courier: string | null;
   tracking_number: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** The promo rules an order was placed with (its own copy), or null. */
+export function promoOf(o: Pick<OrderRow, 'promo'>): PromoRules | null {
+  if (!o.promo) return null;
+  try {
+    const r = JSON.parse(o.promo) as PromoRules;
+    return r && typeof r.type === 'string' ? r : null;
+  } catch {
+    return null;
+  }
 }
 
 interface ItemRow {
@@ -129,6 +146,8 @@ export function toPublic(o: OrderRow, items: OrderItemView[], dates: Partial<Rec
     items,
     subtotal: o.subtotal,
     deliveryFee: o.delivery_fee,
+    promoCode: o.promo_code,
+    discount: o.promo_code ? o.discount : 0,
     total: o.total,
     createdAt: o.created_at,
     updatedAt: o.updated_at,
@@ -184,6 +203,7 @@ export function toSummary(o: OrderRow & { item_count?: number }): AdminOrderSumm
     city: o.city,
     itemCount: o.item_count ?? 0,
     total: o.total,
+    promoCode: o.promo_code ?? null,
     createdAt: o.created_at,
   };
 }
@@ -206,6 +226,8 @@ export async function toAdmin(db: D1Database, o: OrderRow): Promise<AdminOrder> 
     adminNotes: o.admin_notes,
     subtotal: o.subtotal,
     deliveryFee: o.delivery_fee,
+    discount: o.promo_code ? o.discount : 0,
+    promo: promoOf(o),
     hasProof: !!o.proof_key,
     courier: o.courier,
     trackingNumber: o.tracking_number,
@@ -216,13 +238,12 @@ export async function toAdmin(db: D1Database, o: OrderRow): Promise<AdminOrder> 
   };
 }
 
-/** Subtotal is only known when every line has a price; total also needs the delivery fee. */
-export function computeTotals(items: { qty: number; unitPrice: number | null }[], deliveryFee: number | null) {
-  const priced = items.every((i) => i.unitPrice !== null);
-  const subtotal = priced ? items.reduce((t, i) => t + (i.unitPrice ?? 0) * i.qty, 0) : null;
-  const total = subtotal !== null && deliveryFee !== null ? subtotal + deliveryFee : null;
-  return { subtotal, total };
-}
+/**
+ * Subtotal is only known when every line has a price; the total also needs the delivery fee and — with a
+ * promo code — the discount (see src/lib/promo.ts, shared with the storefront).
+ */
+export const computeTotals = (items: { qty: number; unitPrice: number | null }[], deliveryFee: number | null, promo?: PromoRules | null) =>
+  orderTotals(items, deliveryFee, promo);
 
 export const DEFAULT_SETTINGS: PaymentSettings = {
   instapay: '',

@@ -4,13 +4,13 @@ import { seedProducts as products } from './catalog';
 
 describe('order totals', () => {
   it('needs every line priced before there is a subtotal', () => {
-    expect(computeTotals([{ qty: 2, unitPrice: 100 }, { qty: 1, unitPrice: null }], 50)).toEqual({ subtotal: null, total: null });
+    expect(computeTotals([{ qty: 2, unitPrice: 100 }, { qty: 1, unitPrice: null }], 50)).toEqual({ subtotal: null, discount: 0, total: null });
   });
   it('needs a delivery fee before there is a total', () => {
-    expect(computeTotals([{ qty: 2, unitPrice: 100 }], null)).toEqual({ subtotal: 200, total: null });
+    expect(computeTotals([{ qty: 2, unitPrice: 100 }], null)).toEqual({ subtotal: 200, discount: 0, total: null });
   });
   it('adds lines and delivery', () => {
-    expect(computeTotals([{ qty: 2, unitPrice: 450 }, { qty: 1, unitPrice: 300 }], 60)).toEqual({ subtotal: 1200, total: 1260 });
+    expect(computeTotals([{ qty: 2, unitPrice: 450 }, { qty: 1, unitPrice: 300 }], 60)).toEqual({ subtotal: 1200, discount: 0, total: 1260 });
   });
 });
 

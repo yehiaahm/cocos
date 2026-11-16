@@ -144,7 +144,14 @@ export function OrdersPage() {
                   </div>
                   <div className="mt-1.5 flex items-center justify-between gap-2 text-sm">
                     <span className="truncate font-semibold">{o.customerName}</span>
-                    <span className="flex-none font-bold">{money(o.total)}</span>
+                    <span className="flex flex-none items-center gap-1.5 font-bold">
+                      {o.promoCode && (
+                        <span title={t('orders.withCode', { code: o.promoCode })} className="inline-flex items-center gap-1 rounded-md bg-[#E3F2F1] px-1.5 py-0.5 text-[11px] font-bold text-[#0B5E5B]" dir="ltr">
+                          {Icon.tag(12)} {o.promoCode}
+                        </span>
+                      )}
+                      {money(o.total)}
+                    </span>
                   </div>
                   <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-2">
                     <span>
@@ -205,7 +212,16 @@ export function OrdersPage() {
                     <td className="px-4 py-3">
                       <StatusPill status={o.status} />
                     </td>
-                    <td className="px-4 py-3 font-bold">{money(o.total)}</td>
+                    <td className="px-4 py-3 font-bold">
+                      {money(o.total)}
+                      {o.promoCode && (
+                        <div className="mt-1">
+                          <span title={t('orders.withCode', { code: o.promoCode })} className="inline-flex items-center gap-1 rounded-md bg-[#E3F2F1] px-1.5 py-0.5 text-[11px] font-bold text-[#0B5E5B]" dir="ltr">
+                            {Icon.tag(12)} {o.promoCode}
+                          </span>
+                        </div>
+                      )}
+                    </td>
                     <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-2">{ago(o.createdAt)}</td>
                   </tr>
                 ))}
