@@ -11,7 +11,6 @@ if (dsn) {
     environment: process.env.SENTRY_ENVIRONMENT || process.env.RAILWAY_ENVIRONMENT_NAME || 'production',
     release: process.env.RAILWAY_GIT_COMMIT_SHA,
     serverName: 'cocos-node',
-    sendDefaultPii: false,
     tracesSampleRate: 0,
   });
 }
