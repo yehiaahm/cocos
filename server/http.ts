@@ -20,9 +20,19 @@ export function json(data: unknown, init: ResponseInit & { cache?: string } = {}
   return new Response(JSON.stringify(data), { ...init, headers });
 }
 
+/** Optional error reporter, set by the host (the Node server wires it to Sentry). Must never throw. */
+let reporter: ((err: unknown) => void) | undefined;
+export function setErrorReporter(fn: ((err: unknown) => void) | undefined): void {
+  reporter = fn;
+}
+
 export function errorResponse(err: unknown): Response {
-  if (err instanceof HttpError) return json({ error: err.message, code: err.code }, { status: err.status });
+  if (err instanceof HttpError) {
+    if (err.status >= 500) reporter?.(err);
+    return json({ error: err.message, code: err.code }, { status: err.status });
+  }
   console.error('Unhandled API error', err);
+  reporter?.(err);
   return json({ error: 'Something went wrong. Please try again.', code: 'server_error' }, { status: 500 });
 }
 

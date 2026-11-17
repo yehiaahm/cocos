@@ -1,3 +1,4 @@
+import { Sentry } from './lib/sentry';
 import { StrictMode } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
@@ -16,14 +17,20 @@ const app = (
   </StrictMode>
 );
 
+// React 19 root hooks: report render errors (caught by an error boundary or not) to Sentry.
+const rootOptions = {
+  onUncaughtError: Sentry.reactErrorHandler(),
+  onCaughtError: Sentry.reactErrorHandler(),
+};
+
 const clean = (p: string) => decodeURI(p).replace(/\/+$/, '') || '/';
 const prerenderedFor = container.dataset.path;
 
 // Hydrate only when the static HTML was rendered for this exact URL. If a host served
 // another page's HTML (e.g. an SPA fallback), render fresh instead of mismatching.
 if (container.firstElementChild && prerenderedFor && (prerenderedFor === '*' || clean(prerenderedFor) === clean(location.pathname))) {
-  hydrateRoot(container, app);
+  hydrateRoot(container, app, rootOptions);
 } else {
   container.textContent = '';
-  createRoot(container).render(app);
+  createRoot(container, rootOptions).render(app);
 }

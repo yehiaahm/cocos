@@ -11,6 +11,8 @@ await build({
   format: 'esm',
   target: 'node22',
   sourcemap: true,
+  // Loaded from node_modules at runtime: the Sentry SDK (and OpenTelemetry under it) must not be bundled.
+  external: ['@sentry/node'],
   logLevel: 'info',
   // ESM bundles need a real `require` for any CommonJS dependency.
   banner: { js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);" },

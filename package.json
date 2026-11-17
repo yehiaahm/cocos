@@ -23,6 +23,8 @@
     "db:restore": "node dist-server/restore.mjs"
   },
   "dependencies": {
+    "@sentry/node": "11.13.0",
+    "@sentry/react": "11.13.0",
     "mysql2": "3.24.6",
     "react": "19.2.9",
     "react-dom": "19.2.9",

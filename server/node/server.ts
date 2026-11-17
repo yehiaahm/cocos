@@ -7,6 +7,7 @@
  *   ADMIN_EMAIL / ADMIN_PASSWORD   the dashboard sign-in
  *   DATA_DIR             where uploads, secrets.json and database dumps live (defaults to the Railway volume mount)
  */
+import { reportError, flushErrors } from './sentry';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
@@ -20,6 +21,7 @@ import { requirePersistent, resolveStorage } from './storage';
 import { CLIENT_IP_HEADER, trustedClientIp } from './clientip';
 import { limitedBody } from './bodystream';
 import { catalogHasPath } from '../catalog';
+import { setErrorReporter } from '../http';
 
 import * as catalog from '../../functions/api/catalog';
 import * as promoCheck from '../../functions/api/promo';
@@ -70,6 +72,8 @@ interface Ctx {
   next: () => Promise<Response>;
   functionPath: string;
 }
+
+setErrorReporter((e) => reportError(e, 'api'));
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..'); // dist-server/.. = project root
@@ -229,7 +233,10 @@ async function handle(request: Request): Promise<Response> {
       env,
       params,
       data: {},
-      waitUntil: (p) => void p.catch((e) => console.error('[waitUntil]', e)),
+      waitUntil: (p) => void p.catch((e) => {
+        console.error('[waitUntil]', e);
+        reportError(e, 'waitUntil', { path: url.pathname });
+      }),
       passThroughOnException: () => undefined,
       functionPath: url.pathname,
       next: async () => fn(ctx),
@@ -319,6 +326,7 @@ const server = createServer(async (req, res) => {
     if (req.url?.startsWith('/api/')) console.log(`${req.method} ${req.url?.split('?')[0]} ${response.status} ${Date.now() - started}ms`);
   } catch (e) {
     console.error('[server]', e);
+    reportError(e, 'request', { method: req.method, path: req.url?.split('?')[0] });
     if (!res.headersSent) res.writeHead(500, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ error: 'Server error' }));
   }
@@ -340,6 +348,7 @@ const shutdown = () =>
     } catch (e) {
       console.error('[db] error while closing:', (e as Error).message);
     }
+    await flushErrors();
     process.exit(0);
   });
 process.on('SIGTERM', shutdown);

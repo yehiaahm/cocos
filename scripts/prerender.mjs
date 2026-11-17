@@ -106,7 +106,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https://*.googleusercontent.com",
-  "connect-src 'self'",
+  "connect-src 'self' https://*.ingest.de.sentry.io",
   "manifest-src 'self'",
   "worker-src 'self'",
   "object-src 'none'",
