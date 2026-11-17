@@ -1,4 +1,5 @@
 import { Sentry } from './lib/sentry';
+import './lib/posthog';
 import { StrictMode } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
