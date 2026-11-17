@@ -120,7 +120,7 @@ export const onRequestPost: Fn = handle(async ({ request, env, waitUntil }) => {
       promo?.id ?? null, promo?.code ?? null, rules ? JSON.stringify(rules) : null, promo ? discount : null,
     ),
     ...(user ? [env.DB.prepare('UPDATE users SET phone = ?, city = ?, address = ? WHERE id = ?').bind(phone, city, address, user.id)] : []),
-    env.DB.prepare("UPDATE orders SET number = 'CA-' || (1000 + id) WHERE token = ?").bind(token),
+    env.DB.prepare("UPDATE orders SET number = CONCAT('CA-', 1000 + id) WHERE token = ?").bind(token),
     ...lines.map((l) =>
       env.DB.prepare(
         `INSERT INTO order_items (order_id, product_id, variant_id, name, variant_name, image, qty, personalisation, unit_price)
@@ -129,7 +129,7 @@ export const onRequestPost: Fn = handle(async ({ request, env, waitUntil }) => {
     ),
     // Takes the units out of tracked stock (never below 0); products without a stock number are untouched.
     ...[...wanted].map(([productId, w]) =>
-      env.DB.prepare('UPDATE product_overrides SET stock = MAX(stock - ?, 0) WHERE product_id = ? AND stock IS NOT NULL').bind(w.qty, productId),
+      env.DB.prepare('UPDATE product_overrides SET stock = GREATEST(stock - ?, 0) WHERE product_id = ? AND stock IS NOT NULL').bind(w.qty, productId),
     ),
   ];
   try {

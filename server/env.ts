@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
-/** Bindings and secrets available to every Pages Function (see wrangler.toml and .dev.vars.example). */
+/** What every handler receives: the D1-shaped database layer (server/node/mysql.ts), uploads, and the secrets from the environment. */
 export interface Env {
   DB: D1Database;
   UPLOADS: R2Bucket;

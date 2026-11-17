@@ -24,18 +24,13 @@ describe('owner sign-in on the shared login page', () => {
 });
 
 describe('admin sessions (server-side, revocable)', async () => {
-  const { NodeD1 } = await import('./node/d1');
-  const path = await import('node:path');
-  const fresh = (over: Partial<Env> = {}) => {
-    const db = new NodeD1(':memory:');
-    db.migrate(path.resolve(__dirname, '../migrations'));
-    return env({ DB: db as unknown as D1Database, ...over });
-  };
+  const { createTestDb } = await import('./testDb');
+  const fresh = async (over: Partial<Env> = {}) => env({ DB: (await createTestDb()) as unknown as D1Database, ...over });
   const row = (e: Env, token: string) =>
     e.DB.prepare('SELECT * FROM admin_sessions').all<{ token_hash: string; expires_at: number; last_seen_at: number; created_at: number }>();
 
   it('accepts a fresh session and rejects garbage, empty and old-format tokens', async () => {
-    const e = fresh();
+    const e = await fresh();
     const token = await createSession(e);
     expect(await verifySession(e, token)).toBe(true);
     expect(await verifySession(e, null)).toBe(false);
@@ -45,7 +40,7 @@ describe('admin sessions (server-side, revocable)', async () => {
   });
 
   it('stores only a hash of the token', async () => {
-    const e = fresh();
+    const e = await fresh();
     const token = await createSession(e);
     const { results } = await row(e, token);
     expect(results).toHaveLength(1);
@@ -54,7 +49,7 @@ describe('admin sessions (server-side, revocable)', async () => {
   });
 
   it('sign-out revokes that session at once, even for a copied cookie, and leaves other sessions alone', async () => {
-    const e = fresh();
+    const e = await fresh();
     const a = await createSession(e);
     const b = await createSession(e);
     await destroySession(e, a);
@@ -63,14 +58,14 @@ describe('admin sessions (server-side, revocable)', async () => {
   });
 
   it('"sign out everywhere" revokes every session', async () => {
-    const e = fresh();
+    const e = await fresh();
     const tokens = [await createSession(e), await createSession(e), await createSession(e)];
     await destroyAllSessions(e);
     for (const t of tokens) expect(await verifySession(e, t)).toBe(false);
   });
 
   it('signs everyone out when the admin email or password changes', async () => {
-    const e = fresh();
+    const e = await fresh();
     const token = await createSession(e);
     expect(await verifySession(e, token)).toBe(true);
     expect(await verifySession({ ...e, ADMIN_EMAIL: 'new@example.com' } as Env, token)).toBe(false);
@@ -78,7 +73,7 @@ describe('admin sessions (server-side, revocable)', async () => {
   });
 
   it('expires after the absolute lifetime and after the idle timeout', async () => {
-    const e = fresh();
+    const e = await fresh();
     const now = Math.floor(Date.now() / 1000);
     const abs = await createSession(e);
     await e.DB.prepare('UPDATE admin_sessions SET expires_at = ?').bind(now - 1).run();
@@ -90,7 +85,7 @@ describe('admin sessions (server-side, revocable)', async () => {
   });
 
   it('is valid for a week at most, and activity refreshes the idle clock', async () => {
-    const e = fresh();
+    const e = await fresh();
     const token = await createSession(e);
     const { results } = await row(e, token);
     expect(results[0].expires_at - results[0].created_at).toBe(7 * 86_400);
@@ -102,7 +97,7 @@ describe('admin sessions (server-side, revocable)', async () => {
   });
 
   it('cleans up expired sessions when a new one is created', async () => {
-    const e = fresh();
+    const e = await fresh();
     await createSession(e);
     await e.DB.prepare('UPDATE admin_sessions SET expires_at = 1').run();
     await createSession(e);

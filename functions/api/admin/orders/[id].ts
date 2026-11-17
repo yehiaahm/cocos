@@ -3,6 +3,7 @@ import { HttpError, handle, intOrNull, json, readJson, str } from '../../../../s
 import { PAYMENT_STATUS_AR, STATUS_AR, addEvent, computeTotals, getItems, getOrderRow, promoOf, toAdmin } from '../../../../server/orders';
 import { releasePromoUse, retakePromoUse } from '../../../../server/promos';
 import { ORDER_STATUSES, PAYMENT_STATUSES, type AdminOrderUpdate } from '../../../../src/lib/api-types';
+import { NOW_SQL } from '../../../../server/sql';
 
 const idOf = (p: string | string[]) => {
   const n = Number(Array.isArray(p) ? p[0] : p);
@@ -43,7 +44,7 @@ export const onRequestPatch: Fn<'id'> = handle(async ({ request, env, params }) 
           env.DB.prepare(
             cancelling
               ? 'UPDATE product_overrides SET stock = stock + ? WHERE product_id = ? AND stock IS NOT NULL'
-              : 'UPDATE product_overrides SET stock = MAX(stock - ?, 0) WHERE product_id = ? AND stock IS NOT NULL',
+              : 'UPDATE product_overrides SET stock = GREATEST(stock - ?, 0) WHERE product_id = ? AND stock IS NOT NULL',
           ).bind(qty, productId),
         );
       }
@@ -106,7 +107,7 @@ export const onRequestPatch: Fn<'id'> = handle(async ({ request, env, params }) 
   }
 
   if (set.length) {
-    set.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')");
+    set.push(`updated_at = ${NOW_SQL}`);
     stmts.unshift(env.DB.prepare(`UPDATE orders SET ${set.join(', ')} WHERE id = ?`).bind(...args, id));
     await env.DB.batch(stmts);
   }

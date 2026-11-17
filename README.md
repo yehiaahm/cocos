@@ -35,7 +35,7 @@ order for an Instagram DM. The Facebook button stays hidden until its URL is set
 Customers order on the site; orders land in the dashboard at **`/admin`** (Arabic by default with a one-tap **English** switch — the language button is in the sidebar, in the phone header and in Settings; works on phones).
 The owner signs in on the shop's normal login page (`/login`) with `ADMIN_EMAIL` + `ADMIN_PASSWORD` and lands in the
 dashboard; that email can't be used for a customer account.
-On Railway, see *Deploying → Railway* for the two settings it needs; the Cloudflare setup below is only for Cloudflare hosting.
+It runs on Railway with a **MySQL** database; see *Deploying → Railway* for what it needs (a MySQL service, a Volume for uploaded files, and a few variables).
 
 - **Checkout** (`/checkout`) saves the order to the database: cash on delivery, InstaPay or mobile wallet.
   Prices come from the dashboard and are always recalculated on the server.
@@ -54,13 +54,13 @@ their profile, saved delivery details and every order at **`/account`**. Account
 still check out. Orders placed while signed in are linked to the account, and checkout is pre-filled.
 
 - API: `/api/auth/register`, `/api/auth/login` (POST sign in, DELETE sign out), `/api/auth/me` (GET / PATCH profile),
-  `/api/auth/google` → Google → `/api/auth/google/callback`, `/api/account/orders`. Schema: `migrations/0002_accounts.sql`.
+  `/api/auth/google` → Google → `/api/auth/google/callback`, `/api/account/orders`. Schema: `users` / `user_sessions` in `migrations/0001_schema.sql`.
 - Security: PBKDF2-SHA256 password hashes; HttpOnly session cookie with only its hash stored in the database;
   rate-limited sign-in and sign-up; Google uses the authorization-code flow with PKCE + state. Signing in with
   Google links an existing account with the same (Google-verified) email.
 
 **Already set up:** Google Cloud project **`cocos-resin-art`**, OAuth client **"Cocos website"** (Web application),
-redirect URIs for `localhost:3000`, `5173`, `8788` and `3200`. The keys are in the git-ignored `.dev.vars`. The app is
+redirect URIs for `localhost:3000`, `5173` and `3200`. The keys are in the git-ignored `.dev.vars`. The app is
 in *Testing* mode until it is published (Google Auth Platform → Audience → **Publish app**), which needs the site's
 public domain added as a redirect URI and on the Branding page (home page + `/privacy` link).
 
@@ -72,44 +72,31 @@ public domain added as a redirect URI and on the Branding page (home page + `/pr
 3. **Authorised redirect URIs** — add one per address the site runs on:
    - `https://<your-domain>/api/auth/google/callback`
    - `https://<your-railway-domain>/api/auth/google/callback`
-   - `http://localhost:3000/api/auth/google/callback` (local Node server) and/or `http://localhost:8788/api/auth/google/callback` (wrangler)
+   - `http://localhost:3000/api/auth/google/callback` (local Node server)
 4. Copy the **Client ID** and **Client secret** into the host's variables:
    - Railway → **Variables**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, then redeploy.
-   - Cloudflare: `npx wrangler pages secret put GOOGLE_CLIENT_ID` and `... GOOGLE_CLIENT_SECRET`, plus `npm run db:migrate:prod`.
    - Local: add both to `.dev.vars` (see `.dev.vars.example`), or pass them as env vars to `npm start`.
 
-It runs on Cloudflare: **Pages Functions** (`functions/` + `server/`) for the API, **D1** for the database
-(`migrations/`), **R2** for transfer screenshots.
+The API lives in `functions/` + `server/` (plain request handlers) and is served by the Node server in `server/node/`.
+Data: **MySQL** for everything structured (orders, customers, catalogue edits, prices, promos, workshops, settings),
+the **Volume** for uploaded files (payment screenshots, product photos) and the generated keys.
 
-### One-time Cloudflare setup
-
-```bash
-npx wrangler login
-npx wrangler d1 create cocos-art                 # paste the printed database_id into wrangler.toml
-npx wrangler r2 bucket create cocos-art-uploads
-npm run db:migrate:prod                          # creates the tables
-npm run setup:secrets -- "your-dashboard-password"   # prints the values below (and writes .dev.vars)
-npx wrangler pages secret put ADMIN_EMAIL      # the owner's sign-in email
-npx wrangler pages secret put ADMIN_PASSWORD
-npx wrangler pages secret put SESSION_SECRET
-npx wrangler pages secret put VAPID_PUBLIC_KEY
-npx wrangler pages secret put VAPID_PRIVATE_KEY
-npx wrangler pages secret put VAPID_SUBJECT      # mailto:you@example.com
-```
-
-Then deploy (Git integration or `npm run deploy`), open `https://<your-domain>/login`, sign in with `ADMIN_EMAIL` + `ADMIN_PASSWORD` (you land in the dashboard), fill in
+After the first deploy open `https://<your-domain>/login`, sign in with `ADMIN_EMAIL` + `ADMIN_PASSWORD` (you land in the dashboard), fill in
 **الإعدادات** (InstaPay, wallet, delivery fee) and prices in **المنتجات**, and enable notifications on your phone.
-Keep the VAPID keys forever — new keys mean every phone has to enable notifications again.
+Keep the push keys forever (`/data/secrets.json`) — new keys mean every phone has to enable notifications again.
 To change the dashboard email or password, update `ADMIN_EMAIL` / `ADMIN_PASSWORD`; all devices are signed out.
 
 ### Local development with the API
 
 ```bash
-npm run setup:secrets            # once: .dev.vars with a random password (printed)
-npm run db:migrate               # once: local D1 database
-npm run build && npm run dev:api # full site + API + dashboard on http://localhost:8788
-npm run dev                      # optional: hot-reload storefront on :5173, /api proxied to :8788
+docker run -d --name cocos-mysql -e MYSQL_ROOT_PASSWORD=dev -e MYSQL_DATABASE=cocos -p 3306:3306 mysql:8.4   # once
+npm run build                                                                 # also bundles dist-server/
+DATABASE_URL=mysql://root:dev@127.0.0.1:3306/cocos ADMIN_EMAIL=you@example.com ADMIN_PASSWORD=test npm start   # http://localhost:3000
+npm run dev                                                                   # optional: hot-reload storefront on :5173, /api proxied to :3000
 ```
+
+Tests run against a real MySQL (never a mock): `docker run -d --name cocos-mysql-test -e MYSQL_ROOT_PASSWORD=cocos-test-only -p 3317:3306 mysql:8.4`
+(or point `TEST_MYSQL_URL` at any server whose user may create `cocos_test_*` databases), then `npm test`.
 
 Security: dashboard sessions are signed HttpOnly cookies (SameSite=Strict); login is rate-limited; all writes
 check the request origin; order creation is rate-limited per IP with a bot honeypot; customer order pages need
@@ -122,56 +109,32 @@ The build outputs a fully static site in `dist/`. Each page is written as `dist/
 
 ### Railway (current host)
 
-The repo runs on Railway as one Node service (`server/node/server.ts`, bundled to `dist-server/server.mjs`).
-It serves the site and runs the same API/dashboard code as Cloudflare, with Node's built-in SQLite as the
-database and files for transfer screenshots. `railway.json` already sets the build (`npm run build`),
-start (`npm start`) and health check (`/healthz`).
+The repo runs on Railway as one Node service (`server/node/server.ts`, bundled to `dist-server/server.mjs`) plus a **MySQL** service.
+`railway.json` already sets the build (`npm run build`), start (`npm start`) and health check (`/healthz`).
 
-One-time setup in the Railway service:
+One-time setup in the Railway project:
 
-1. **Volume** → add one, mount path **`/data`**. Required — without it orders are lost on every redeploy.
-2. **Variables** → add **`ADMIN_EMAIL`** (the owner's email) and **`ADMIN_PASSWORD`** (the dashboard password). Optional: `VAPID_SUBJECT=mailto:you@example.com`.
-3. Redeploy, then open `https://<your-railway-domain>/login` and sign in with that email and password — the owner lands in the dashboard.
+1. **Add a MySQL service** (New → Database → MySQL). Railway gives it its own persistent disk.
+2. On the **site service → Variables** add `DATABASE_URL` = `${{MySQL.MYSQL_URL}}` (use the reference picker so the name matches your MySQL service).
+3. **Site service → Volumes** → add one, mount path **`/data`**. It holds uploaded photos and payment screenshots, the generated push/session keys
+   (`/data/secrets.json`) and the automatic database dumps (`/data/backups`).
+4. **Variables** → add **`ADMIN_EMAIL`** (the owner's email) and **`ADMIN_PASSWORD`** (the dashboard password). Optional: `VAPID_SUBJECT=mailto:you@example.com`.
+5. Redeploy and check `https://<your-domain>/healthz` shows `"persistent":true`; then add **`REQUIRE_PERSISTENT_STORAGE=1`** so a deploy
+   that lost its Volume fails its health check instead of silently losing uploads.
 
-The session secret and push-notification keys are generated on first start and saved on the volume
-(`/data/secrets.json`); the database is `/data/cocos.db` (back it up by downloading it from the volume).
-Migrations in `migrations/` run automatically on start.
+Migrations in `migrations/` run automatically on start, in order, once each (MySQL cannot roll DDL back, so they are written to be re-runnable;
+a failing one stops the server and names the file). The server waits up to 90 s for MySQL to come up and reconnects by itself if it restarts.
+Daily database dumps, manual dumps, restore and the rules for new migrations: [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md).
 
 Rate limits use the client IP the platform proxy appended to `X-Forwarded-For` (the right-most entry); anything the visitor
 sends in `X-Forwarded-For` / `CF-Connecting-IP` is ignored. If another proxy is ever put in front of Railway's, set
 `TRUSTED_PROXY_HOPS` to the number of proxies. Failed dashboard sign-ins are also capped globally (30 per 15 minutes,
 whatever the source), so use a long random `ADMIN_PASSWORD`.
 
-Run the same server locally: `npm run build && ADMIN_EMAIL=you@example.com ADMIN_PASSWORD=test npm start` → http://localhost:3000.
-
-### Cloudflare Pages (alternative)
-
-**Option A — connect GitHub (auto-deploys on every push)**
-
-1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git** → pick this repo.
-2. Build settings:
-   - Framework preset: **None**
-   - Build command: `npm run build`
-   - Build output directory: `dist`
-   - Node version comes from `.node-version` (22).
-3. **Save and Deploy**. Then **Custom domains** → add the shop's domain.
-
-**Option B — deploy from your computer**
-
-```bash
-npx wrangler login     # once
-npm run deploy         # builds, then uploads dist/ to the "cocos-art" Pages project
-```
-
-Test the exact Cloudflare behaviour locally with `npm run build && npm run preview:cf` (http://localhost:8788).
-
-What's already configured: `public/_headers` (security headers, long caching for `/assets/*` and images),
-`404.html` served with a real 404 status, `wrangler.toml` (project name, output dir, D1 + R2 bindings).
-The API and dashboard need the one-time setup in *Orders & admin dashboard* above.
-In the Cloudflare dashboard, leave **Rocket Loader** off (it delays React). Auto Minify isn't needed.
+Run the same server locally: see *Local development with the API* above → http://localhost:3000.
 
 ### Other hosts
-- **Netlify** / **Vercel**: import the repo; `netlify.toml` / `vercel.json` are already set up.
+- **Netlify** / **Vercel**: only the static storefront (no API/dashboard); `netlify.toml` / `vercel.json` are already set up.
 - **Anything else**: upload `dist/`, serve `/<path>` from `/<path>.html`, use `404.html` for unknown URLs,
   and cache `/assets/*` forever (file names are hashed).
 
@@ -193,10 +156,10 @@ src/lib/seo.tsx             per-page title/meta/OG/canonical/JSON-LD (prerendere
 src/pages/*                 Home, Shop (/shop, /shop/:category), Product, Checkout, Order, 404
 src/store/live.ts           live prices / stock / payment details from the dashboard (GET /api/catalog)
 src/admin/*                 the dashboard (lazy-loaded chunk, Arabic RTL / English LTR, see i18n.ts): pages, charts, push notifications
-functions/api/*             Cloudflare Pages Functions: /api/orders, /api/catalog, /api/admin/*
+functions/api/*             API request handlers: /api/orders, /api/catalog, /api/admin/*
 functions/admin, order      serve the client-rendered shells for /admin/* and /order/*
-server/*                    shared API code: auth, D1 queries, catalog, Web Push (VAPID)
-migrations/*.sql            D1 schema
+server/*                    shared API code: auth, SQL queries, catalog, Web Push (VAPID)
+migrations/*.sql            MySQL schema (migrations-sqlite-archive/ is the old SQLite history, reference only)
 public/admin-sw.js          service worker that shows new-order notifications
 ```
 
@@ -218,7 +181,7 @@ How it works
 - The catalogue lives in the database (`catalog_categories`, `catalog_products`; migration `0004_catalog.sql`). `data/products.json` is only the
   **starting point**: the first request copies it into the tables, once. After that, editing `products.json` changes nothing on a running site.
 - Photos are shrunk in the browser (1400 px + a 480 px copy for phones) and stored with the other uploads
-  (Railway volume, or R2 on Cloudflare) under `catalog/`; they are served from `/media/catalog/…` (public, cached for a year).
+  (the Railway Volume) under `catalog/`; they are served from `/media/catalog/…` (public, cached for a year).
   Payment screenshots live in `proofs/` and are never reachable from `/media`.
 - The shop shows the bundled catalogue instantly (the prerendered pages) and swaps in the live one as soon as `/api/catalog` answers
   (it only sends the catalogue once something was changed in the dashboard). Changes show up within about a minute.
@@ -226,12 +189,10 @@ How it works
   Deleting a product removes it from the shop; old orders keep their own copy of its name and photo.
 - Products and categories created in the dashboard have no prerendered page: the Node server serves the client-rendered shell for
   them (only if the address exists in the catalogue, otherwise 404). They are not in `sitemap.xml` (it is built at deploy time) and,
-  on Cloudflare Pages, such URLs are answered by `404.html`, which still renders them in the browser.
-- Cloudflare: run `npm run db:migrate:prod` once to create the new tables. Railway applies migrations on start.
 - **Stock per product** (migration `0005_stock.sql`, column `product_overrides.stock`): set it in the dashboard, either in the products list or
   on the product page. Empty = not tracked. With a number, each order subtracts from it (all colours of a product share one pool),
   an order for more than what is left is refused, cancelling an order gives the units back (reopening takes them out again), and 0 shows
-  the product as sold out. The shop never receives the exact count, only the sold-out flag. Run `npm run db:migrate:prod` on Cloudflare.
+  the product as sold out. The shop never receives the exact count, only the sold-out flag.
 - Occasions (Ramadan & Eid, Halloween, Christmas, Personalised) are fixed; the "Personalised" tag lets customers type a name when ordering.
 
 ### Offers & promo codes (dashboard → **العروض** / Offers, `/admin/promos`)
@@ -258,7 +219,7 @@ How it works
   tags orders that used a code, and searching the orders list for a code finds them. Each code shows its orders, discount given and sales.
 - Wrong codes are limited to 10 tries per visitor every 15 minutes, so codes can't be found by guessing.
 - `GET /api/catalog` carries the top-bar offer; `POST /api/promo` checks a code; `/api/admin/promos` manages them.
-  Schema: `migrations/0006_promos.sql` (Railway applies it on start; on Cloudflare run `npm run db:migrate:prod`).
+  Schema: `promo_codes` in `migrations/0001_schema.sql` (applied on start).
 
 ### Workshops (dashboard → **الورش** / Workshops, `/admin/workshops`)
 The owner has full control of the "Let's get creative" section of the homepage: **add**, **edit**, **reorder** (arrows), **hide / show**
@@ -278,7 +239,7 @@ How it works
   matches it); after the first change `GET /api/catalog` sends the table's visible workshops (possibly none). Changes show within a minute, like products.
 - Photos may only be ones shipped with the site or uploaded from the dashboard (`/images/products`, `/images/legacy-crops`, `/media/catalog`); text fields are length-limited on the server.
 - `/api/admin/workshops` (GET, POST, PUT `{ order }`) and `/api/admin/workshops/:id` (GET, PATCH, DELETE) manage them.
-  Schema: `migrations/0008_workshops.sql` (Railway applies it on start; on Cloudflare run `npm run db:migrate:prod`).
+  Schema: `workshops` in `migrations/0001_schema.sql` (applied on start).
 
 ### Checkout
 Checkout validates name, Egyptian mobile, city and address on both the browser and the server, then saves

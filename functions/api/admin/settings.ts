@@ -24,7 +24,7 @@ export const onRequestPut: Fn = handle(async ({ request, env }) => {
   ];
   await env.DB.batch(
     values.map(([k, v]) =>
-      env.DB.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').bind(k, v),
+      env.DB.prepare('INSERT INTO settings (`key`, `value`) VALUES (?, ?) AS incoming ON DUPLICATE KEY UPDATE `value` = incoming.`value`').bind(k, v),
     ),
   );
   return json({ settings: await getSettings(env.DB) });

@@ -6,7 +6,7 @@ import type { AdminCustomer } from '../../../src/lib/api-types';
 export const onRequestGet: Fn = handle(async ({ request, env }) => {
   const q = (new URL(request.url).searchParams.get('q') ?? '').trim().slice(0, 60);
   const digits = q.replace(/\D/g, '');
-  const filter = q ? `HAVING name LIKE ?1 OR city LIKE ?1${digits.length >= 3 ? ' OR phone LIKE ?2' : ''}` : '';
+  const filter = q ? `HAVING name LIKE ? OR city LIKE ?${digits.length >= 3 ? ' OR phone LIKE ?' : ''}` : '';
   const stmt = env.DB.prepare(
     `SELECT phone,
             (SELECT customer_name FROM orders o2 WHERE o2.phone = o.phone ORDER BY id DESC LIMIT 1) AS name,
@@ -17,7 +17,7 @@ export const onRequestGet: Fn = handle(async ({ request, env }) => {
             MIN(created_at) AS first_order, MAX(created_at) AS last_order
      FROM orders o GROUP BY phone ${filter} ORDER BY last_order DESC LIMIT 300`,
   );
-  const bound = q ? (digits.length >= 3 ? stmt.bind(`%${q}%`, `%${digits.replace(/^20/, '0')}%`) : stmt.bind(`%${q}%`)) : stmt;
+  const bound = q ? (digits.length >= 3 ? stmt.bind(`%${q}%`, `%${q}%`, `%${digits.replace(/^20/, '0')}%`) : stmt.bind(`%${q}%`, `%${q}%`)) : stmt;
   const { results } = await bound.all<{
     phone: string;
     name: string;

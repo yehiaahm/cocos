@@ -1,5 +1,6 @@
 import type { Env } from './env';
 import { b64url, fromB64url } from './http';
+import { agoSql } from './sql';
 
 /**
  * Web Push with VAPID (RFC 8292), sent without a payload: the admin dashboard's
@@ -78,7 +79,7 @@ export async function notifyAdmins(env: Env, n: { title: string; body: string; u
   const out: PushResult = { total: 0, sent: 0, failed: 0, removed: 0, statuses: [] };
   try {
     await env.DB.prepare('INSERT INTO notifications (title, body, url) VALUES (?, ?, ?)').bind(n.title, n.body, n.url).run();
-    await env.DB.prepare("DELETE FROM notifications WHERE created_at < strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 days')").run();
+    await env.DB.prepare(`DELETE FROM notifications WHERE created_at < ${agoSql(30, 'DAY')}`).run();
     if (!pushConfigured(env)) return out;
 
     const { results } = await env.DB.prepare('SELECT endpoint FROM push_subscriptions').all<{ endpoint: string }>();

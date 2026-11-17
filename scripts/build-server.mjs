@@ -1,10 +1,11 @@
 // Bundles the Node server (server/node/server.ts + the shared API code in functions/ and server/)
-// into dist-server/server.mjs for Railway / any Node host.
+// into dist-server/server.mjs for Railway / any Node host, and the backup tools into dist-server/dump.mjs and dist-server/restore.mjs.
 import { build } from 'esbuild';
 
 await build({
-  entryPoints: ['server/node/server.ts'],
-  outfile: 'dist-server/server.mjs',
+  entryPoints: { server: 'server/node/server.ts', restore: 'server/node/restore.ts', dump: 'server/node/dump.ts' },
+  outdir: 'dist-server',
+  outExtension: { '.js': '.mjs' },
   bundle: true,
   platform: 'node',
   format: 'esm',

@@ -11,5 +11,5 @@
     "skipLibCheck": true,
     "isolatedModules": true
   },
-  "include": ["./d1.ts", "./r2.ts", "./static.ts", "./secrets.ts"]
+  "include": ["./mysql.ts", "./r2.ts", "./static.ts", "./secrets.ts", "./storage.ts", "./backup.ts", "./restore.ts", "./dump.ts"]
 }

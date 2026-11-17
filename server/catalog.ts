@@ -77,22 +77,22 @@ const seededDbs = new WeakSet<object>();
 /** Copies data/products.json into the tables the first time, and never again (even if everything is deleted later). */
 export async function ensureSeeded(db: D1Database): Promise<void> {
   if (seededDbs.has(db)) return;
-  const done = await db.prepare("SELECT 1 AS x FROM settings WHERE key = 'catalog_seeded'").first<{ x: number }>();
+  const done = await db.prepare("SELECT 1 AS x FROM settings WHERE `key` = 'catalog_seeded'").first<{ x: number }>();
   if (!done) {
     await db.batch([
       ...seedCategories.map((c, i) =>
         db
-          .prepare('INSERT OR IGNORE INTO catalog_categories (slug, name, name_ar, description, sort_order) VALUES (?, ?, ?, ?, ?)')
+          .prepare('INSERT IGNORE INTO catalog_categories (slug, name, name_ar, description, sort_order) VALUES (?, ?, ?, ?, ?)')
           .bind(c.slug, c.name, c.nameAr, c.description, i),
       ),
       ...seedProducts.map((p, i) =>
         db
           .prepare(
-            'INSERT OR IGNORE INTO catalog_products (id, slug, name, description, category, tags, image, variants, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT IGNORE INTO catalog_products (id, slug, name, description, category, tags, image, variants, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
           )
           .bind(p.id, p.slug, p.name, p.description, p.category, JSON.stringify(p.tags), p.image, JSON.stringify(p.variants), i),
       ),
-      db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES ('catalog_seeded', '1')"),
+      db.prepare("INSERT IGNORE INTO settings (`key`, `value`) VALUES ('catalog_seeded', '1')"),
     ]);
   }
   seededDbs.add(db);
@@ -119,7 +119,7 @@ export async function loadCatalog(db: D1Database): Promise<Catalog> {
     db
       .prepare('SELECT id, slug, name, description, category, tags, image, variants FROM catalog_products ORDER BY sort_order, id')
       .all<ProductRow>(),
-    db.prepare("SELECT key, value FROM settings WHERE key IN ('catalog_rev', 'catalog_max_id')").all<{ key: string; value: string }>(),
+    db.prepare("SELECT `key`, `value` FROM settings WHERE `key` IN ('catalog_rev', 'catalog_max_id')").all<{ key: string; value: string }>(),
   ]);
   const setting = (key: string) => Number(meta.results.find((r) => r.key === key)?.value) || 0;
   const products: Product[] = prods.results.map((r) => ({

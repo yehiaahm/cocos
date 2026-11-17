@@ -2,6 +2,7 @@ import type { Env } from './env';
 import { HttpError, b64url, fromB64url, randomToken, sha256 } from './http';
 import { readCookie as readCookieValue } from './auth';
 import type { AccountUser } from '../src/lib/api-types';
+import { NOW_SQL } from './sql';
 
 /**
  * Customer accounts (separate from the admin dashboard login in ./auth.ts).
@@ -128,7 +129,7 @@ export async function createUserSession(env: Env, userId: number): Promise<strin
       userId,
       now + SESSION_DAYS * 86_400,
     ),
-    env.DB.prepare("UPDATE users SET last_login_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?").bind(userId),
+    env.DB.prepare(`UPDATE users SET last_login_at = ${NOW_SQL} WHERE id = ?`).bind(userId),
     env.DB.prepare('DELETE FROM user_sessions WHERE expires_at < ?').bind(now),
   ]);
   return token;

@@ -3,6 +3,7 @@ import { HttpError, assertSameOrigin, handle, ipHash, json, rateLimit, randomTok
 import { addEvent, getOrderRow } from '../../../../server/orders';
 import { notifyAdmins } from '../../../../server/push';
 import { sniffImage } from '../../../../server/upload';
+import { NOW_SQL } from '../../../../server/sql';
 
 const MAX_BYTES = 6 * 1024 * 1024;
 
@@ -35,7 +36,7 @@ export const onRequestPost: Fn<'number'> = handle(async ({ request, env, params,
 
   await env.DB.batch([
     env.DB.prepare(
-      "UPDATE orders SET proof_key = ?, payment_status = 'pending_review', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?",
+      `UPDATE orders SET proof_key = ?, payment_status = 'pending_review', updated_at = ${NOW_SQL} WHERE id = ?`,
     ).bind(key, order.id),
     addEvent(env.DB, order.id, 'proof', 'العميل رفع صورة التحويل'),
   ]);

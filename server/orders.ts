@@ -255,7 +255,7 @@ export const DEFAULT_SETTINGS: PaymentSettings = {
 };
 
 export async function getSettings(db: D1Database): Promise<PaymentSettings> {
-  const { results } = await db.prepare('SELECT key, value FROM settings').all<{ key: string; value: string }>();
+  const { results } = await db.prepare('SELECT `key`, `value` FROM settings').all<{ key: string; value: string }>();
   const s: PaymentSettings = { ...DEFAULT_SETTINGS };
   for (const { key, value } of results) {
     if (key === 'deliveryFee') s.deliveryFee = value === '' ? null : Number(value);

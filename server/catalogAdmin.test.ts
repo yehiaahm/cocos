@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import path from 'node:path';
-import { NodeD1 } from './node/d1';
+import { createTestDb } from './testDb';
 import type { Env } from './env';
 import { HttpError } from './http';
 import { loadCatalog, loadOverrides, seedProducts, seedCategories, catalogHasPath } from './catalog';
@@ -24,11 +24,7 @@ import * as adminMedia from '../functions/api/admin/media';
 import * as media from '../functions/media/[[path]]';
 import { FileR2 } from './node/r2';
 
-const fresh = () => {
-  const db = new NodeD1(':memory:');
-  db.migrate(path.resolve(__dirname, '../migrations'));
-  return db as unknown as D1Database;
-};
+const fresh = async () => (await createTestDb()) as unknown as D1Database;
 
 const photo = { catalogId: '', name: 'Grey', material: 'Concrete', images: ['/media/catalog/abc123.jpg'] };
 const newProduct = (over: Record<string, unknown> = {}) => ({
@@ -52,7 +48,7 @@ const code = async (p: Promise<unknown>) => {
 
 describe('catalogue seed', () => {
   it('copies data/products.json exactly once', async () => {
-    const db = fresh();
+    const db = await fresh();
     const c = await loadCatalog(db);
     expect(c.products).toHaveLength(80);
     expect(c.categories.map((x) => x.slug)).toEqual(seedCategories.map((x) => x.slug));
@@ -65,7 +61,7 @@ describe('catalogue seed', () => {
   });
 
   it('every shipped product passes the same validation the dashboard applies', async () => {
-    const c = await loadCatalog(fresh());
+    const c = await loadCatalog(await fresh());
     for (const p of seedProducts) {
       expect(() => validateProduct({ ...p }, c, c.byId.get(p.id)), p.id).not.toThrow();
       for (const img of p.variants.flatMap((v) => v.images)) expect(IMAGE_RE.test(img), img).toBe(true);
@@ -75,7 +71,7 @@ describe('catalogue seed', () => {
 
 describe('products', () => {
   it('adds a product, shows it first, and gives it a fresh id and variant id', async () => {
-    const db = fresh();
+    const db = await fresh();
     const p = await createProduct(db, newProduct({ price: 450 }));
     expect(p.id).toBe('coco-111'); // above the held-back ids up to coco-110
     expect(p.slug).toBe('grey-concrete-planter');
@@ -88,7 +84,7 @@ describe('products', () => {
   });
 
   it('never reuses an id, even after the newest product is deleted', async () => {
-    const db = fresh();
+    const db = await fresh();
     const a = await createProduct(db, newProduct());
     await deleteProduct(db, a.id);
     expect(nextProductId(await loadCatalog(db))).toBe('coco-112');
@@ -97,7 +93,7 @@ describe('products', () => {
   });
 
   it('makes slugs unique and refuses a taken one', async () => {
-    const db = fresh();
+    const db = await fresh();
     await createProduct(db, newProduct());
     const second = await createProduct(db, newProduct());
     expect(second.slug).toBe('grey-concrete-planter-2');
@@ -106,7 +102,7 @@ describe('products', () => {
   });
 
   it('validates required fields', async () => {
-    const db = fresh();
+    const db = await fresh();
     expect(await code(createProduct(db, newProduct({ name: ' ' })))).toBe('name_required');
     expect(await code(createProduct(db, newProduct({ category: 'nope' })))).toBe('category_missing');
     expect(await code(createProduct(db, newProduct({ variants: [] })))).toBe('variant_required');
@@ -120,7 +116,7 @@ describe('products', () => {
   });
 
   it('updates a product: keeps variant ids, adds new ones, changes category and cover', async () => {
-    const db = fresh();
+    const db = await fresh();
     const p = await createProduct(db, newProduct());
     const updated = await updateProduct(db, p.id, {
       ...newProduct({ name: 'Renamed', category: 'resin', slug: 'renamed', image: '/media/catalog/second.jpg' }),
@@ -142,14 +138,14 @@ describe('products', () => {
   });
 
   it('keeps unrelated override fields when only some are sent', async () => {
-    const db = fresh();
+    const db = await fresh();
     const p = await createProduct(db, newProduct({ price: 300, hidden: true }));
     await updateProduct(db, p.id, newProduct({ soldOut: true }));
     expect((await loadOverrides(db))[p.id]).toEqual({ price: 300, hidden: true, soldOut: true, stock: null });
   });
 
   it('deletes a product and its price override; orders keep their own copy', async () => {
-    const db = fresh();
+    const db = await fresh();
     const p = await createProduct(db, newProduct({ price: 100 }));
     await deleteProduct(db, p.id);
     const c = await loadCatalog(db);
@@ -161,7 +157,7 @@ describe('products', () => {
 
 describe('categories', () => {
   it('adds, renames (slug stays) and orders categories', async () => {
-    const db = fresh();
+    const db = await fresh();
     const c = await createCategory(db, { name: 'Gift Boxes', nameAr: 'علب هدايا', description: 'Boxed sets.' });
     expect(c.slug).toBe('gift-boxes');
     await updateCategory(db, 'gift-boxes', { name: 'Gift Sets', nameAr: '', description: '' });
@@ -177,12 +173,12 @@ describe('categories', () => {
   });
 
   it('gives an Arabic-only name a safe slug', async () => {
-    const c = await createCategory(fresh(), { name: 'أعمال خشب' });
+    const c = await createCategory(await fresh(), { name: 'أعمال خشب' });
     expect(c.slug).toBe('category-7');
   });
 
   it('only deletes a non-empty category by moving its products', async () => {
-    const db = fresh();
+    const db = await fresh();
     expect(await code(deleteCategory(db, 'macrame'))).toBe('has_products');
     expect(await code(deleteCategory(db, 'macrame', 'macrame'))).toBe('category_missing');
     expect(await code(deleteCategory(db, 'macrame', 'nope'))).toBe('category_missing');
@@ -197,7 +193,7 @@ describe('categories', () => {
   });
 
   it('knows which pages exist', async () => {
-    const db = fresh();
+    const db = await fresh();
     const p = await createProduct(db, newProduct());
     expect(await catalogHasPath(db, 'product', p.slug)).toBe(true);
     expect(await catalogHasPath(db, 'product', 'nothing-here')).toBe(false);
@@ -212,7 +208,7 @@ describe('public /api/catalog', () => {
   };
 
   it('does not resend the built-in catalogue until the dashboard changes something', async () => {
-    const db = fresh();
+    const db = await fresh();
     expect((await get(db)).catalog).toBeUndefined();
     await createProduct(db, newProduct());
     const body = await get(db);
@@ -224,7 +220,7 @@ describe('public /api/catalog', () => {
 
 describe('admin products API', () => {
   it('lists products with their variants and every category', async () => {
-    const db = fresh();
+    const db = await fresh();
     const res = await (adminProducts.onRequestGet as unknown as (c: unknown) => Promise<Response>)({ env: { DB: db } as unknown as Env });
     const body = (await res.json()) as { products: { id: string; variants: unknown[]; categoryName: string }[]; categories: { slug: string }[] };
     expect(body.products).toHaveLength(80);

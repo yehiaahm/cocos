@@ -3,6 +3,7 @@ import { HttpError, handle, intOrNull, json, readJson } from '../../../server/ht
 import { loadCatalog, loadOverrides, overrideFor } from '../../../server/catalog';
 import { adminProductView, createProduct, type ProductInput } from '../../../server/catalogAdmin';
 import type { AdminProduct } from '../../../src/lib/api-types';
+import { NOW_SQL } from '../../../server/sql';
 
 /** GET /api/admin/products — the catalogue merged with dashboard overrides and units sold. */
 export const onRequestGet: Fn = handle(async ({ env }) => {
@@ -38,10 +39,10 @@ export const onRequestPut: Fn = handle(async ({ request, env }) => {
     if (!catalog.byId.has(String(u.id))) throw new HttpError(400, `منتج غير معروف: ${u.id}`);
     return env.DB.prepare(
       `INSERT INTO product_overrides (product_id, price, hidden, sold_out, stock, updated_at)
-       VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
-       ON CONFLICT(product_id) DO UPDATE SET price = excluded.price, hidden = excluded.hidden,
-         sold_out = excluded.sold_out, updated_at = excluded.updated_at,
-         stock = CASE WHEN ? THEN excluded.stock ELSE product_overrides.stock END`,
+       VALUES (?, ?, ?, ?, ?, ${NOW_SQL}) AS incoming
+       ON DUPLICATE KEY UPDATE price = incoming.price, hidden = incoming.hidden,
+         sold_out = incoming.sold_out, updated_at = incoming.updated_at,
+         stock = CASE WHEN ? THEN incoming.stock ELSE product_overrides.stock END`,
     ).bind(u.id, intOrNull(u.price, { max: 1_000_000 }), u.hidden ? 1 : 0, u.soldOut ? 1 : 0, intOrNull(u.stock, { max: 1_000_000 }), u.stock !== undefined ? 1 : 0);
   });
   if (stmts.length) await env.DB.batch(stmts);

@@ -2,6 +2,7 @@ import type { Fn } from '../../../server/env';
 import { handle, json } from '../../../server/http';
 import { loadCatalog, loadOverrides } from '../../../server/catalog';
 import type { AdminStats, OrderStatus, PaymentMethod } from '../../../src/lib/api-types';
+import { agoSql } from '../../../server/sql';
 
 const ACTIVE = "status != 'cancelled'";
 
@@ -12,9 +13,9 @@ export const onRequestGet: Fn = handle(async ({ request, env }) => {
     : 30;
   const db = env.DB;
   // Egypt is UTC+2/+3; bucketing by +2h keeps late-evening orders on the right day in most of the year.
-  const day = "date(created_at, '+2 hours')";
-  const since = `strftime('%Y-%m-%dT%H:%M:%fZ','now','-${range} days')`;
-  const prev = `strftime('%Y-%m-%dT%H:%M:%fZ','now','-${range * 2} days')`;
+  const day = "DATE_FORMAT(DATE_ADD(STR_TO_DATE(SUBSTRING(created_at, 1, 19), '%Y-%m-%dT%H:%i:%s'), INTERVAL 2 HOUR), '%Y-%m-%d')";
+  const since = agoSql(range, 'DAY');
+  const prev = agoSql(range * 2, 'DAY');
 
   const [cur, before, open, daily, statuses, payments, top, cities, cust, overrides, catalog] = await Promise.all([
     db.prepare(`SELECT COUNT(*) AS n, COALESCE(SUM(total),0) AS rev, COALESCE(SUM(CASE WHEN payment_status='paid' THEN total END),0) AS paid,
@@ -27,8 +28,8 @@ export const onRequestGet: Fn = handle(async ({ request, env }) => {
     db.prepare(`SELECT i.product_id, MAX(i.name) AS name, MAX(i.image) AS image, SUM(i.qty) AS qty, COALESCE(SUM(i.qty * i.unit_price),0) AS rev
                 FROM order_items i JOIN orders o ON o.id = i.order_id WHERE o.${ACTIVE} AND o.created_at >= ${since}
                 GROUP BY i.product_id ORDER BY qty DESC LIMIT 6`).all<{ product_id: string; name: string; image: string | null; qty: number; rev: number }>(),
-    db.prepare(`SELECT city, COUNT(*) AS n FROM orders WHERE ${ACTIVE} AND created_at >= ${since} GROUP BY lower(city) ORDER BY n DESC LIMIT 6`).all<{ city: string; n: number }>(),
-    db.prepare(`SELECT COUNT(*) AS c, SUM(cnt > 1) AS r FROM (SELECT phone, COUNT(*) AS cnt FROM orders WHERE ${ACTIVE} GROUP BY phone)`).first<{ c: number; r: number | null }>(),
+    db.prepare(`SELECT MIN(city) AS city, COUNT(*) AS n FROM orders WHERE ${ACTIVE} AND created_at >= ${since} GROUP BY LOWER(city) ORDER BY n DESC LIMIT 6`).all<{ city: string; n: number }>(),
+    db.prepare(`SELECT COUNT(*) AS c, SUM(cnt > 1) AS r FROM (SELECT phone, COUNT(*) AS cnt FROM orders WHERE ${ACTIVE} GROUP BY phone) AS per_phone`).first<{ c: number; r: number | null }>(),
     loadOverrides(db),
     loadCatalog(db),
   ]);

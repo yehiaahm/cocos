@@ -1,7 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import path from 'node:path';
-import { NodeD1 } from './node/d1';
+import { createTestDb } from './testDb';
 import type { Env } from './env';
 import { createProduct } from './catalogAdmin';
 import { computeDiscount, orderTotals, type PromoRules } from '../src/lib/promo';
@@ -24,10 +23,9 @@ const jsonReq = (url: string, method: string, body?: unknown, headers: Record<st
   });
 
 const setup = async (deliveryFee: number | null = 50) => {
-  const db = new NodeD1(':memory:');
-  db.migrate(path.resolve(__dirname, '../migrations'));
+  const db = await createTestDb();
   const env = { DB: db, SESSION_SECRET: 'test-secret-'.repeat(4) } as unknown as Env;
-  if (deliveryFee !== null) await env.DB.prepare("INSERT INTO settings (key, value) VALUES ('deliveryFee', ?)").bind(String(deliveryFee)).run();
+  if (deliveryFee !== null) await env.DB.prepare("INSERT INTO settings (`key`, `value`) VALUES ('deliveryFee', ?)").bind(String(deliveryFee)).run();
   return env;
 };
 const photo = { catalogId: '', name: 'Grey', material: 'Concrete', images: ['/media/catalog/abc123.jpg'] };

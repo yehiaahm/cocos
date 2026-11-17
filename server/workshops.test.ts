@@ -1,7 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import path from 'node:path';
-import { NodeD1 } from './node/d1';
+import { createTestDb } from './testDb';
 import type { Env } from './env';
 import { HttpError } from './http';
 import { defaultWorkshops } from '../src/lib/workshops';
@@ -20,11 +19,7 @@ import * as publicCatalog from '../functions/api/catalog';
 import * as adminWorkshops from '../functions/api/admin/workshops';
 import * as adminWorkshop from '../functions/api/admin/workshops/[id]';
 
-const fresh = () => {
-  const db = new NodeD1(':memory:');
-  db.migrate(path.resolve(__dirname, '../migrations'));
-  return db as unknown as D1Database;
-};
+const fresh = async () => (await createTestDb()) as unknown as D1Database;
 
 const code = async (p: Promise<unknown> | (() => unknown)) => {
   try {
@@ -76,7 +71,7 @@ describe('workshops: validation', () => {
 
 describe('workshops: storage', () => {
   it('copies the built-in workshops in once and keeps the shop on the built-in list until something changes', async () => {
-    const db = fresh();
+    const db = await fresh();
     expect(await loadPublicWorkshops(db)).toEqual({ rev: 0, workshops: null });
     const list = await listWorkshops(db);
     expect(list.map((w) => w.id)).toEqual(defaultWorkshops.map((w) => w.id));
@@ -86,7 +81,7 @@ describe('workshops: storage', () => {
   });
 
   it('adds a workshop as the last tab with an id made from its name', async () => {
-    const db = fresh();
+    const db = await fresh();
     const id = await createWorkshop(db, parseWorkshopInput(input()));
     expect(id).toBe('macrame-basics');
     const list = await listWorkshops(db);
@@ -98,7 +93,7 @@ describe('workshops: storage', () => {
   });
 
   it('gives unique ids to equal names and to Arabic-only names', async () => {
-    const db = fresh();
+    const db = await fresh();
     const a = await createWorkshop(db, parseWorkshopInput(input({ name: 'Resin' })));
     const b = await createWorkshop(db, parseWorkshopInput(input({ name: 'ورشة الشموع' })));
     const c = await createWorkshop(db, parseWorkshopInput(input({ name: 'ورشة الشموع' })));
@@ -108,7 +103,7 @@ describe('workshops: storage', () => {
   });
 
   it('edits only what changed and keeps the id', async () => {
-    const db = fresh();
+    const db = await fresh();
     const before = (await getWorkshop(db, 'resin'))!;
     await updateWorkshop(db, 'resin', parseWorkshopInput({ ...inputFromWorkshop(before), price: 950, day2: '' }));
     const after = (await getWorkshop(db, 'resin'))!;
@@ -120,7 +115,7 @@ describe('workshops: storage', () => {
   });
 
   it('hides a workshop from the shop without deleting it', async () => {
-    const db = fresh();
+    const db = await fresh();
     const w = (await getWorkshop(db, 'candles'))!;
     await updateWorkshop(db, 'candles', parseWorkshopInput({ ...inputFromWorkshop(w), active: false }));
     expect((await loadPublicWorkshops(db)).workshops?.map((x) => x.id)).toEqual(['resin', 'decoupage', 'concrete']);
@@ -128,7 +123,7 @@ describe('workshops: storage', () => {
   });
 
   it('can delete every workshop: the shop then gets an empty list, not the built-in ones back', async () => {
-    const db = fresh();
+    const db = await fresh();
     for (const w of await listWorkshops(db)) await deleteWorkshop(db, w.id);
     expect(await listWorkshops(db)).toEqual([]); // not re-seeded
     const pub = await loadPublicWorkshops(db);
@@ -137,7 +132,7 @@ describe('workshops: storage', () => {
   });
 
   it('reorders, and refuses an order that is not a permutation', async () => {
-    const db = fresh();
+    const db = await fresh();
     await reorderWorkshops(db, ['concrete', 'decoupage', 'candles', 'resin']);
     expect((await listWorkshops(db)).map((w) => w.id)).toEqual(['concrete', 'decoupage', 'candles', 'resin']);
     for (const bad of [['resin'], ['resin', 'resin', 'candles', 'decoupage'], 'resin', ['a', 'b', 'c', 'd'], null]) {
@@ -152,7 +147,7 @@ describe('workshops: API', () => {
     new Request(`http://x${url}`, { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
   it('creates, patches and deletes through the admin routes, and /api/catalog follows', async () => {
-    const db = fresh();
+    const db = await fresh();
     const publicBody = async () => (await (await publicCatalog.onRequestGet(ctx(db, new Request('http://x/api/catalog')))).json()) as { workshops?: { id: string }[] };
 
     // Untouched: the shop is told nothing, so it keeps the built-in list.

@@ -26,6 +26,7 @@
   ],
   "exclude": [
     "../server/**/*.test.ts",
+    "../server/test*.ts",
     "../server/node/**"
   ]
 }

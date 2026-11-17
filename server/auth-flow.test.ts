@@ -1,17 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import path from 'node:path';
-import { NodeD1 } from './node/d1';
+import { testEnv } from './testDb';
 import { hashPassword, createUserSession, PBKDF2_ITERATIONS, USER_COOKIE } from './accounts';
 import type { Env } from './env';
 import * as login from '../functions/api/auth/login';
 import * as me from '../functions/api/auth/me';
 
-/** End-to-end through the real handlers, on an in-memory database. */
-const setup = () => {
-  const db = new NodeD1(':memory:');
-  db.migrate(path.resolve(__dirname, '../migrations'));
-  return { DB: db, SESSION_SECRET: 'test-secret-'.repeat(4), ADMIN_EMAIL: '', ADMIN_PASSWORD: '' } as unknown as Env;
-};
+/** End-to-end through the real handlers, on a real MySQL database. */
+const setup = () => testEnv({ ADMIN_EMAIL: '', ADMIN_PASSWORD: '' });
 
 const call = (fn: unknown, env: Env, init: { method: string; ip?: string; cookie?: string; body?: unknown }) => {
   const headers: Record<string, string> = { 'content-type': 'application/json', 'x-client-ip': init.ip ?? '10.0.0.1' };
@@ -32,7 +27,7 @@ const addUser = async (env: Env, email: string, password: string | null, extra =
 
 describe('customer sign-in does not reveal which emails exist', () => {
   it('answers identically for unknown email, wrong password and Google-only accounts', async () => {
-    const env = setup();
+    const env = await setup();
     await addUser(env, 'real@example.com', 'a-good-password-1');
     await addUser(env, 'google@example.com', null, 'g-1');
     const answers = [];
@@ -46,7 +41,7 @@ describe('customer sign-in does not reveal which emails exist', () => {
   }, 60_000);
 
   it('locks one account after 10 wrong passwords even when each guess comes from a different IP', async () => {
-    const env = setup();
+    const env = await setup();
     await addUser(env, 'victim@example.com', 'a-good-password-1');
     for (let i = 0; i < 10; i++) {
       const res = await call(login.onRequestPost, env, { method: 'POST', ip: `10.9.0.${i}`, body: { email: 'victim@example.com', password: `guess-number-${i}` } });
@@ -62,7 +57,7 @@ describe('customer sign-in does not reveal which emails exist', () => {
   }, 120_000);
 
   it('upgrades an old 100k hash to the current cost after a successful sign-in', async () => {
-    const env = setup();
+    const env = await setup();
     const key = await crypto.subtle.importKey('raw', new TextEncoder().encode('old-password-77'), 'PBKDF2', false, ['deriveBits']);
     const salt = new Uint8Array(16).fill(3);
     const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 100_000 }, key, 256));
@@ -82,7 +77,7 @@ describe('customer sign-in does not reveal which emails exist', () => {
 
 describe('changing a password signs out the other devices', () => {
   it('keeps this device signed in and drops every other session', async () => {
-    const env = setup();
+    const env = await setup();
     await addUser(env, 'me@example.com', 'a-good-password-1');
     const phone = await createUserSession(env, 1);
     const laptop = await createUserSession(env, 1);
@@ -104,7 +99,7 @@ describe('changing a password signs out the other devices', () => {
   }, 60_000);
 
   it('does not touch other sessions when only the profile changes', async () => {
-    const env = setup();
+    const env = await setup();
     await addUser(env, 'me@example.com', 'a-good-password-1');
     const a = await createUserSession(env, 1);
     await createUserSession(env, 1);

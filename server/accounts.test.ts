@@ -86,19 +86,14 @@ describe('account helpers', () => {
 });
 
 describe('Google account linking', async () => {
-  const { NodeD1 } = await import('./node/d1');
   const { upsertGoogleUser, createUserSession } = await import('./accounts');
-  const path = await import('node:path');
+  const { testEnv } = await import('./testDb');
 
-  const setup = () => {
-    const db = new NodeD1(':memory:');
-    db.migrate(path.resolve(__dirname, '../migrations'));
-    return { DB: db } as unknown as import('./env').Env;
-  };
+  const setup = () => testEnv();
   const g = { sub: 'g-123', email: 'coco@example.com', emailVerified: true, name: 'Coco', picture: null };
 
   it('creates a new verified account', async () => {
-    const env = setup();
+    const env = await setup();
     const u = await upsertGoogleUser(env, g);
     expect(u.email).toBe('coco@example.com');
     expect(u.google_sub).toBe('g-123');
@@ -107,7 +102,7 @@ describe('Google account linking', async () => {
   });
 
   it('links an unverified password account and drops its password and sessions', async () => {
-    const env = setup();
+    const env = await setup();
     await env.DB.prepare("INSERT INTO users (email, name, password_hash) VALUES ('coco@example.com', 'Someone', 'pbkdf2$1$a$b')").run();
     await createUserSession(env, 1);
     const u = await upsertGoogleUser(env, g);
@@ -118,6 +113,6 @@ describe('Google account linking', async () => {
   });
 
   it('refuses Google accounts whose email is not verified', async () => {
-    await expect(upsertGoogleUser(setup(), { ...g, emailVerified: false })).rejects.toMatchObject({ code: 'google_unverified' });
+    await expect(upsertGoogleUser(await setup(), { ...g, emailVerified: false })).rejects.toMatchObject({ code: 'google_unverified' });
   });
 });

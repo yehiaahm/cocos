@@ -14,8 +14,8 @@ export const onRequestPost: Fn = handle(async ({ request, env }) => {
   const endpoint = str(sub.endpoint, 1000);
   if (!isAllowedPushEndpoint(endpoint)) throw new HttpError(400, 'اشتراك غير صالح');
   await env.DB.prepare(
-    `INSERT INTO push_subscriptions (endpoint, p256dh, auth, user_agent) VALUES (?, ?, ?, ?)
-     ON CONFLICT(endpoint) DO UPDATE SET p256dh = excluded.p256dh, auth = excluded.auth, user_agent = excluded.user_agent`,
+    `INSERT INTO push_subscriptions (endpoint, p256dh, auth, user_agent) VALUES (?, ?, ?, ?) AS incoming
+     ON DUPLICATE KEY UPDATE p256dh = incoming.p256dh, auth = incoming.auth, user_agent = incoming.user_agent`,
   )
     .bind(endpoint, str(sub.keys?.p256dh, 200), str(sub.keys?.auth, 100), str(request.headers.get('user-agent'), 200))
     .run();

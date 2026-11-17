@@ -1,6 +1,7 @@
 import { HttpError, str } from './http';
 import { PROMO_CODE_RE, PROMO_TYPES, normalisePromoCode, type PromoRules, type PromoType } from '../src/lib/promo';
 import type { AdminPromo, AdminPromoInput, PromoState, PublicPromo } from '../src/lib/api-types';
+import { NOW_SQL } from './sql';
 
 /**
  * Promo codes (offers) created in the dashboard.
@@ -96,7 +97,7 @@ export async function reservePromoUse(db: D1Database, id: number): Promise<boole
 
 /** Gives a use back (the order failed to save, was cancelled, or the code was removed from it). */
 export const releasePromoUse = (db: D1Database, id: number) =>
-  db.prepare('UPDATE promo_codes SET used_count = MAX(used_count - 1, 0) WHERE id = ?').bind(id);
+  db.prepare('UPDATE promo_codes SET used_count = GREATEST(used_count - 1, 0) WHERE id = ?').bind(id);
 
 /** Takes a use again when a cancelled order is reopened (never refused, like stock). */
 export const retakePromoUse = (db: D1Database, id: number) => db.prepare('UPDATE promo_codes SET used_count = used_count + 1 WHERE id = ?').bind(id);
@@ -270,7 +271,7 @@ export async function updatePromo(db: D1Database, id: number, v: PromoValues): P
     await db.batch([
       ...(v.banner ? [clearOtherBanners(db, id)] : []),
       db
-        .prepare(`UPDATE promo_codes SET ${COLUMNS.map((c) => `${c} = ?`).join(', ')}, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`)
+        .prepare(`UPDATE promo_codes SET ${COLUMNS.map((c) => `${c} = ?`).join(', ')}, updated_at = ${NOW_SQL} WHERE id = ?`)
         .bind(...COLUMNS.map((c) => v[c]), id),
     ]);
   } catch (e) {

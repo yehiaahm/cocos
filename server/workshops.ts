@@ -2,6 +2,7 @@ import type { AdminWorkshop, AdminWorkshopInput, PublicWorkshop } from '../src/l
 import { FALLBACK_WORKSHOP_IMAGE, defaultWorkshops } from '../src/lib/workshops';
 import { SLUG_RE, slugify } from '../src/lib/slug';
 import { HttpError, intOrNull, randomToken, str } from './http';
+import { NOW_SQL } from './sql';
 
 /**
  * Workshops shown on the homepage, managed from the dashboard.
@@ -55,28 +56,28 @@ const seededDbs = new WeakSet<object>();
 /** Copies the built-in workshops into the table the first time, and never again. */
 export async function ensureSeeded(db: D1Database): Promise<void> {
   if (seededDbs.has(db)) return;
-  const done = await db.prepare("SELECT 1 AS x FROM settings WHERE key = 'workshops_seeded'").first<{ x: number }>();
+  const done = await db.prepare("SELECT 1 AS x FROM settings WHERE `key` = 'workshops_seeded'").first<{ x: number }>();
   if (!done) {
     await db.batch([
       ...defaultWorkshops.map((w, i) =>
         db
           .prepare(
-            'INSERT OR IGNORE INTO workshops (id, name, name_ar, tag, image, alt, description, day1, day2, price, dates, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT IGNORE INTO workshops (id, name, name_ar, tag, image, alt, description, day1, day2, price, dates, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           )
           .bind(w.id, w.name, w.nameAr, w.tag, w.image, w.alt, w.description, w.day1, w.day2, w.price, w.dates, i),
       ),
-      db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES ('workshops_seeded', '1')"),
+      db.prepare("INSERT IGNORE INTO settings (`key`, `value`) VALUES ('workshops_seeded', '1')"),
     ]);
   }
   seededDbs.add(db);
 }
 
 const bumpRev = (db: D1Database) =>
-  db.prepare("INSERT INTO settings (key, value) VALUES ('workshops_rev', '1') ON CONFLICT(key) DO UPDATE SET value = CAST(CAST(value AS INTEGER) + 1 AS TEXT)");
+  db.prepare("INSERT INTO settings (`key`, `value`) VALUES ('workshops_rev', '1') ON DUPLICATE KEY UPDATE `value` = CAST(CAST(`value` AS SIGNED) + 1 AS CHAR)");
 
 /** 0 = the owner has not changed anything yet, so the shop's built-in list is exact. */
 export async function workshopsRev(db: D1Database): Promise<number> {
-  const row = await db.prepare("SELECT value FROM settings WHERE key = 'workshops_rev'").first<{ value: string }>();
+  const row = await db.prepare("SELECT `value` FROM settings WHERE `key` = 'workshops_rev'").first<{ value: string }>();
   return Number(row?.value) || 0;
 }
 
@@ -198,7 +199,7 @@ export async function updateWorkshop(db: D1Database, id: string, v: WorkshopValu
     db
       .prepare(
         `UPDATE workshops SET name = ?, name_ar = ?, tag = ?, image = ?, alt = ?, description = ?, day1 = ?, day2 = ?, price = ?, dates = ?, active = ?,
-           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`,
+           updated_at = ${NOW_SQL} WHERE id = ?`,
       )
       .bind(v.name, v.name_ar, v.tag, v.image, v.alt, v.description, v.day1, v.day2, v.price, v.dates, v.active, id),
     bumpRev(db),

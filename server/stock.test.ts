@@ -1,7 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import path from 'node:path';
-import { NodeD1 } from './node/d1';
+import { testEnv } from './testDb';
 import type { Env } from './env';
 import { loadOverrides } from './catalog';
 import { createProduct, updateProduct } from './catalogAdmin';
@@ -10,12 +9,8 @@ import * as adminOrder from '../functions/api/admin/orders/[id]';
 import * as adminProducts from '../functions/api/admin/products';
 import * as publicCatalog from '../functions/api/catalog';
 
-/** Stock per product, end to end through the real handlers on an in-memory database. */
-const setup = () => {
-  const db = new NodeD1(':memory:');
-  db.migrate(path.resolve(__dirname, '../migrations'));
-  return { DB: db, SESSION_SECRET: 'test-secret-'.repeat(4) } as unknown as Env;
-};
+/** Stock per product, end to end through the real handlers on a real MySQL database. */
+const setup = () => testEnv();
 const photo = { catalogId: '', name: 'Grey', material: 'Concrete', images: ['/media/catalog/abc123.jpg'] };
 const product = (over: Record<string, unknown> = {}) => ({ name: 'Grey Planter', category: 'concrete', description: '', tags: [], variants: [photo], price: 200, ...over });
 
@@ -45,7 +40,7 @@ const stockOf = async (env: Env, id: string) => (await loadOverrides(env.DB))[id
 
 describe('product stock', () => {
   it('is saved from the product form and from the quick-edit list; empty means not tracked', async () => {
-    const env = setup();
+    const env = await setup();
     const p = await createProduct(env.DB, product({ stock: 7 }));
     expect(await stockOf(env, p.id)).toBe(7);
     await updateProduct(env.DB, p.id, product({ price: 250 })); // no stock sent → kept
@@ -65,7 +60,7 @@ describe('product stock', () => {
   });
 
   it('is subtracted by an order, refused when too much is asked, and returned when the order is cancelled', async () => {
-    const env = setup();
+    const env = await setup();
     const p = await createProduct(env.DB, product({ stock: 5 }));
 
     const tooMany = await order(env, p, 6, '10.0.0.1');
@@ -84,7 +79,7 @@ describe('product stock', () => {
   });
 
   it('shows as sold out in the public catalogue at 0, without revealing the count', async () => {
-    const env = setup();
+    const env = await setup();
     const p = await createProduct(env.DB, product({ stock: 1 }));
     expect((await order(env, p, 1, '10.0.0.3')).status).toBe(201);
     expect(await stockOf(env, p.id)).toBe(0);
@@ -95,7 +90,7 @@ describe('product stock', () => {
   });
 
   it('does not touch products without a tracked stock', async () => {
-    const env = setup();
+    const env = await setup();
     const p = await createProduct(env.DB, product());
     expect((await order(env, p, 4, '10.0.0.5')).status).toBe(201);
     expect(await stockOf(env, p.id)).toBeNull();

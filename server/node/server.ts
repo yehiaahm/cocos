@@ -1,20 +1,22 @@
 /**
- * Node server for Railway (or any Node host). Runs the exact same API handlers as
- * Cloudflare Pages Functions (functions/**), with SQLite instead of D1 and the
- * filesystem instead of R2, and serves the prerendered site from dist/.
+ * Node server for Railway (or any Node host). Runs the API handlers in functions/** with MySQL
+ * (a D1-shaped layer, see mysql.ts) and the filesystem for uploads, and serves the prerendered site from dist/.
  *
  *   PORT                 set by Railway
- *   ADMIN_PASSWORD       required — the dashboard password
- *   DATA_DIR             where the database + uploads live (defaults to the Railway volume mount)
+ *   DATABASE_URL         required — mysql://user:pass@host:3306/db (Railway's MySQL service provides MYSQL_URL, also accepted)
+ *   ADMIN_EMAIL / ADMIN_PASSWORD   the dashboard sign-in
+ *   DATA_DIR             where uploads, secrets.json and database dumps live (defaults to the Railway volume mount)
  */
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { NodeD1 } from './d1';
+import { MySqlDb } from './mysql';
 import { FileR2 } from './r2';
 import { StaticSite, SECURITY_HEADERS } from './static';
 import { loadSecrets } from './secrets';
+import { assertNotSilentlyRecreated, databaseStats, listBackups, startBackupSchedule } from './backup';
+import { requirePersistent, resolveStorage } from './storage';
 import { CLIENT_IP_HEADER, trustedClientIp } from './clientip';
 import { limitedBody } from './bodystream';
 import { catalogHasPath } from '../catalog';
@@ -72,22 +74,66 @@ interface Ctx {
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..'); // dist-server/.. = project root
 const distDir = path.join(root, 'dist');
-const dataDir = path.resolve(process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(root, '.data'));
-mkdirSync(path.join(dataDir, 'uploads'), { recursive: true });
+const storage = resolveStorage(process.env, root);
+const { dataDir, persistent: storagePersistent } = storage;
 
 /** On Railway, the container's own disk is wiped on every deploy. Only a mounted Volume (or an explicit DATA_DIR) survives. */
-const storagePersistent = !process.env.RAILWAY_ENVIRONMENT || !!process.env.RAILWAY_VOLUME_MOUNT_PATH || !!process.env.DATA_DIR;
+console.log(`[storage] files in ${dataDir} (from ${storage.source}) · persistent: ${storagePersistent}`);
 if (!storagePersistent) {
-  console.warn(
-    '\n[warn] ############################################################\n' +
-      '[warn] No Railway Volume attached: products, prices, orders and customers are LOST on every redeploy.\n' +
-      '[warn] Fix: Railway → this service → Volumes → add one with mount path /data, then redeploy.\n' +
-      '[warn] ############################################################\n',
-  );
+  const msg =
+    'No Railway Volume attached: uploaded photos, payment screenshots, the push/session keys and database dumps are LOST on every redeploy. ' +
+    'Fix: Railway → this service → Volumes → add one with mount path /data, then redeploy.';
+  if (requirePersistent(process.env)) {
+    console.error(`[fatal] ${msg} (REQUIRE_PERSISTENT_STORAGE is on, so the server will not start.)`);
+    process.exit(1);
+  }
+  console.warn(`
+[warn] ############################################################
+[warn] ${msg}
+[warn] ############################################################
+`);
 }
 
-const db = new NodeD1(path.join(dataDir, 'cocos.db'));
-db.migrate(path.join(root, 'migrations'));
+mkdirSync(path.join(dataDir, 'uploads'), { recursive: true });
+
+const databaseUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
+if (!databaseUrl) {
+  console.error('[fatal] DATABASE_URL is not set. Add a MySQL service on Railway and set DATABASE_URL=${{MySQL.MYSQL_URL}} on this service.');
+  process.exit(1);
+}
+const backupDir = path.join(dataDir, 'backups');
+const db = new MySqlDb({ url: databaseUrl });
+
+/** The database service can still be starting when this one does: wait for it instead of crashing. */
+async function connectWithRetry(timeoutMs = 90_000) {
+  const t0 = Date.now();
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await db.ping();
+      return;
+    } catch (e) {
+      if (Date.now() - t0 > timeoutMs) throw e;
+      console.warn(`[db] not reachable yet (${(e as { code?: string }).code ?? (e as Error).message}), retrying (${attempt})…`);
+      await new Promise((r) => setTimeout(r, Math.min(5000, 500 * attempt)));
+    }
+  }
+}
+try {
+  const target = new URL(databaseUrl);
+  await connectWithRetry();
+  console.log(`[db] connected to MySQL ${target.hostname}:${target.port || 3306}${target.pathname}`);
+  await assertNotSilentlyRecreated(db, backupDir, process.env);
+  const applied = await db.migrate(path.join(root, 'migrations'));
+  console.log(`[db] migrations up to date${applied.length ? ` (applied ${applied.join(', ')})` : ''}`);
+  console.log(`[db] rows: ${JSON.stringify(await databaseStats(db))}`);
+} catch (e) {
+  console.error('[fatal] database failed to start:', (e as Error).message);
+  process.exit(1);
+}
+const stopBackups = startBackupSchedule(db, backupDir, {
+  everyHours: Number(process.env.BACKUP_INTERVAL_HOURS) || 24,
+  keep: Number(process.env.BACKUP_KEEP) || 14,
+});
 const site = new StaticSite(distDir);
 const secrets = loadSecrets(dataDir);
 if (!secrets.ADMIN_EMAIL || !secrets.ADMIN_PASSWORD) {
@@ -153,9 +199,21 @@ const json = (status: number, body: unknown) =>
 async function handle(request: Request): Promise<Response> {
   const url = new URL(request.url);
   if (url.pathname === '/healthz') {
-    await db.prepare('SELECT 1').first();
-    // `persistent: false` means data is written to the container disk and will vanish on the next deploy.
-    return json(200, { ok: true, persistent: storagePersistent });
+    // `persistent: false` means uploads/keys/dumps are written to the container disk and vanish on the next deploy.
+    // With REQUIRE_PERSISTENT_STORAGE=1 that is a failed health check, so Railway keeps the previous deployment running.
+    try {
+      await db.ping();
+    } catch (e) {
+      console.error('[healthz] database check failed:', (e as Error).message);
+      return json(503, { ok: false, error: 'database unavailable' });
+    }
+    const lastBackup = listBackups(backupDir).at(-1);
+    const ok = storagePersistent || !requirePersistent(process.env);
+    return json(ok ? 200 : 503, {
+      ok,
+      persistent: storagePersistent,
+      lastBackupAt: lastBackup ? new Date(lastBackup.mtimeMs).toISOString() : null,
+    });
   }
 
   for (const r of routes) {
@@ -273,6 +331,16 @@ server.requestTimeout = 120_000;
 const port = Number(process.env.PORT) || 3000;
 server.listen(port, () => console.log(`[server] Coco's site on :${port} · data in ${dataDir}`));
 
-const shutdown = () => server.close(() => process.exit(0));
+const shutdown = () =>
+  server.close(async () => {
+    stopBackups();
+    try {
+      await db.close();
+      console.log('[db] connections closed');
+    } catch (e) {
+      console.error('[db] error while closing:', (e as Error).message);
+    }
+    process.exit(0);
+  });
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);

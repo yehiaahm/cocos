@@ -2,6 +2,7 @@ import type { AdminProduct, CatalogOverride } from '../src/lib/api-types';
 import { SLUG_RE, slugify } from '../src/lib/slug';
 import { HttpError, intOrNull, str } from './http';
 import { HIDDEN_IDS, OCCASION_SLUGS, loadCatalog, overrideFor, loadOverrides, type Catalog, type CatalogCategory, type Product, type Variant } from './catalog';
+import { NOW_SQL } from './sql';
 
 /** Everything the dashboard can change in the catalogue: validation first, then one transaction per change. */
 
@@ -146,7 +147,7 @@ export function validateProduct(input: ProductInput, catalog: Catalog, existing?
 
 const bumpRev = (db: D1Database) =>
   db.prepare(
-    "INSERT INTO settings (key, value) VALUES ('catalog_rev', '1') ON CONFLICT(key) DO UPDATE SET value = CAST(CAST(value AS INTEGER) + 1 AS TEXT)",
+    "INSERT INTO settings (`key`, `value`) VALUES ('catalog_rev', '1') ON DUPLICATE KEY UPDATE `value` = CAST(CAST(`value` AS SIGNED) + 1 AS CHAR)",
   );
 
 function overrideStatement(db: D1Database, id: string, current: { price: number | null; hidden: boolean; soldOut: boolean; stock?: number | null }, patch: ValidProduct['overrides']) {
@@ -159,9 +160,9 @@ function overrideStatement(db: D1Database, id: string, current: { price: number 
   return db
     .prepare(
       `INSERT INTO product_overrides (product_id, price, hidden, sold_out, stock, updated_at)
-       VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
-       ON CONFLICT(product_id) DO UPDATE SET price = excluded.price, hidden = excluded.hidden,
-         sold_out = excluded.sold_out, stock = excluded.stock, updated_at = excluded.updated_at`,
+       VALUES (?, ?, ?, ?, ?, ${NOW_SQL}) AS incoming
+       ON DUPLICATE KEY UPDATE price = incoming.price, hidden = incoming.hidden,
+         sold_out = incoming.sold_out, stock = incoming.stock, updated_at = incoming.updated_at`,
     )
     .bind(id, next.price, next.hidden ? 1 : 0, next.soldOut ? 1 : 0, next.stock);
 }
@@ -180,7 +181,7 @@ export async function createProduct(db: D1Database, input: ProductInput): Promis
       .bind(product.id, product.slug, product.name, product.description, product.category, JSON.stringify(product.tags), product.image, JSON.stringify(product.variants), (min?.m ?? 0) - 1),
     ...(Object.keys(overrides).length ? [overrideStatement(db, product.id, { price: null, hidden: false, soldOut: false, stock: null }, overrides)] : []),
     db
-      .prepare("INSERT INTO settings (key, value) VALUES ('catalog_max_id', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
+      .prepare("INSERT INTO settings (`key`, `value`) VALUES ('catalog_max_id', ?) AS incoming ON DUPLICATE KEY UPDATE `value` = incoming.`value`")
       .bind(String(Number(product.id.slice(5)))),
     bumpRev(db),
   ];
@@ -197,7 +198,7 @@ export async function updateProduct(db: D1Database, id: string, input: ProductIn
     db
       .prepare(
         `UPDATE catalog_products SET slug = ?, name = ?, description = ?, category = ?, tags = ?, image = ?, variants = ?,
-           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`,
+           updated_at = ${NOW_SQL} WHERE id = ?`,
       )
       .bind(product.slug, product.name, product.description, product.category, JSON.stringify(product.tags), product.image, JSON.stringify(product.variants), id),
   ];
@@ -266,7 +267,7 @@ export async function updateCategory(db: D1Database, slug: string, input: Catego
   const clean = cleanCategory(input);
   await db.batch([
     db
-      .prepare("UPDATE catalog_categories SET name = ?, name_ar = ?, description = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE slug = ?")
+      .prepare(`UPDATE catalog_categories SET name = ?, name_ar = ?, description = ?, updated_at = ${NOW_SQL} WHERE slug = ?`)
       .bind(clean.name, clean.nameAr, clean.description, slug),
     bumpRev(db),
   ]);
@@ -284,7 +285,7 @@ export async function deleteCategory(db: D1Database, slug: string, moveTo?: stri
     if (moveTo === slug || !catalog.categories.some((c) => c.slug === moveTo)) throw bad('Choose another category to move the products to.', 'category_missing');
     stmts.push(
       db
-        .prepare("UPDATE catalog_products SET category = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE category = ?")
+        .prepare(`UPDATE catalog_products SET category = ?, updated_at = ${NOW_SQL} WHERE category = ?`)
         .bind(moveTo, slug),
     );
   }
