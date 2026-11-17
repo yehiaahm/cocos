@@ -102,11 +102,11 @@ for (const f of htmlFiles) {
 }
 const csp = [
   "default-src 'self'",
-  `script-src 'self' ${[...hashes].join(' ')}`.trim(),
+  `script-src 'self' https://us-assets.i.posthog.com ${[...hashes].join(' ')}`.trim(),
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https://*.googleusercontent.com",
-  "connect-src 'self' https://*.ingest.de.sentry.io",
+  "connect-src 'self' https://*.ingest.de.sentry.io https://us.i.posthog.com https://us-assets.i.posthog.com",
   "manifest-src 'self'",
   "worker-src 'self'",
   "object-src 'none'",

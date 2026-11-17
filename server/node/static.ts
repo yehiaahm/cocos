@@ -40,7 +40,7 @@ export const SECURITY_HEADERS: Record<string, string> = {
 
 /** Used only when dist/csp.txt is missing (it is written by every full build). */
 const FALLBACK_PAGE_CSP =
-  "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleusercontent.com; connect-src 'self' https://*.ingest.de.sentry.io; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
+  "default-src 'self'; script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleusercontent.com; connect-src 'self' https://*.ingest.de.sentry.io https://us.i.posthog.com https://us-assets.i.posthog.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 
 function cacheFor(urlPath: string, ext: string): string {
   if (urlPath.startsWith('/assets/')) return 'public, max-age=31536000, immutable';
