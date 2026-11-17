@@ -15,7 +15,7 @@ import { orderTotals } from '../lib/promo';
 import { forgetPromoCode } from '../lib/promo-pick';
 import { PromoField } from '../components/PromoField';
 import { ArrowRight } from '../components/Icons';
-import { launchPayment, paymentAppFor } from '../lib/payment-apps';
+import { launchPayment, parseInstapayLink, paymentAppFor } from '../lib/payment-apps';
 
 const GOVERNORATES = [
   'Cairo', 'Giza', 'Alexandria', 'Qalyubia', 'Sharqia', 'Dakahlia', 'Gharbia', 'Monufia', 'Beheira',
@@ -103,7 +103,13 @@ export function CheckoutPage() {
 
   const methods: { id: PaymentMethod; title: string; desc: string }[] = [
     { id: 'cod', title: 'Cash on delivery', desc: 'Pay in cash when your order arrives.' },
-    { id: 'instapay', title: 'InstaPay', desc: 'After you place the order, we’ll open the InstaPay app (the address is copied for you to paste).' },
+    {
+      id: 'instapay',
+      title: 'InstaPay',
+      desc: parseInstapayLink(payment?.instapayLink)
+        ? 'After you place the order, we’ll open the InstaPay app with our account already filled in.'
+        : 'After you place the order, we’ll open the InstaPay app (the address is copied for you to paste).',
+    },
     {
       id: 'wallet',
       title: payment?.walletName || 'Vodafone Cash',
